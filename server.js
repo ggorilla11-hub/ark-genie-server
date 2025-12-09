@@ -15,18 +15,23 @@ const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_NUMBER = process.env.TWILIO_NUMBER;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-const SYSTEM_PROMPT = `당신은 "지니"입니다. 오원트금융연구소의 AI 개인비서입니다.
-- 오상열 대표님의 AI 비서
-- 항상 "네, 대표님!"으로 응답 시작
-- 짧고 친근하게 대화
-- 전화, 일정, 기록 등 명령 수행`;
+const SYSTEM_PROMPT = `당신은 "지니"입니다. 오원트금융연구소의 AI 비서입니다.
 
-// 기본 라우트
+[필수 규칙]
+1. 항상 "네, 대표님!"으로 응답을 시작하세요
+2. 짧고 친근하게 대화하세요 (1-2문장)
+3. 대표님이 말씀하실 때까지 기다리세요
+4. 먼저 말하지 마세요
+5. 질문에만 대답하세요
+
+[역할]
+- 오상열 대표님의 개인 AI 비서
+- 전화 연결, 일정 관리, 기록 등 업무 보조`;
+
 app.get('/', (req, res) => {
   res.send('AI지니 서버 실행 중!');
 });
 
-// 전화 발신
 app.get('/make-call', async (req, res) => {
   const to = req.query.to;
   if (!to) {
@@ -40,17 +45,13 @@ app.get('/make-call', async (req, res) => {
       to: to,
       from: TWILIO_NUMBER
     });
-    console.log('전화 발신:', call.sid);
     res.json({ success: true, callSid: call.sid });
   } catch (error) {
-    console.error('발신 에러:', error);
     res.json({ success: false, error: error.message });
   }
 });
 
-// Twilio 웹훅
 app.post('/incoming-call', (req, res) => {
-  console.log('전화 연결됨!');
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Connect>
@@ -66,16 +67,13 @@ const server = app.listen(PORT, () => {
   console.log(`AI지니 서버 시작! (포트 ${PORT})`);
 });
 
-// WebSocket 서버
 const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws, req) => {
-  console.log('WebSocket 연결됨!');
+  console.log('클라이언트 연결됨');
   
   let openaiWs = null;
-  let streamSid = null;
 
-  // OpenAI Realtime API 연결
   const connectOpenAI = () => {
     openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview', {
       headers: {
@@ -85,7 +83,7 @@ wss.on('connection', (ws, req) => {
     });
 
     openaiWs.on('open', () => {
-      console.log('OpenAI Realtime API 연결됨!');
+      console.log('OpenAI 연결됨');
       
       openaiWs.send(JSON.stringify({
         type: 'session.update',
@@ -95,50 +93,62 @@ wss.on('connection', (ws, req) => {
           voice: 'alloy',
           input_audio_format: 'pcm16',
           output_audio_format: 'pcm16',
+          input_audio_transcription: {
+            model: 'whisper-1'
+          },
           turn_detection: {
             type: 'server_vad',
             threshold: 0.5,
             prefix_padding_ms: 300,
-            silence_duration_ms: 500
+            silence_duration_ms: 800
           }
         }
       }));
+
+      // 연결 완료 알림
+      ws.send(JSON.stringify({ type: 'connected' }));
     });
 
     openaiWs.on('message', (data) => {
-      const event = JSON.parse(data.toString());
-      
-      // 음성 응답을 클라이언트로 전송
-      if (event.type === 'response.audio.delta' && event.delta) {
-        ws.send(JSON.stringify({
-          type: 'audio',
-          data: event.delta
-        }));
-      }
-      
-      // 텍스트 응답
-      if (event.type === 'response.audio_transcript.done') {
-        console.log('지니:', event.transcript);
-        ws.send(JSON.stringify({
-          type: 'transcript',
-          text: event.transcript,
-          role: 'assistant'
-        }));
-      }
+      try {
+        const event = JSON.parse(data.toString());
+        
+        // 사용자 음성 인식 결과
+        if (event.type === 'conversation.item.input_audio_transcription.completed') {
+          console.log('사용자:', event.transcript);
+          ws.send(JSON.stringify({
+            type: 'transcript',
+            text: event.transcript,
+            role: 'user'
+          }));
+        }
 
-      // 사용자 음성 인식 결과
-      if (event.type === 'conversation.item.input_audio_transcription.completed') {
-        console.log('사용자:', event.transcript);
-        ws.send(JSON.stringify({
-          type: 'transcript',
-          text: event.transcript,
-          role: 'user'
-        }));
-      }
+        // 지니 텍스트 응답
+        if (event.type === 'response.audio_transcript.done') {
+          console.log('지니:', event.transcript);
+          ws.send(JSON.stringify({
+            type: 'transcript',
+            text: event.transcript,
+            role: 'assistant'
+          }));
+        }
 
-      // Barge-in (사용자가 말하면 AI 중단)
-      if (event.type === 'input_audio_buffer.speech_started') {
-        console.log('사용자 말하기 시작 - AI 중단');
+        // 지니 음성 응답
+        if (event.type === 'response.audio.delta' && event.delta) {
+          ws.send(JSON.stringify({
+            type: 'audio',
+            data: event.delta
+          }));
+        }
+
+        // Barge-in: 사용자가 말하면 AI 중단
+        if (event.type === 'input_audio_buffer.speech_started') {
+          console.log('사용자 말하기 시작 - AI 응답 중단');
+          openaiWs.send(JSON.stringify({ type: 'response.cancel' }));
+        }
+
+      } catch (e) {
+        console.error('OpenAI 메시지 파싱 에러:', e);
       }
     });
 
@@ -146,23 +156,14 @@ wss.on('connection', (ws, req) => {
     openaiWs.on('close', () => console.log('OpenAI 연결 종료'));
   };
 
-  // 클라이언트 메시지 처리
   ws.on('message', (message) => {
     try {
       const msg = JSON.parse(message);
       
-      // Twilio Media Stream
-      if (msg.event === 'start') {
-        streamSid = msg.start.streamSid;
-        console.log('Twilio Stream 시작:', streamSid);
+      // 웹 클라이언트 시작 요청
+      if (msg.type === 'start') {
+        console.log('음성 세션 시작');
         connectOpenAI();
-      }
-      
-      if (msg.event === 'media' && openaiWs && openaiWs.readyState === WebSocket.OPEN) {
-        openaiWs.send(JSON.stringify({
-          type: 'input_audio_buffer.append',
-          audio: msg.media.payload
-        }));
       }
 
       // 웹 클라이언트 오디오
@@ -173,20 +174,28 @@ wss.on('connection', (ws, req) => {
         }));
       }
 
-      // 연결 시작 요청
-      if (msg.type === 'start') {
+      // Twilio Media Stream
+      if (msg.event === 'start') {
+        console.log('Twilio 스트림 시작');
         connectOpenAI();
+      }
+      
+      if (msg.event === 'media' && openaiWs && openaiWs.readyState === WebSocket.OPEN) {
+        openaiWs.send(JSON.stringify({
+          type: 'input_audio_buffer.append',
+          audio: msg.media.payload
+        }));
       }
 
     } catch (e) {
-      console.error('메시지 파싱 에러:', e);
+      console.error('메시지 처리 에러:', e);
     }
   });
 
   ws.on('close', () => {
-    console.log('WebSocket 연결 종료');
+    console.log('클라이언트 연결 종료');
     if (openaiWs) openaiWs.close();
   });
 });
 
-console.log('서버 초기화 완료!');
+console.log('서버 준비 완료');
