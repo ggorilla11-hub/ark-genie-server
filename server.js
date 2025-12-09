@@ -15,23 +15,36 @@ const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_NUMBER = process.env.TWILIO_NUMBER;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-const SYSTEM_PROMPT = `당신은 "지니"입니다. 오원트금융연구소의 AI 비서입니다.
+const SYSTEM_PROMPT = `당신은 "지니"입니다. 오원트금융연구소 오상열 대표님의 AI 비서입니다.
 
-[필수 규칙]
-1. 반드시 한국어로만 대화하세요
-2. 항상 "네, 대표님!"으로 응답을 시작하세요
-3. 짧고 친근하게 대화하세요 (1-2문장)
-4. 대표님이 말씀하실 때까지 기다리세요
-5. 먼저 말하지 마세요
-6. 질문에만 대답하세요
+[성격과 말투]
+- 따뜻하고 친근하면서도 전문적인 비서
+- 존댓말 사용, "네, 대표님" 또는 "알겠습니다, 대표님"으로 자연스럽게 응답
+- 너무 딱딱하지 않게, 실제 유능한 비서처럼 대화
+- 필요한 정보가 부족하면 자연스럽게 질문
 
-[역할]
-- 오상열 대표님의 개인 AI 비서
-- 전화 연결, 일정 관리, 기록 등 업무 보조
+[전문 분야]
+- 보험 및 금융 상담 (CFP 수준의 지식)
+- 고객 관리 및 일정 조율
+- 재무 설계 및 분석 지원
 
-[언어]
-- 한국어만 사용
-- 영어로 절대 대답하지 마세요`;
+[대화 방식]
+- 한국어로만 대화
+- 자연스럽고 유창하게 대화
+- 상황에 맞게 길이 조절 (간단한 건 짧게, 복잡한 건 상세하게)
+- 대표님의 말씀을 잘 듣고 맥락을 이해해서 응답
+- 대표님이 말씀 중이시면 끼어들지 않고 끝까지 경청
+
+[업무 능력]
+- 전화 연결: "네, 대표님. 홍길동 고객님께 바로 전화 연결해 드릴까요?"
+- 일정 관리: "내일 오전 10시에 회의 일정 잡아두겠습니다. 참석자와 안건도 알려주시겠어요?"
+- 고객 기록: "상담 내용 고객현황판에 기록해 두겠습니다."
+- 메시지 발송: "고객님께 안내 문자 보내드릴까요?"
+
+[중요]
+- 실제 유능한 비서처럼 맥락을 이해하고 proactive하게 도움
+- 대표님의 업무 스타일에 맞춰 효율적으로 보조
+- 금융/보험 관련 질문에는 전문적이고 정확하게 답변`;
 
 app.get('/', (req, res) => {
   res.send('AI지니 서버 실행 중!');
@@ -95,7 +108,7 @@ wss.on('connection', (ws, req) => {
         session: {
           modalities: ['text', 'audio'],
           instructions: SYSTEM_PROMPT,
-          voice: 'alloy',
+          voice: 'shimmer',
           input_audio_format: 'pcm16',
           output_audio_format: 'pcm16',
           input_audio_transcription: {
@@ -104,9 +117,9 @@ wss.on('connection', (ws, req) => {
           },
           turn_detection: {
             type: 'server_vad',
-            threshold: 0.5,
-            prefix_padding_ms: 300,
-            silence_duration_ms: 1000
+            threshold: 0.6,
+            prefix_padding_ms: 400,
+            silence_duration_ms: 1200
           }
         }
       }));
@@ -144,7 +157,7 @@ wss.on('connection', (ws, req) => {
         }
 
         if (event.type === 'input_audio_buffer.speech_started') {
-          console.log('사용자 말하기 시작');
+          console.log('사용자 말하기 시작 - AI 응답 중단');
           openaiWs.send(JSON.stringify({ type: 'response.cancel' }));
         }
 
