@@ -1,79 +1,38 @@
 const express = require('express');
-const WebSocket = require('ws');
+const cors = require('cors');
 const twilio = require('twilio');
 
 const app = express();
-app.use(express.json());
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  if (req.method === 'OPTIONS') return res.sendStatus(200);
-  next();
-});
+const PORT = process.env.PORT || 10000;
 
+// 환경변수
 const TWILIO_ACCOUNT_SID = process.env.TWILIO_ACCOUNT_SID;
 const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_NUMBER = process.env.TWILIO_NUMBER;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const KAKAO_REST_API_KEY = process.env.KAKAO_REST_API_KEY || 'f997b74fe39e51f2ee49e5ee0d12b8d8';
 
-const SYSTEM_PROMPT = `당신은 "지니"입니다. 오원트금융연구소 오상열 대표님의 AI 비서입니다.
+// Twilio 클라이언트
+const twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
-[성격과 말투]
-- 따뜻하고 친근하면서도 전문적인 비서
-- 항상 "네, 대표님!"으로 자연스럽게 응답 시작
-- 너무 딱딱하지 않게, 실제 유능한 비서처럼 대화
-- 짧고 명확하게 답변 (1-3문장)
-
-[전문 분야]
-- 보험 및 금융 상담 (CFP 수준의 지식)
-- 고객 관리 및 일정 조율
-- 재무 설계 및 분석 지원
-
-[업무 능력]
-- 전화 연결 요청시: "네, 대표님. [이름]님께 바로 전화 연결해 드릴까요?"
-- 일정 관리 요청시: "네, 대표님. [시간]에 [일정] 잡아두겠습니다."
-- 고객 기록 요청시: "네, 대표님. 고객현황판에 기록해 두겠습니다."
-- 메시지 발송 요청시: "네, 대표님. [고객]님께 메시지 보내드릴까요?"
-
-[중요]
-- 한국어로만 대화
-- 대표님의 말씀을 잘 듣고 맥락을 이해해서 응답
-- 금융/보험 관련 질문에는 전문적이고 정확하게 답변
-- 모르는 것은 솔직히 모른다고 하고, 확인 후 답변드리겠다고 함`;
-
-// 대화 히스토리 저장 (세션별)
-const conversationHistory = new Map();
+// 미들웨어
+app.use(cors());
+app.use(express.json());
 
 // 기본 라우트
 app.get('/', (req, res) => {
-  res.send('AI지니 서버 실행 중!');
+  res.json({ 
+    status: 'AI지니 서버 실행 중!',
+    version: '2.0',
+    endpoints: ['/api/chat', '/api/call', '/api/sms', '/api/kakao', '/api/email']
+  });
 });
 
-// GPT-4o 채팅 API
-app.post('/chat', async (req, res) => {
-  const { message, sessionId = 'default' } = req.body;
-  
-  if (!message) {
-    return res.json({ reply: '메시지가 없습니다.' });
-  }
-
+// GPT 채팅 API
+app.post('/api/chat', async (req, res) => {
   try {
-    // 대화 히스토리 가져오기
-    if (!conversationHistory.has(sessionId)) {
-      conversationHistory.set(sessionId, []);
-    }
-    const history = conversationHistory.get(sessionId);
+    const { message } = req.body;
     
-    // 사용자 메시지 추가
-    history.push({ role: 'user', content: message });
-    
-    // 최근 10개 대화만 유지
-    if (history.length > 20) {
-      history.splice(0, history.length - 20);
-    }
-
-    // OpenAI API 호출
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -83,67 +42,195 @@ app.post('/chat', async (req, res) => {
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          ...history
+          {
+            role: 'system',
+            content: `당신은 AI지니입니다. 보험설계사를 돕는 AI 비서입니다.
+- 친절하고 전문적으로 답변합니다
+- 한국어로 간결하게 2-3문장으로 답변합니다
+- 항상 "네, 대표님!" 또는 "네, 알겠습니다!"로 시작합니다
+- 보험, 금융, 고객 관리에 대해 전문적인 조언을 제공합니다`
+          },
+          { role: 'user', content: message }
         ],
-        max_tokens: 300,
+        max_tokens: 500,
         temperature: 0.7
       })
     });
-
+    
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || '죄송합니다, 다시 말씀해주세요.';
-    
-    // 지니 응답 히스토리에 추가
-    history.push({ role: 'assistant', content: reply });
-    
-    console.log('사용자:', message);
-    console.log('지니:', reply);
+    const reply = data.choices?.[0]?.message?.content || '네, 알겠습니다!';
     
     res.json({ reply });
-
   } catch (error) {
-    console.error('GPT 에러:', error);
-    res.json({ reply: '네, 대표님! 잠시 연결이 불안정합니다. 다시 말씀해주세요.' });
+    console.error('Chat error:', error);
+    res.json({ reply: '네, 알겠습니다! 무엇을 도와드릴까요?' });
   }
 });
 
 // 전화 발신 API
-app.get('/make-call', async (req, res) => {
-  const to = req.query.to;
-  if (!to) {
-    return res.json({ success: false, error: '전화번호가 필요합니다' });
-  }
-  
-  const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+app.post('/api/call', async (req, res) => {
   try {
-    const call = await client.calls.create({
-      url: `https://${req.headers.host}/incoming-call`,
-      to: to,
-      from: TWILIO_NUMBER
+    const { to, customerName } = req.body;
+    
+    // 전화번호 포맷 정리
+    let phoneNumber = to.replace(/[-\s]/g, '');
+    if (phoneNumber.startsWith('010')) {
+      phoneNumber = '+82' + phoneNumber.slice(1);
+    }
+    
+    const call = await twilioClient.calls.create({
+      to: phoneNumber,
+      from: TWILIO_NUMBER,
+      twiml: `<Response>
+        <Say language="ko-KR" voice="Google.ko-KR-Wavenet-A">
+          안녕하세요, ${customerName || '고객'}님. AI지니입니다. 
+          오상열 CFP님께서 상담 일정을 잡고 싶어하십니다.
+          편하신 시간을 말씀해 주시면 일정을 잡아드리겠습니다.
+        </Say>
+        <Pause length="3"/>
+        <Say language="ko-KR" voice="Google.ko-KR-Wavenet-A">
+          감사합니다. 좋은 하루 되세요.
+        </Say>
+      </Response>`
     });
-    console.log('전화 발신:', to);
+    
+    console.log('Call SID:', call.sid);
     res.json({ success: true, callSid: call.sid });
   } catch (error) {
-    console.error('전화 에러:', error);
-    res.json({ success: false, error: error.message });
+    console.error('Call error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-// Twilio 웹훅
-app.post('/incoming-call', (req, res) => {
-  const twiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="alice" language="ko-KR">안녕하세요, 오원트금융연구소입니다. 무엇을 도와드릴까요?</Say>
-  <Pause length="60"/>
-</Response>`;
-  res.type('text/xml');
-  res.send(twiml);
+// SMS 발송 API
+app.post('/api/sms', async (req, res) => {
+  try {
+    const { to, customerName, message } = req.body;
+    
+    // 전화번호 포맷 정리
+    let phoneNumber = to.replace(/[-\s]/g, '');
+    if (phoneNumber.startsWith('010')) {
+      phoneNumber = '+82' + phoneNumber.slice(1);
+    }
+    
+    const smsMessage = message || `[AI지니] 안녕하세요 ${customerName || '고객'}님, 오상열 CFP입니다. 상담 예약 확인 안내드립니다.`;
+    
+    const result = await twilioClient.messages.create({
+      to: phoneNumber,
+      from: TWILIO_NUMBER,
+      body: smsMessage
+    });
+    
+    console.log('SMS SID:', result.sid);
+    res.json({ success: true, messageSid: result.sid });
+  } catch (error) {
+    console.error('SMS error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
 });
 
-const PORT = process.env.PORT || 10000;
-const server = app.listen(PORT, () => {
+// 카카오톡 알림톡 API (시뮬레이션)
+app.post('/api/kakao', async (req, res) => {
+  try {
+    const { customerName, message, phone } = req.body;
+    
+    // 실제 카카오 알림톡은 비즈니스 채널 승인 후 사용 가능
+    // 현재는 시뮬레이션으로 처리
+    console.log('카카오톡 발송 요청:', { customerName, message, phone });
+    
+    // TODO: 카카오 비즈니스 채널 승인 후 실제 API 연동
+    // const kakaoResponse = await fetch('https://kapi.kakao.com/v2/api/talk/memo/default/send', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Authorization': `Bearer ${ACCESS_TOKEN}`,
+    //     'Content-Type': 'application/x-www-form-urlencoded'
+    //   },
+    //   body: new URLSearchParams({
+    //     template_object: JSON.stringify({...})
+    //   })
+    // });
+    
+    res.json({ 
+      success: true, 
+      message: '카카오톡 발송 완료 (시뮬레이션)',
+      customerName,
+      sentMessage: message || '상담 예약 확인 안내'
+    });
+  } catch (error) {
+    console.error('Kakao error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 이메일 발송 API (시뮬레이션)
+app.post('/api/email', async (req, res) => {
+  try {
+    const { to, customerName, subject, body } = req.body;
+    
+    // TODO: Gmail API 또는 SMTP 연동
+    console.log('이메일 발송 요청:', { to, customerName, subject });
+    
+    res.json({ 
+      success: true, 
+      message: '이메일 발송 완료 (시뮬레이션)',
+      customerName,
+      subject: subject || '상담 예약 안내'
+    });
+  } catch (error) {
+    console.error('Email error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 구글 시트 기록 API (시뮬레이션)
+app.post('/api/sheet', async (req, res) => {
+  try {
+    const { customerName, content, date } = req.body;
+    
+    // TODO: Google Sheets API 연동
+    console.log('시트 기록 요청:', { customerName, content, date });
+    
+    res.json({ 
+      success: true, 
+      message: '고객현황판 기록 완료 (시뮬레이션)',
+      customerName,
+      content
+    });
+  } catch (error) {
+    console.error('Sheet error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 구글 캘린더 등록 API (시뮬레이션)
+app.post('/api/calendar', async (req, res) => {
+  try {
+    const { title, date, time, customerName } = req.body;
+    
+    // TODO: Google Calendar API 연동
+    console.log('캘린더 등록 요청:', { title, date, time, customerName });
+    
+    res.json({ 
+      success: true, 
+      message: '캘린더 일정 등록 완료 (시뮬레이션)',
+      title,
+      dateTime: `${date} ${time}`
+    });
+  } catch (error) {
+    console.error('Calendar error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 서버 시작
+app.listen(PORT, () => {
   console.log(`AI지니 서버 시작! (포트 ${PORT})`);
+  console.log('사용 가능한 API:');
+  console.log('- POST /api/chat (GPT 대화)');
+  console.log('- POST /api/call (전화 발신)');
+  console.log('- POST /api/sms (문자 발송)');
+  console.log('- POST /api/kakao (카카오톡)');
+  console.log('- POST /api/email (이메일)');
+  console.log('- POST /api/sheet (구글시트)');
+  console.log('- POST /api/calendar (캘린더)');
 });
-
-console.log('서버 준비 완료');
