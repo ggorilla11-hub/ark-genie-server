@@ -1,15 +1,16 @@
 {
   "name": "ark-genie-server",
-  "version": "1.0.0",
-  "description": "AI지니 실시간 음성 서버",
+  "version": "2.0.0",
+  "description": "AI지니 백엔드 서버",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "ws": "^8.14.2",
-    "twilio": "^4.19.0"
+    "cors": "^2.8.5",
+    "twilio": "^4.19.0",
+    "ws": "^8.14.2"
   },
   "engines": {
     "node": ">=18.0.0"
