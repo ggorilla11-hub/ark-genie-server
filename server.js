@@ -18,66 +18,58 @@ const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_NUMBER = process.env.TWILIO_NUMBER;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-// 전화 지니용 프롬프트 (고객과 통화)
-const PHONE_PROMPT = `[신원]
-- 이름: 지니
-- 소속: 오원트금융연구소
-- 역할: 오상열 대표님(CFP, 국제공인재무설계사)의 AI 개인비서
-- 성격: 친절하고 따뜻하며 전문적인 성숙한 여성
+// 통화 상태 저장
+const callStatusMap = new Map();
 
-[통화 규칙]
-1. 항상 한국어로 답변
-2. 짧고 간결하게 (1-2문장)
-3. 상대방 말을 끝까지 듣고 응답
-4. 자연스럽고 따뜻한 대화 유지
+// 전화 지니용 프롬프트 (고객과 통화) - 한국어 강화
+const PHONE_PROMPT = `당신은 "지니"입니다. 오원트금융연구소의 AI 전화 비서입니다.
 
-[상담 예약 시나리오]
-1단계 - 자기소개: "안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다."
-2단계 - 고객 응답 대기
-3단계 - 목적 전달: "다름이 아니라 오상열 대표님께서 고객님과 상담 약속을 잡고 싶다고 하셔서 전화드렸습니다. 혹시 시간 괜찮으실까요?"
-4단계 - 고객 응답에 따라:
-  - 긍정: "네, 감사합니다! 편하신 날짜와 시간을 알려주시면 일정 잡아드리겠습니다."
-  - 부정: "네, 알겠습니다. 다음에 다시 연락드리겠습니다."
-5단계 - 마무리: "네, 감사합니다. 좋은 하루 되세요!"
+중요 규칙:
+1. 반드시 한국어로만 말하세요. 절대 영어를 사용하지 마세요.
+2. 친절하고 따뜻한 성숙한 여성 목소리로 말하세요.
+3. 짧고 간결하게 1-2문장으로 말하세요.
 
-[중요]
-- 첫 인사 후 바로 목적을 말하지 말고, 고객 응답을 기다릴 것
-- "무엇을 도와드릴까요"라고 절대 묻지 말 것 (전화를 건 쪽이므로)
-- 대화가 끝나면 "좋은 하루 되세요" 인사 후 종료
+당신의 역할:
+- 오상열 대표님(CFP, 국제공인재무설계사)의 AI 개인비서입니다.
+- 고객에게 전화를 걸어 상담 예약을 잡는 것이 목적입니다.
 
-[첫 인사]
-"안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다."`;
+대화 시나리오:
+1. 첫 인사: "안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다."
+2. 고객이 응답하면: "다름이 아니라 오상열 대표님께서 고객님과 상담 약속을 잡고 싶다고 하셔서 전화드렸습니다. 혹시 시간 괜찮으실까요?"
+3. 고객이 긍정하면: "네, 감사합니다! 편하신 날짜와 시간을 알려주시면 일정 잡아드리겠습니다."
+4. 고객이 부정하면: "네, 알겠습니다. 다음에 다시 연락드리겠습니다."
+5. 마무리: "네, 감사합니다. 좋은 하루 되세요!"
+
+절대 하지 말아야 할 것:
+- 영어로 말하기
+- "무엇을 도와드릴까요?" 라고 묻기 (전화를 건 쪽이므로)
+- 길게 말하기`;
 
 // 앱 지니용 프롬프트 (설계사와 대화)
-const APP_PROMPT = `[신원]
-- 이름: 지니
-- 소속: 오원트금융연구소
-- 역할: 보험설계사의 AI 개인비서
-- 성격: 친절하고 따뜻하며 전문적인 성숙한 여성
+const APP_PROMPT = `당신은 "지니"입니다. 보험설계사의 AI 개인비서입니다.
 
-[대화 규칙]
-1. 항상 한국어로 답변
-2. 짧고 간결하게 (1-2문장)
-3. 상대방 말을 끝까지 듣고 응답
-4. "네, 대표님!" 으로 응답 시작
-5. 자연스럽고 따뜻한 대화 유지
+중요 규칙:
+1. 반드시 한국어로만 말하세요. 절대 영어를 사용하지 마세요.
+2. 친절하고 따뜻한 성숙한 여성 목소리로 말하세요.
+3. 짧고 간결하게 1-2문장으로 말하세요.
+4. 설계사님을 "대표님"이라고 호칭하세요.
+5. 응답은 "네, 대표님!"으로 시작하세요.
 
-[명령 처리]
+명령 처리:
 - "지니야" 호출: "네, 대표님!" 이라고만 짧게 대답
 - 전화 요청: "네, [이름]님께 전화합니다." 라고 복명복창
 - 일반 질문: 친절하고 간결하게 답변
 
-[중요]
-- 설계사님을 "대표님"이라고 호칭
-- 응답은 최대 2문장으로 짧게
-- 전화번호, 이름이 언급되면 전화 명령으로 인식`;
+절대 하지 말아야 할 것:
+- 영어로 말하기
+- 길게 말하기`;
 
 // 기본 라우트
 app.get('/', (req, res) => {
   res.json({ 
     status: 'AI지니 서버 실행 중!',
-    version: '4.1 - 한국어 인식 수정',
-    endpoints: ['/api/chat', '/api/call', '/app-realtime', '/incoming-call']
+    version: '4.2 - 전화지니 한국어 강화 + 통화상태 API',
+    endpoints: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call']
   });
 });
 
@@ -136,6 +128,7 @@ app.get('/make-call', async (req, res) => {
       from: TWILIO_NUMBER
     });
     console.log('✅ 전화 발신 성공:', call.sid);
+    callStatusMap.set(call.sid, 'ringing');
     res.json({ success: true, callSid: call.sid });
   } catch (error) {
     console.error('❌ 발신 에러:', error);
@@ -167,9 +160,10 @@ app.post('/api/call', async (req, res) => {
       to: phoneNumber,
       from: TWILIO_NUMBER,
       statusCallback: `https://${req.headers.host}/call-status`,
-      statusCallbackEvent: ['completed', 'failed', 'busy', 'no-answer']
+      statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed', 'failed', 'busy', 'no-answer']
     });
     console.log('✅ 전화 발신 성공:', call.sid, '고객:', customerName);
+    callStatusMap.set(call.sid, 'ringing');
     res.json({ success: true, callSid: call.sid });
   } catch (error) {
     console.error('❌ 발신 에러:', error);
@@ -177,9 +171,27 @@ app.post('/api/call', async (req, res) => {
   }
 });
 
-// 통화 상태 콜백
+// 통화 상태 조회 API (앱에서 폴링용)
+app.get('/api/call-status/:callSid', (req, res) => {
+  const { callSid } = req.params;
+  const status = callStatusMap.get(callSid) || 'unknown';
+  console.log('📊 통화 상태 조회:', callSid, status);
+  res.json({ callSid, status });
+});
+
+// 통화 상태 콜백 (Twilio에서 호출)
 app.post('/call-status', (req, res) => {
-  console.log('📊 통화 상태:', req.body.CallStatus, req.body.CallSid);
+  const { CallSid, CallStatus } = req.body;
+  console.log('📊 통화 상태 업데이트:', CallSid, CallStatus);
+  callStatusMap.set(CallSid, CallStatus);
+  
+  // 종료된 통화는 5분 후 정리
+  if (['completed', 'failed', 'busy', 'no-answer', 'canceled'].includes(CallStatus)) {
+    setTimeout(() => {
+      callStatusMap.delete(CallSid);
+    }, 5 * 60 * 1000);
+  }
+  
   res.sendStatus(200);
 });
 
@@ -204,7 +216,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 4.1 - 한국어 인식 수정');
+  console.log('📡 버전: 4.2 - 전화지니 한국어 강화 + 통화상태 API');
   console.log('='.repeat(50));
 });
 
@@ -214,7 +226,6 @@ const wss = new WebSocket.Server({ server });
 wss.on('connection', (ws, req) => {
   console.log('🔌 WebSocket 연결됨!', req.url);
   
-  // URL 파라미터 파싱
   const urlParams = new URLSearchParams(req.url.split('?')[1]);
   const mode = urlParams.get('mode') || 'app';
   const customerName = decodeURIComponent(urlParams.get('customerName') || '고객');
@@ -225,7 +236,6 @@ wss.on('connection', (ws, req) => {
   let streamSid = null;
   let lastAssistantItem = null;
 
-  // OpenAI Realtime API 연결
   const connectOpenAI = (isPhone = false) => {
     openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17', {
       headers: {
@@ -270,7 +280,7 @@ wss.on('connection', (ws, req) => {
             type: 'response.create',
             response: {
               modalities: ['text', 'audio'],
-              instructions: '첫 인사를 해주세요: "안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다." 그리고 고객의 응답을 기다리세요.'
+              instructions: '한국어로 첫 인사를 해주세요: "안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다." 반드시 한국어로만 말하세요.'
             }
           }));
         }, 500);
@@ -281,7 +291,6 @@ wss.on('connection', (ws, req) => {
       try {
         const event = JSON.parse(data.toString());
 
-        // 오디오 전송
         if (event.type === 'response.audio.delta' && event.delta) {
           if (isPhone && streamSid) {
             ws.send(JSON.stringify({
@@ -298,7 +307,6 @@ wss.on('connection', (ws, req) => {
           lastAssistantItem = event.item.id;
         }
 
-        // Barge-in: 사용자가 말하기 시작하면 AI 중단
         if (event.type === 'input_audio_buffer.speech_started') {
           console.log('🎤 사용자 말하기 시작 - AI 중단');
           if (lastAssistantItem) {
@@ -316,24 +324,20 @@ wss.on('connection', (ws, req) => {
           }
         }
 
-        // 지니 응답 텍스트
         if (event.type === 'response.audio_transcript.done') {
           console.log('🤖 지니:', event.transcript);
           ws.send(JSON.stringify({ type: 'transcript', text: event.transcript, role: 'assistant' }));
         }
 
-        // 사용자 음성 텍스트
         if (event.type === 'conversation.item.input_audio_transcription.completed') {
           console.log('👤 사용자:', event.transcript);
           ws.send(JSON.stringify({ type: 'transcript', text: event.transcript, role: 'user' }));
         }
 
-        // 응답 완료
         if (event.type === 'response.done') {
           ws.send(JSON.stringify({ type: 'response_done' }));
         }
 
-        // 에러 처리
         if (event.type === 'error') {
           console.error('❌ OpenAI 에러:', event.error);
           ws.send(JSON.stringify({ type: 'error', error: event.error }));
@@ -359,14 +363,12 @@ wss.on('connection', (ws, req) => {
     try {
       const msg = JSON.parse(message);
       
-      // Twilio 전화 시작
       if (msg.event === 'start') {
         streamSid = msg.start.streamSid;
         console.log('📞 Twilio Stream 시작:', streamSid);
         connectOpenAI(true);
       }
       
-      // Twilio 오디오
       if (msg.event === 'media' && openaiWs && openaiWs.readyState === WebSocket.OPEN) {
         openaiWs.send(JSON.stringify({
           type: 'input_audio_buffer.append',
@@ -374,13 +376,11 @@ wss.on('connection', (ws, req) => {
         }));
       }
 
-      // 앱 시작
       if (msg.type === 'start_app') {
         console.log('📱 앱 Realtime 시작');
         connectOpenAI(false);
       }
 
-      // 앱 오디오
       if (msg.type === 'audio' && openaiWs && openaiWs.readyState === WebSocket.OPEN) {
         openaiWs.send(JSON.stringify({
           type: 'input_audio_buffer.append',
@@ -388,7 +388,6 @@ wss.on('connection', (ws, req) => {
         }));
       }
 
-      // 앱 종료
       if (msg.type === 'stop') {
         console.log('📱 앱 Realtime 종료');
         if (openaiWs) openaiWs.close();
