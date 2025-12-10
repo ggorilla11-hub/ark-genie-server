@@ -76,7 +76,7 @@ const APP_PROMPT = `[신원]
 app.get('/', (req, res) => {
   res.json({ 
     status: 'AI지니 서버 실행 중!',
-    version: '4.0 - 앱 Realtime API 적용',
+    version: '4.1 - 한국어 인식 수정',
     endpoints: ['/api/chat', '/api/call', '/app-realtime', '/incoming-call']
   });
 });
@@ -204,7 +204,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 4.0 - 앱 Realtime API 적용');
+  console.log('📡 버전: 4.1 - 한국어 인식 수정');
   console.log('='.repeat(50));
 });
 
@@ -247,7 +247,10 @@ wss.on('connection', (ws, req) => {
           voice: 'shimmer',
           input_audio_format: isPhone ? 'g711_ulaw' : 'pcm16',
           output_audio_format: isPhone ? 'g711_ulaw' : 'pcm16',
-          input_audio_transcription: { model: 'whisper-1' },
+          input_audio_transcription: { 
+            model: 'whisper-1',
+            language: 'ko'
+          },
           turn_detection: {
             type: 'server_vad',
             threshold: 0.5,
@@ -257,7 +260,10 @@ wss.on('connection', (ws, req) => {
         }
       }));
 
-      // 첫 인사
+      // 세션 시작 알림
+      ws.send(JSON.stringify({ type: 'session_started' }));
+
+      // 첫 인사 (전화일 때만)
       if (isPhone) {
         setTimeout(() => {
           openaiWs.send(JSON.stringify({
@@ -327,12 +333,22 @@ wss.on('connection', (ws, req) => {
           ws.send(JSON.stringify({ type: 'response_done' }));
         }
 
+        // 에러 처리
+        if (event.type === 'error') {
+          console.error('❌ OpenAI 에러:', event.error);
+          ws.send(JSON.stringify({ type: 'error', error: event.error }));
+        }
+
       } catch (e) {
         console.error('OpenAI 메시지 파싱 에러:', e);
       }
     });
 
-    openaiWs.on('error', (err) => console.error('❌ OpenAI 에러:', err.message));
+    openaiWs.on('error', (err) => {
+      console.error('❌ OpenAI 연결 에러:', err.message);
+      ws.send(JSON.stringify({ type: 'error', error: err.message }));
+    });
+    
     openaiWs.on('close', () => {
       console.log('🔌 OpenAI 연결 종료');
       ws.send(JSON.stringify({ type: 'openai_closed' }));
