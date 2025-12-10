@@ -28,22 +28,35 @@ const SYSTEM_PROMPT = `[신원]
 1. 항상 한국어로 답변
 2. 짧고 간결하게 (1-2문장)
 3. 상대방 말을 끝까지 듣고 응답
-4. 상담 예약 요청시 이름, 연락처, 희망 일시 확인
-5. 자연스럽고 따뜻한 대화 유지
+4. 자연스럽고 따뜻한 대화 유지
+
+[상담 예약 시나리오]
+1단계 - 자기소개: "안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다."
+2단계 - 고객 응답 대기
+3단계 - 목적 전달: "다름이 아니라 오상열 대표님께서 고객님과 상담 약속을 잡고 싶다고 하셔서 전화드렸습니다. 혹시 시간 괜찮으실까요?"
+4단계 - 고객 응답에 따라:
+  - 긍정: "네, 감사합니다! 편하신 날짜와 시간을 알려주시면 일정 잡아드리겠습니다."
+  - 부정: "네, 알겠습니다. 다음에 다시 연락드리겠습니다."
+5단계 - 마무리: "네, 감사합니다. 좋은 하루 되세요!"
+
+[중요]
+- 첫 인사 후 바로 목적을 말하지 말고, 고객 응답을 기다릴 것
+- "무엇을 도와드릴까요"라고 절대 묻지 말 것 (전화를 건 쪽이므로)
+- 대화가 끝나면 "좋은 하루 되세요" 인사 후 종료
 
 [첫 인사]
-"안녕하세요! 오원트금융연구소 오상열 대표님의 AI비서 지니입니다. 무엇을 도와드릴까요?"`;
+"안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다."`;
 
 // 기본 라우트
 app.get('/', (req, res) => {
   res.json({ 
     status: 'AI지니 서버 실행 중!',
-    version: '3.1 - GPT-4o + Realtime API',
+    version: '3.2 - 상담 시나리오 적용',
     endpoints: ['/api/chat', '/api/call', '/make-call', '/incoming-call']
   });
 });
 
-// ⭐ GPT-4o 채팅 API (핵심!)
+// GPT-4o 채팅 API
 app.post('/api/chat', async (req, res) => {
   console.log('📨 /api/chat 요청:', req.body.message);
   
@@ -67,11 +80,12 @@ app.post('/api/chat', async (req, res) => {
             role: 'system', 
             content: `당신은 보험설계사의 AI비서 "지니"입니다. 
 항상 친절하고 자연스럽게 한국어로 대화하세요.
-"네, 대표님!" 또는 "네, 알겠습니다!" 로 응답을 시작하세요.` 
+"네, 대표님!" 또는 "네, 알겠습니다!" 로 응답을 시작하세요.
+응답은 짧고 간결하게 1-2문장으로 하세요.` 
           },
           { role: 'user', content: message }
         ],
-        max_tokens: 500,
+        max_tokens: 300,
         temperature: 0.7
       })
     });
@@ -79,12 +93,12 @@ app.post('/api/chat', async (req, res) => {
     const data = await response.json();
     console.log('🤖 GPT-4o 응답:', data.choices?.[0]?.message?.content);
     
-    const reply = data.choices?.[0]?.message?.content || '네, 알겠습니다! 무엇을 도와드릴까요?';
+    const reply = data.choices?.[0]?.message?.content || '네, 알겠습니다!';
     
     res.json({ reply });
   } catch (error) {
     console.error('❌ Chat API 에러:', error);
-    res.json({ reply: '네, 무엇을 도와드릴까요?' });
+    res.json({ reply: '네, 대표님!' });
   }
 });
 
@@ -132,9 +146,11 @@ app.post('/api/call', async (req, res) => {
   const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
   try {
     const call = await client.calls.create({
-      url: `https://${req.headers.host}/incoming-call`,
+      url: `https://${req.headers.host}/incoming-call?customerName=${encodeURIComponent(customerName || '고객')}`,
       to: phoneNumber,
-      from: TWILIO_NUMBER
+      from: TWILIO_NUMBER,
+      statusCallback: `https://${req.headers.host}/call-status`,
+      statusCallbackEvent: ['completed', 'failed', 'busy', 'no-answer']
     });
     console.log('✅ 전화 발신 성공:', call.sid, '고객:', customerName);
     res.json({ success: true, callSid: call.sid });
@@ -144,13 +160,21 @@ app.post('/api/call', async (req, res) => {
   }
 });
 
+// 통화 상태 콜백
+app.post('/call-status', (req, res) => {
+  console.log('📊 통화 상태:', req.body.CallStatus, req.body.CallSid);
+  res.sendStatus(200);
+});
+
 // Twilio 웹훅 - 전화 연결시 WebSocket으로 연결
 app.post('/incoming-call', (req, res) => {
-  console.log('📞 전화 연결됨!');
+  const customerName = req.query.customerName || '고객';
+  console.log('📞 전화 연결됨! 고객:', customerName);
+  
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Connect>
-    <Stream url="wss://${req.headers.host}/media-stream" />
+    <Stream url="wss://${req.headers.host}/media-stream?customerName=${encodeURIComponent(customerName)}" />
   </Connect>
 </Response>`;
   res.type('text/xml');
@@ -172,6 +196,11 @@ const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws, req) => {
   console.log('🔌 WebSocket 연결됨!', req.url);
+  
+  // URL에서 고객 이름 추출
+  const urlParams = new URLSearchParams(req.url.split('?')[1]);
+  const customerName = decodeURIComponent(urlParams.get('customerName') || '고객');
+  console.log('👤 고객 이름:', customerName);
   
   let openaiWs = null;
   let streamSid = null;
@@ -207,13 +236,14 @@ wss.on('connection', (ws, req) => {
         }
       }));
 
+      // 첫 인사 (전화 연결 시)
       if (isPhone) {
         setTimeout(() => {
           openaiWs.send(JSON.stringify({
             type: 'response.create',
             response: {
               modalities: ['text', 'audio'],
-              instructions: '첫 인사를 해주세요: "안녕하세요! 오원트금융연구소 AI비서 지니입니다. 무엇을 도와드릴까요?"'
+              instructions: `첫 인사를 해주세요: "안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다." 그리고 고객의 응답을 기다리세요.`
             }
           }));
         }, 500);
@@ -240,6 +270,7 @@ wss.on('connection', (ws, req) => {
           lastAssistantItem = event.item.id;
         }
 
+        // Barge-in: 사용자가 말하기 시작하면 AI 중단
         if (event.type === 'input_audio_buffer.speech_started') {
           console.log('🎤 사용자 말하기 시작 - AI 중단');
           if (lastAssistantItem) {
@@ -261,7 +292,7 @@ wss.on('connection', (ws, req) => {
         }
 
         if (event.type === 'conversation.item.input_audio_transcription.completed') {
-          console.log('👤 사용자:', event.transcript);
+          console.log('👤 고객:', event.transcript);
           ws.send(JSON.stringify({ type: 'transcript', text: event.transcript, role: 'user' }));
         }
 
