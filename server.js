@@ -18,7 +18,8 @@ const TWILIO_AUTH_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWILIO_NUMBER = process.env.TWILIO_NUMBER;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
-const SYSTEM_PROMPT = `[신원]
+// 전화 지니용 프롬프트 (고객과 통화)
+const PHONE_PROMPT = `[신원]
 - 이름: 지니
 - 소속: 오원트금융연구소
 - 역할: 오상열 대표님(CFP, 국제공인재무설계사)의 AI 개인비서
@@ -47,16 +48,40 @@ const SYSTEM_PROMPT = `[신원]
 [첫 인사]
 "안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다."`;
 
+// 앱 지니용 프롬프트 (설계사와 대화)
+const APP_PROMPT = `[신원]
+- 이름: 지니
+- 소속: 오원트금융연구소
+- 역할: 보험설계사의 AI 개인비서
+- 성격: 친절하고 따뜻하며 전문적인 성숙한 여성
+
+[대화 규칙]
+1. 항상 한국어로 답변
+2. 짧고 간결하게 (1-2문장)
+3. 상대방 말을 끝까지 듣고 응답
+4. "네, 대표님!" 으로 응답 시작
+5. 자연스럽고 따뜻한 대화 유지
+
+[명령 처리]
+- "지니야" 호출: "네, 대표님!" 이라고만 짧게 대답
+- 전화 요청: "네, [이름]님께 전화합니다." 라고 복명복창
+- 일반 질문: 친절하고 간결하게 답변
+
+[중요]
+- 설계사님을 "대표님"이라고 호칭
+- 응답은 최대 2문장으로 짧게
+- 전화번호, 이름이 언급되면 전화 명령으로 인식`;
+
 // 기본 라우트
 app.get('/', (req, res) => {
   res.json({ 
     status: 'AI지니 서버 실행 중!',
-    version: '3.2 - 상담 시나리오 적용',
-    endpoints: ['/api/chat', '/api/call', '/make-call', '/incoming-call']
+    version: '4.0 - 앱 Realtime API 적용',
+    endpoints: ['/api/chat', '/api/call', '/app-realtime', '/incoming-call']
   });
 });
 
-// GPT-4o 채팅 API
+// GPT-4o 채팅 API (백업용)
 app.post('/api/chat', async (req, res) => {
   console.log('📨 /api/chat 요청:', req.body.message);
   
@@ -64,7 +89,7 @@ app.post('/api/chat', async (req, res) => {
     const { message } = req.body;
     
     if (!message) {
-      return res.json({ reply: '메시지가 없습니다.' });
+      return res.json({ reply: '네, 대표님!' });
     }
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -76,24 +101,16 @@ app.post('/api/chat', async (req, res) => {
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { 
-            role: 'system', 
-            content: `당신은 보험설계사의 AI비서 "지니"입니다. 
-항상 친절하고 자연스럽게 한국어로 대화하세요.
-"네, 대표님!" 또는 "네, 알겠습니다!" 로 응답을 시작하세요.
-응답은 짧고 간결하게 1-2문장으로 하세요.` 
-          },
+          { role: 'system', content: APP_PROMPT },
           { role: 'user', content: message }
         ],
-        max_tokens: 300,
+        max_tokens: 200,
         temperature: 0.7
       })
     });
     
     const data = await response.json();
-    console.log('🤖 GPT-4o 응답:', data.choices?.[0]?.message?.content);
-    
-    const reply = data.choices?.[0]?.message?.content || '네, 알겠습니다!';
+    const reply = data.choices?.[0]?.message?.content || '네, 대표님!';
     
     res.json({ reply });
   } catch (error) {
@@ -174,7 +191,7 @@ app.post('/incoming-call', (req, res) => {
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Connect>
-    <Stream url="wss://${req.headers.host}/media-stream?customerName=${encodeURIComponent(customerName)}" />
+    <Stream url="wss://${req.headers.host}/media-stream?customerName=${encodeURIComponent(customerName)}&mode=phone" />
   </Connect>
 </Response>`;
   res.type('text/xml');
@@ -187,20 +204,22 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 엔드포인트: /api/chat, /api/call, /make-call');
+  console.log('📡 버전: 4.0 - 앱 Realtime API 적용');
   console.log('='.repeat(50));
 });
 
-// WebSocket 서버 (Twilio Media Stream + OpenAI Realtime API)
+// WebSocket 서버 (Twilio + 앱 공용)
 const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws, req) => {
   console.log('🔌 WebSocket 연결됨!', req.url);
   
-  // URL에서 고객 이름 추출
+  // URL 파라미터 파싱
   const urlParams = new URLSearchParams(req.url.split('?')[1]);
+  const mode = urlParams.get('mode') || 'app';
   const customerName = decodeURIComponent(urlParams.get('customerName') || '고객');
-  console.log('👤 고객 이름:', customerName);
+  
+  console.log('📱 모드:', mode, '/ 고객:', customerName);
   
   let openaiWs = null;
   let streamSid = null;
@@ -216,13 +235,15 @@ wss.on('connection', (ws, req) => {
     });
 
     openaiWs.on('open', () => {
-      console.log('✅ OpenAI Realtime API 연결됨!');
+      console.log('✅ OpenAI Realtime API 연결됨! 모드:', isPhone ? '전화' : '앱');
+      
+      const prompt = isPhone ? PHONE_PROMPT : APP_PROMPT;
       
       openaiWs.send(JSON.stringify({
         type: 'session.update',
         session: {
           modalities: ['text', 'audio'],
-          instructions: SYSTEM_PROMPT,
+          instructions: prompt,
           voice: 'shimmer',
           input_audio_format: isPhone ? 'g711_ulaw' : 'pcm16',
           output_audio_format: isPhone ? 'g711_ulaw' : 'pcm16',
@@ -231,19 +252,19 @@ wss.on('connection', (ws, req) => {
             type: 'server_vad',
             threshold: 0.5,
             prefix_padding_ms: 300,
-            silence_duration_ms: 800
+            silence_duration_ms: isPhone ? 800 : 1500
           }
         }
       }));
 
-      // 첫 인사 (전화 연결 시)
+      // 첫 인사
       if (isPhone) {
         setTimeout(() => {
           openaiWs.send(JSON.stringify({
             type: 'response.create',
             response: {
               modalities: ['text', 'audio'],
-              instructions: `첫 인사를 해주세요: "안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다." 그리고 고객의 응답을 기다리세요.`
+              instructions: '첫 인사를 해주세요: "안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다." 그리고 고객의 응답을 기다리세요.'
             }
           }));
         }, 500);
@@ -254,14 +275,15 @@ wss.on('connection', (ws, req) => {
       try {
         const event = JSON.parse(data.toString());
 
+        // 오디오 전송
         if (event.type === 'response.audio.delta' && event.delta) {
-          if (streamSid) {
+          if (isPhone && streamSid) {
             ws.send(JSON.stringify({
               event: 'media',
               streamSid: streamSid,
               media: { payload: event.delta }
             }));
-          } else {
+          } else if (!isPhone) {
             ws.send(JSON.stringify({ type: 'audio', data: event.delta }));
           }
         }
@@ -281,19 +303,28 @@ wss.on('connection', (ws, req) => {
               audio_end_ms: 0
             }));
           }
-          if (streamSid) {
+          if (isPhone && streamSid) {
             ws.send(JSON.stringify({ event: 'clear', streamSid: streamSid }));
+          } else if (!isPhone) {
+            ws.send(JSON.stringify({ type: 'interrupt' }));
           }
         }
 
+        // 지니 응답 텍스트
         if (event.type === 'response.audio_transcript.done') {
           console.log('🤖 지니:', event.transcript);
           ws.send(JSON.stringify({ type: 'transcript', text: event.transcript, role: 'assistant' }));
         }
 
+        // 사용자 음성 텍스트
         if (event.type === 'conversation.item.input_audio_transcription.completed') {
-          console.log('👤 고객:', event.transcript);
+          console.log('👤 사용자:', event.transcript);
           ws.send(JSON.stringify({ type: 'transcript', text: event.transcript, role: 'user' }));
+        }
+
+        // 응답 완료
+        if (event.type === 'response.done') {
+          ws.send(JSON.stringify({ type: 'response_done' }));
         }
 
       } catch (e) {
@@ -302,19 +333,24 @@ wss.on('connection', (ws, req) => {
     });
 
     openaiWs.on('error', (err) => console.error('❌ OpenAI 에러:', err.message));
-    openaiWs.on('close', () => console.log('🔌 OpenAI 연결 종료'));
+    openaiWs.on('close', () => {
+      console.log('🔌 OpenAI 연결 종료');
+      ws.send(JSON.stringify({ type: 'openai_closed' }));
+    });
   };
 
   ws.on('message', (message) => {
     try {
       const msg = JSON.parse(message);
       
+      // Twilio 전화 시작
       if (msg.event === 'start') {
         streamSid = msg.start.streamSid;
         console.log('📞 Twilio Stream 시작:', streamSid);
         connectOpenAI(true);
       }
       
+      // Twilio 오디오
       if (msg.event === 'media' && openaiWs && openaiWs.readyState === WebSocket.OPEN) {
         openaiWs.send(JSON.stringify({
           type: 'input_audio_buffer.append',
@@ -322,15 +358,24 @@ wss.on('connection', (ws, req) => {
         }));
       }
 
-      if (msg.type === 'start') {
+      // 앱 시작
+      if (msg.type === 'start_app') {
+        console.log('📱 앱 Realtime 시작');
         connectOpenAI(false);
       }
 
+      // 앱 오디오
       if (msg.type === 'audio' && openaiWs && openaiWs.readyState === WebSocket.OPEN) {
         openaiWs.send(JSON.stringify({
           type: 'input_audio_buffer.append',
           audio: msg.data
         }));
+      }
+
+      // 앱 종료
+      if (msg.type === 'stop') {
+        console.log('📱 앱 Realtime 종료');
+        if (openaiWs) openaiWs.close();
       }
 
     } catch (e) {
