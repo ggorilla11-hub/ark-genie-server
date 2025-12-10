@@ -1,5 +1,4 @@
 const express = require('express');
-const http = require('http');
 const WebSocket = require('ws');
 const twilio = require('twilio');
 
@@ -21,25 +20,6 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const callStatusMap = new Map();
 
-const PHONE_PROMPT = `당신은 "지니"입니다. 오원트금융연구소의 AI 전화 비서입니다.
-
-절대 규칙 (반드시 지켜야 함):
-1. 무조건 한국어로만 말하세요
-2. 영어를 절대 사용하지 마세요
-3. 첫 마디부터 한국어로 시작하세요
-
-당신의 역할:
-- 오상열 대표님(CFP, 국제공인재무설계사)의 AI 개인비서
-- 고객에게 전화를 걸어 상담 예약을 잡는 것이 목적
-
-첫 인사 (반드시 이렇게):
-"안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다."
-
-대화 방식:
-- 짧고 간결하게 1-2문장으로
-- 친절하고 따뜻하게
-- 고객이 응답하면 상담 예약 제안`;
-
 const APP_PROMPT = `당신은 "지니"입니다. 보험설계사의 AI 개인비서입니다.
 
 절대 규칙:
@@ -55,8 +35,8 @@ const APP_PROMPT = `당신은 "지니"입니다. 보험설계사의 AI 개인비
 app.get('/', (req, res) => {
   res.json({ 
     status: 'AI지니 서버 실행 중!',
-    version: '4.3 - WebSocket 경로 수정',
-    endpoints: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call', '/media-stream']
+    version: '5.0 - 안정화 버전 (전화지니 Twilio TTS)',
+    endpoints: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call']
   });
 });
 
@@ -133,196 +113,96 @@ app.post('/call-status', (req, res) => {
   res.sendStatus(200);
 });
 
-// Twilio 웹훅 - 전화 연결시
-app.post('/incoming-call', (req, res) => {
+// Twilio 웹훅 - 전화 연결시 (Twilio TTS 방식)
+app.post('/incoming-call', async (req, res) => {
   const customerName = req.query.customerName || '고객';
-  console.log('📞 /incoming-call 웹훅 호출됨!');
   console.log('📞 전화 연결됨! 고객:', customerName);
   
-  // WebSocket URL을 명확하게 지정
-  const wsUrl = `wss://ark-genie-server.onrender.com/media-stream?customerName=${encodeURIComponent(customerName)}`;
-  console.log('📡 WebSocket URL:', wsUrl);
-  
+  // 첫 인사 TwiML
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Connect>
-    <Stream url="${wsUrl}" />
-  </Connect>
+  <Say voice="Google.ko-KR-Standard-A" language="ko-KR">안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 오상열 대표님께서 ${customerName}님과 상담 일정을 잡고 싶다고 하셔서 연락드렸습니다. 편하신 시간이 있으실까요?</Say>
+  <Gather input="speech" language="ko-KR" timeout="5" action="/handle-response?customerName=${encodeURIComponent(customerName)}" method="POST">
+    <Say voice="Google.ko-KR-Standard-A" language="ko-KR">말씀해 주세요.</Say>
+  </Gather>
+  <Say voice="Google.ko-KR-Standard-A" language="ko-KR">응답이 없으시네요. 나중에 다시 연락드리겠습니다. 좋은 하루 되세요!</Say>
 </Response>`;
   
   res.type('text/xml');
   res.send(twiml);
 });
 
-// HTTP 서버 생성
-const PORT = process.env.PORT || 10000;
-const server = http.createServer(app);
+// 고객 응답 처리
+app.post('/handle-response', async (req, res) => {
+  const customerName = req.query.customerName || '고객';
+  const speechResult = req.body.SpeechResult || '';
+  console.log('👤 고객 응답:', speechResult);
+  
+  // GPT로 응답 생성
+  let gptReply = '네, 알겠습니다. 오상열 대표님께 전달드리겠습니다. 좋은 하루 되세요!';
+  
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { 
+            role: 'system', 
+            content: `당신은 오원트금융연구소의 AI 전화비서 지니입니다. 
+고객과 상담 일정을 잡는 중입니다.
+고객 이름: ${customerName}
+- 반드시 한국어로만 답하세요
+- 짧고 친절하게 1-2문장으로 답하세요
+- 고객이 시간을 말하면 확인하고 감사인사
+- 고객이 거절하면 공손히 마무리`
+          },
+          { role: 'user', content: speechResult }
+        ],
+        max_tokens: 100
+      })
+    });
+    
+    const data = await response.json();
+    gptReply = data.choices?.[0]?.message?.content || gptReply;
+    console.log('🤖 지니 응답:', gptReply);
+  } catch (error) {
+    console.error('GPT 에러:', error);
+  }
+  
+  // 응답 후 다시 듣기
+  const twiml = `<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Say voice="Google.ko-KR-Standard-A" language="ko-KR">${gptReply}</Say>
+  <Gather input="speech" language="ko-KR" timeout="5" action="/handle-response?customerName=${encodeURIComponent(customerName)}" method="POST">
+  </Gather>
+  <Say voice="Google.ko-KR-Standard-A" language="ko-KR">네, 감사합니다. 좋은 하루 되세요!</Say>
+</Response>`;
+  
+  res.type('text/xml');
+  res.send(twiml);
+});
 
-// WebSocket 서버 - 경로별 처리
+// 서버 시작
+const PORT = process.env.PORT || 10000;
+const server = app.listen(PORT, () => {
+  console.log('='.repeat(50));
+  console.log('🚀 AI지니 서버 시작!');
+  console.log(`📍 포트: ${PORT}`);
+  console.log('📡 버전: 5.0 - 안정화 버전 (전화지니 Twilio TTS)');
+  console.log('='.repeat(50));
+});
+
+// WebSocket 서버 (앱지니 전용 - Realtime API)
 const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws, req) => {
-  const url = req.url || '';
-  console.log('🔌 WebSocket 연결됨!', url);
+  console.log('🔌 WebSocket 연결됨! (앱)');
   
-  // 경로 파싱
-  const isMediaStream = url.includes('/media-stream') || url.includes('media-stream');
-  const isApp = url.includes('mode=app');
-  
-  const urlParams = new URLSearchParams(url.split('?')[1] || '');
-  const customerName = decodeURIComponent(urlParams.get('customerName') || '고객');
-  
-  if (isMediaStream) {
-    console.log('📞 Twilio Media Stream 연결! 고객:', customerName);
-    handleTwilioConnection(ws, customerName);
-  } else if (isApp) {
-    console.log('📱 앱 연결! 고객:', customerName);
-    handleAppConnection(ws);
-  } else {
-    console.log('❓ 알 수 없는 연결:', url);
-    // 기본적으로 앱 연결로 처리
-    handleAppConnection(ws);
-  }
-});
-
-// Twilio 전화 연결 처리
-function handleTwilioConnection(ws, customerName) {
-  let openaiWs = null;
-  let streamSid = null;
-  let lastAssistantItem = null;
-
-  ws.on('message', (message) => {
-    try {
-      const msg = JSON.parse(message);
-      
-      if (msg.event === 'start') {
-        streamSid = msg.start.streamSid;
-        console.log('📞 Twilio Stream 시작:', streamSid);
-        
-        // OpenAI Realtime API 연결
-        openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17', {
-          headers: {
-            'Authorization': `Bearer ${OPENAI_API_KEY}`,
-            'OpenAI-Beta': 'realtime=v1'
-          }
-        });
-
-        openaiWs.on('open', () => {
-          console.log('✅ OpenAI Realtime API 연결됨! 모드: 전화');
-          
-          openaiWs.send(JSON.stringify({
-            type: 'session.update',
-            session: {
-              modalities: ['text', 'audio'],
-              instructions: PHONE_PROMPT,
-              voice: 'shimmer',
-              input_audio_format: 'g711_ulaw',
-              output_audio_format: 'g711_ulaw',
-              input_audio_transcription: { model: 'whisper-1', language: 'ko' },
-              turn_detection: {
-                type: 'server_vad',
-                threshold: 0.5,
-                prefix_padding_ms: 300,
-                silence_duration_ms: 800
-              }
-            }
-          }));
-
-          // 첫 인사 요청
-          setTimeout(() => {
-            console.log('🎤 첫 인사 요청');
-            openaiWs.send(JSON.stringify({
-              type: 'conversation.item.create',
-              item: {
-                type: 'message',
-                role: 'user',
-                content: [{
-                  type: 'input_text',
-                  text: '한국어로 인사해주세요. "안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 반갑습니다." 라고 말해주세요.'
-                }]
-              }
-            }));
-            
-            openaiWs.send(JSON.stringify({ type: 'response.create' }));
-          }, 500);
-        });
-
-        openaiWs.on('message', (data) => {
-          try {
-            const event = JSON.parse(data.toString());
-
-            if (event.type === 'response.audio.delta' && event.delta) {
-              ws.send(JSON.stringify({
-                event: 'media',
-                streamSid: streamSid,
-                media: { payload: event.delta }
-              }));
-            }
-
-            if (event.type === 'response.output_item.added') {
-              lastAssistantItem = event.item.id;
-            }
-
-            if (event.type === 'input_audio_buffer.speech_started') {
-              console.log('🎤 고객 말하기 시작');
-              if (lastAssistantItem) {
-                openaiWs.send(JSON.stringify({
-                  type: 'conversation.item.truncate',
-                  item_id: lastAssistantItem,
-                  content_index: 0,
-                  audio_end_ms: 0
-                }));
-              }
-              ws.send(JSON.stringify({ event: 'clear', streamSid: streamSid }));
-            }
-
-            if (event.type === 'response.audio_transcript.done') {
-              console.log('🤖 지니:', event.transcript);
-            }
-
-            if (event.type === 'conversation.item.input_audio_transcription.completed') {
-              console.log('👤 고객:', event.transcript);
-            }
-
-          } catch (e) {
-            console.error('OpenAI 메시지 에러:', e);
-          }
-        });
-
-        openaiWs.on('error', (err) => {
-          console.error('❌ OpenAI 에러:', err.message);
-        });
-        
-        openaiWs.on('close', () => {
-          console.log('🔌 OpenAI 연결 종료 (전화)');
-        });
-      }
-      
-      if (msg.event === 'media' && openaiWs && openaiWs.readyState === WebSocket.OPEN) {
-        openaiWs.send(JSON.stringify({
-          type: 'input_audio_buffer.append',
-          audio: msg.media.payload
-        }));
-      }
-
-      if (msg.event === 'stop') {
-        console.log('📞 Twilio Stream 종료');
-        if (openaiWs) openaiWs.close();
-      }
-
-    } catch (e) {
-      console.error('Twilio 메시지 에러:', e);
-    }
-  });
-
-  ws.on('close', () => {
-    console.log('📞 Twilio WebSocket 종료');
-    if (openaiWs) openaiWs.close();
-  });
-}
-
-// 앱 연결 처리
-function handleAppConnection(ws) {
   let openaiWs = null;
   let lastAssistantItem = null;
 
@@ -434,13 +314,6 @@ function handleAppConnection(ws) {
     console.log('📱 앱 WebSocket 종료');
     if (openaiWs) openaiWs.close();
   });
-}
-
-server.listen(PORT, () => {
-  console.log('='.repeat(50));
-  console.log('🚀 AI지니 서버 시작!');
-  console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 4.3 - WebSocket 경로 수정');
-  console.log('='.repeat(50));
-  console.log('✅ 서버 초기화 완료!');
 });
+
+console.log('✅ 서버 초기화 완료!');
