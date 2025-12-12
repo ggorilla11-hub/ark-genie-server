@@ -1,9 +1,7 @@
 // ============================================
-// ARK-Genie Server v6.2
-// 전화지니 대화 품질 개선 + VAD 설정 조정
-// - 경청 강화 (먼저 듣기)
-// - 복명복창 필수
-// - Barge-in 개선 (VAD 민감도 조정)
+// ARK-Genie Server v6.1
+// 전화지니 프롬프트 개선 (경청, 복명복창)
+// VAD 설정은 원본 유지 (0.5, 300, 800)
 // ============================================
 
 const express = require('express');
@@ -32,7 +30,7 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const SERVER_DOMAIN = process.env.SERVER_DOMAIN || 'ark-genie-server.onrender.com';
 
 const callStatusMap = new Map();
-const callContextMap = new Map();
+const callContextMap = new Map(); // 전화 컨텍스트 저장 (고객명, 목적 등)
 
 // ============================================
 // 프롬프트 정의
@@ -111,7 +109,7 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '6.2 - 전화지니 Barge-in 개선',
+    version: '6.1 - 전화지니 프롬프트 개선 (경청, 복명복창)',
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
       new: ['/api/call-realtime', '/media-stream']
@@ -292,6 +290,7 @@ app.post('/api/call-realtime', async (req, res) => {
   const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
 
   try {
+    // 전화 컨텍스트 저장 (나중에 WebSocket에서 사용)
     const callContext = {
       customerName: customerName || '고객',
       purpose: purpose || '상담 일정 예약',
@@ -323,8 +322,10 @@ app.post('/incoming-call-realtime', async (req, res) => {
   const purpose = req.query.purpose || '상담 일정 예약';
   console.log('📞 [Realtime] 전화 연결됨! 고객:', customerName, '목적:', purpose);
 
+  // TwiML: Media Stream으로 연결
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
+  <Say voice="Google.ko-KR-Standard-A" language="ko-KR">잠시만 기다려주세요. AI 비서 지니가 연결됩니다.</Say>
   <Connect>
     <Stream url="wss://${SERVER_DOMAIN}/media-stream?customerName=${encodeURIComponent(customerName)}&amp;purpose=${encodeURIComponent(purpose)}" />
   </Connect>
@@ -344,7 +345,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 6.2 - 전화지니 Barge-in 개선');
+  console.log('📡 버전: 6.1 - 전화지니 프롬프트 개선 (경청, 복명복창)');
   console.log('='.repeat(50));
 });
 
@@ -371,12 +372,11 @@ wss.on('connection', (ws, req) => {
 
     let openaiWs = null;
     let streamSid = null;
-    let lastAssistantItem = null;
 
     // 프롬프트에 고객 정보 삽입
     const phonePrompt = PHONE_GENIE_PROMPT
-      .replace(/\{\{CUSTOMER_NAME\}\}/g, customerName)
-      .replace(/\{\{CALL_PURPOSE\}\}/g, purpose);
+      .replace('{{CUSTOMER_NAME}}', customerName)
+      .replace('{{CALL_PURPOSE}}', purpose);
 
     // OpenAI Realtime API 연결
     openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17', {
@@ -389,21 +389,21 @@ wss.on('connection', (ws, req) => {
     openaiWs.on('open', () => {
       console.log('✅ [Realtime] OpenAI 연결됨! 고객:', customerName);
 
-      // 세션 설정 - 기존 VAD 설정 유지
+      // 세션 설정
       openaiWs.send(JSON.stringify({
         type: 'session.update',
         session: {
           modalities: ['text', 'audio'],
           instructions: phonePrompt,
-          voice: 'shimmer',
-          input_audio_format: 'g711_ulaw',
-          output_audio_format: 'g711_ulaw',
+          voice: 'shimmer', // 여성 음성
+          input_audio_format: 'g711_ulaw', // Twilio 형식
+          output_audio_format: 'g711_ulaw', // Twilio 형식
           input_audio_transcription: { model: 'whisper-1', language: 'ko' },
           turn_detection: {
             type: 'server_vad',
-            threshold: 0.3,              // 🆕 더 민감하게 감지
-            prefix_padding_ms: 200,      // 🆕 빠른 반응
-            silence_duration_ms: 600     // 🆕 적당한 대기
+            threshold: 0.5,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 800 // 대화 자연스럽게
           }
         }
       }));
@@ -417,7 +417,7 @@ wss.on('connection', (ws, req) => {
             role: 'user',
             content: [{
               type: 'input_text',
-              text: `전화가 연결되었습니다. ${customerName}님께 인사하고 ${purpose}에 대해 안내하세요. 인사 후 반드시 멈추고 고객의 응답을 기다리세요.`
+              text: `전화가 연결되었습니다. ${customerName}님께 인사하고 ${purpose}에 대해 이야기를 시작하세요.`
             }]
           }
         }));
@@ -439,24 +439,6 @@ wss.on('connection', (ws, req) => {
               media: { payload: event.delta }
             }));
           }
-        }
-
-        // Barge-in: 고객이 말하기 시작하면 AI 음성 중단
-        if (event.type === 'input_audio_buffer.speech_started') {
-          console.log('🎤 [Realtime] 고객 말하기 시작 - AI 음성 중단');
-          if (lastAssistantItem) {
-            openaiWs.send(JSON.stringify({
-              type: 'conversation.item.truncate',
-              item_id: lastAssistantItem,
-              content_index: 0,
-              audio_end_ms: 0
-            }));
-          }
-        }
-
-        // Assistant 아이템 추적 (Barge-in용)
-        if (event.type === 'response.output_item.added') {
-          lastAssistantItem = event.item?.id;
         }
 
         // 디버깅용 로그
@@ -518,7 +500,7 @@ wss.on('connection', (ws, req) => {
       if (openaiWs) openaiWs.close();
     });
 
-    return;
+    return; // Media Stream 처리 완료
   }
 
   // ============================================
