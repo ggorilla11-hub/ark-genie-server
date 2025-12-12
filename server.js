@@ -105,7 +105,7 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '6.4 - 자동종료 기능 추가',
+    version: '6.4.1 - 자동종료 8초로 조정',
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
       new: ['/api/call-realtime', '/media-stream']
@@ -341,7 +341,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 6.4 - 자동종료 기능 추가');
+  console.log('📡 버전: 6.4.1 - 자동종료 8초로 조정');
   console.log('='.repeat(50));
 });
 
@@ -449,12 +449,12 @@ wss.on('connection', (ws, req) => {
           const isEndPhrase = endPhrases.some(phrase => transcript.includes(phrase));
           
           if (isEndPhrase) {
-            console.log('🔚 [Realtime] 종료 인사 감지 - 5초 후 자동 종료');
+            console.log('🔚 [Realtime] 종료 인사 감지 - 8초 후 자동 종료');
             
             // 기존 타이머 취소
             if (endCallTimer) clearTimeout(endCallTimer);
             
-            // 5초 후 전화 종료
+            // 8초 후 전화 종료
             endCallTimer = setTimeout(() => {
               console.log('📞 [Realtime] 자동 종료 실행!');
               
@@ -470,7 +470,7 @@ wss.on('connection', (ws, req) => {
               // WebSocket 정리
               if (openaiWs) openaiWs.close();
               ws.close();
-            }, 5000);
+            }, 8000);
           }
         }
         if (event.type === 'conversation.item.input_audio_transcription.completed') {
