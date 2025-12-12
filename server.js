@@ -138,7 +138,7 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '7.1 - 마무리멘트 수정 + 장소 추가 + 자동종료 20초',
+    version: '7.2 - 자동종료 로직 개선 (15초)',
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
       new: ['/api/call-realtime', '/media-stream']
@@ -374,7 +374,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 7.1 - 마무리멘트 수정 + 장소 추가 + 자동종료 20초');
+  console.log('📡 버전: 7.2 - 자동종료 로직 개선 (15초)');
   console.log('='.repeat(50));
 });
 
@@ -475,18 +475,21 @@ wss.on('connection', (ws, req) => {
         if (event.type === 'response.audio_transcript.done') {
           console.log('🤖 [Realtime] 지니:', event.transcript);
           
-          // 🆕 자동 종료 감지: 지니가 종료 인사를 하면 12초 후 전화 끊기
+          // 🆕 자동 종료 감지: 지니가 종료 인사를 하면 15초 후 전화 끊기
           const transcript = event.transcript || '';
-          const endPhrases = ['안녕히 계세요', '좋은 하루 되세요', '감사합니다'];
+          const endPhrases = ['안녕히 계세요', '좋은 하루 되세요', '예약 완료'];
           const isEndPhrase = endPhrases.some(phrase => transcript.includes(phrase));
           
           if (isEndPhrase) {
-            console.log('🔚 [Realtime] 종료 인사 감지 - 20초 후 자동 종료');
+            console.log('🔚 [Realtime] 종료 인사 감지! 내용:', transcript);
             
-            // 기존 타이머 취소
-            if (endCallTimer) clearTimeout(endCallTimer);
+            // 기존 타이머 취소 후 새로 시작
+            if (endCallTimer) {
+              clearTimeout(endCallTimer);
+              console.log('🔄 [Realtime] 기존 타이머 취소, 새 타이머 시작');
+            }
             
-            // 20초 후 전화 종료
+            // 15초 후 전화 종료
             endCallTimer = setTimeout(() => {
               console.log('📞 [Realtime] 자동 종료 실행!');
               
@@ -502,7 +505,9 @@ wss.on('connection', (ws, req) => {
               // WebSocket 정리
               if (openaiWs) openaiWs.close();
               ws.close();
-            }, 20000);
+            }, 15000);
+            
+            console.log('⏱️ [Realtime] 15초 타이머 시작됨');
           }
         }
         if (event.type === 'conversation.item.input_audio_transcription.completed') {
