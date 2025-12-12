@@ -596,7 +596,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 7.2 - 자동종료 로직 개선 (15초)');
+  console.log('📡 버전: 7.4 - 다양한 파일 분석 기능 추가');
   console.log('='.repeat(50));
 });
 
