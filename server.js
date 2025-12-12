@@ -138,12 +138,105 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '7.2 - 자동종료 로직 개선 (15초)',
+    version: '7.3 - 이미지 분석 기능 추가',
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
-      new: ['/api/call-realtime', '/media-stream']
+      new: ['/api/call-realtime', '/media-stream', '/api/analyze-image']
     }
   });
+});
+
+// 🆕 이미지 분석 API (GPT-4o Vision)
+app.post('/api/analyze-image', async (req, res) => {
+  try {
+    const { image } = req.body;
+    
+    if (!image) {
+      return res.json({ success: false, error: '이미지가 없습니다.' });
+    }
+    
+    console.log('🔍 [Vision] 이미지 분석 요청 수신');
+    
+    // base64 이미지에서 데이터 부분만 추출
+    const base64Data = image.includes('base64,') ? image.split('base64,')[1] : image;
+    
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'system',
+            content: `당신은 보험설계사를 돕는 AI 분석 전문가입니다.
+
+업로드된 이미지를 분석하여 다음과 같이 답변하세요:
+
+## 보험증권 분석 시:
+1. **보험 종류**: (종신보험, 건강보험, 실손보험 등)
+2. **보험회사**: 
+3. **피보험자 정보**: (확인 가능한 경우)
+4. **보장 내용 요약**:
+   - 사망보험금:
+   - 장해보험금:
+   - 암진단금:
+   - 뇌혈관/심혈관:
+   - 실손의료비:
+   - 입원/수술:
+   - 기타 특약:
+5. **분석 의견**: (부족한 보장, 추천 사항)
+
+## 병원 서류 (진단서, 영수증, 요양급여내역서) 분석 시:
+1. **서류 종류**:
+2. **주요 내용 요약**:
+3. **관련 보험 청구 가이드**:
+4. **예상 보상 정보**: (해당되는 경우)
+
+## 기타 서류:
+- 서류의 종류와 주요 내용을 요약
+- 보험과 관련된 조언 제공
+
+항상 친절하고 전문적으로 답변하세요.
+이미지가 불분명하면 솔직히 말씀해주세요.`
+          },
+          {
+            role: 'user',
+            content: [
+              {
+                type: 'text',
+                text: '이 이미지를 분석해주세요.'
+              },
+              {
+                type: 'image_url',
+                image_url: {
+                  url: `data:image/jpeg;base64,${base64Data}`
+                }
+              }
+            ]
+          }
+        ],
+        max_tokens: 1500
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.choices && data.choices[0]) {
+      const analysis = data.choices[0].message.content;
+      console.log('✅ [Vision] 이미지 분석 완료');
+      res.json({ success: true, analysis });
+    } else {
+      console.error('❌ [Vision] API 응답 오류:', data);
+      res.json({ success: false, error: 'API 응답 오류' });
+    }
+    
+  } catch (error) {
+    console.error('❌ [Vision] 이미지 분석 에러:', error);
+    res.json({ success: false, error: error.message });
+  }
 });
 
 // 기존 텍스트 채팅 (유지)
