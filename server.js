@@ -1,13 +1,15 @@
 // ============================================
-// ARK-Genie Server v7.0
+// ARK-Genie Server v7.6
+// - PDF 분석 기능 추가 (pdf-parse)
 // - 상담예약 시나리오 프롬프트
-// - 자동 종료 12초
+// - 자동 종료 15초
 // - 고객님으로만 호칭
 // ============================================
 
 const express = require('express');
 const WebSocket = require('ws');
 const twilio = require('twilio');
+const pdfParse = require('pdf-parse'); // 🆕 PDF 텍스트 추출
 const app = express();
 
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -156,7 +158,7 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '7.5 - 분석 결과 ↔ 대화 AI 연동',
+    version: '7.6 - PDF 텍스트 분석 기능 추가',
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
       new: ['/api/call-realtime', '/media-stream', '/api/analyze-image', '/api/analyze-file']
@@ -220,35 +222,84 @@ app.post('/api/analyze-file', async (req, res) => {
         { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
       ];
     } else if (fileType === 'pdf') {
-      // PDF 분석 (GPT-4o Vision - PDF를 이미지처럼 처리)
-      analysisPrompt = `당신은 보험설계사를 돕는 AI 문서 분석 전문가입니다.
+      // 🆕 PDF 분석 (텍스트 추출 후 GPT-4o 분석)
+      console.log('📄 [PDF] PDF 텍스트 추출 시작...');
+      
+      try {
+        // base64 → Buffer 변환
+        const pdfBuffer = Buffer.from(base64Data, 'base64');
+        
+        // PDF에서 텍스트 추출
+        const pdfData = await pdfParse(pdfBuffer);
+        const extractedText = pdfData.text;
+        const pageCount = pdfData.numpages;
+        
+        console.log(`📄 [PDF] 추출 완료: ${pageCount}페이지, ${extractedText.length}자`);
+        
+        // 텍스트가 너무 길면 앞부분만 사용 (토큰 제한)
+        const maxChars = 15000; // 약 4000 토큰
+        const truncatedText = extractedText.length > maxChars 
+          ? extractedText.substring(0, maxChars) + '\n\n... (문서가 길어 일부만 분석했습니다)'
+          : extractedText;
+        
+        analysisPrompt = `당신은 보험설계사를 돕는 AI 문서 분석 전문가입니다.
 
-업로드된 PDF 문서를 분석하여 다음과 같이 답변하세요:
+업로드된 PDF 문서의 텍스트를 분석하여 다음과 같이 답변하세요:
 
-## 보험 관련 문서 (약관, 상품설명서, 증권) 분석 시:
-1. **문서 종류**: 
+## 보험증권 분석 시:
+1. **보험 종류**: (종신보험, 건강보험, 실손보험, 연금보험 등)
 2. **보험회사/상품명**:
-3. **주요 보장 내용**:
-4. **특이사항/주의점**:
-5. **요약 및 조언**:
+3. **계약자/피보험자 정보**: (확인 가능한 경우)
+4. **보장 내용 요약**:
+   - 사망보험금:
+   - 장해보험금:
+   - 암진단금:
+   - 뇌혈관/심혈관 진단금:
+   - 실손의료비:
+   - 입원/수술비:
+   - 기타 특약:
+5. **보험료 정보**: (월납/연납, 금액)
+6. **계약일/만기일**:
+7. **분석 의견**: (부족한 보장, 추천 사항)
 
 ## 병원/의료 서류 분석 시:
-1. **서류 종류**:
-2. **주요 내용**:
-3. **보험 청구 관련 정보**:
+1. **서류 종류**: (진단서, 소견서, 영수증, 요양급여내역서 등)
+2. **환자 정보**: (확인 가능한 경우)
+3. **진단명/상병코드**:
+4. **치료 내용**:
+5. **보험 청구 관련 정보**:
+6. **예상 보상 정보**: (해당되는 경우)
+
+## 상품설명서/가입설계서 분석 시:
+1. **상품명**:
+2. **보험회사**:
+3. **주요 보장 내용**:
+4. **보험료 예시**:
+5. **특이사항/주의점**:
+6. **요약 및 추천 포인트**:
 
 ## 기타 문서:
-- 문서의 종류와 목적
+- 문서의 종류와 목적 파악
 - 주요 내용 요약
-- 보험 관련 조언
+- 보험 관련 조언 제공
 
-문서가 길면 핵심 내용을 요약해주세요.
-읽기 어려운 부분이 있으면 솔직히 말씀해주세요.`;
+문서 내용이 불분명하거나 일부만 추출된 경우 솔직히 말씀해주세요.
+핵심 정보를 빠짐없이 정리해주세요.`;
 
-      messageContent = [
-        { type: 'text', text: `파일명: ${fileName}\n\n이 PDF 문서를 분석해주세요.` },
-        { type: 'image_url', image_url: { url: `data:application/pdf;base64,${base64Data}` } }
-      ];
+        messageContent = [
+          { 
+            type: 'text', 
+            text: `파일명: ${fileName}\n총 페이지: ${pageCount}페이지\n\n=== PDF 문서 내용 ===\n${truncatedText}\n\n위 PDF 문서를 분석해주세요.` 
+          }
+        ];
+        
+      } catch (pdfError) {
+        console.error('❌ [PDF] 텍스트 추출 실패:', pdfError.message);
+        return res.json({ 
+          success: false, 
+          error: 'PDF 텍스트 추출 실패. 다른 형식의 PDF이거나 보안 설정이 있을 수 있습니다.' 
+        });
+      }
     } else {
       // 기타 문서 (텍스트 추출 시도)
       analysisPrompt = `당신은 보험설계사를 돕는 AI 문서 분석 전문가입니다.
@@ -614,7 +665,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 7.5 - 분석 결과 ↔ 대화 AI 연동');
+  console.log('📡 버전: 7.6 - PDF 텍스트 분석 기능 추가');
   console.log('='.repeat(50));
 });
 
