@@ -138,15 +138,144 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '7.3 - 이미지 분석 기능 추가',
+    version: '7.4 - 다양한 파일 분석 기능 추가',
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
-      new: ['/api/call-realtime', '/media-stream', '/api/analyze-image']
+      new: ['/api/call-realtime', '/media-stream', '/api/analyze-image', '/api/analyze-file']
     }
   });
 });
 
-// 🆕 이미지 분석 API (GPT-4o Vision)
+// 🆕 통합 파일 분석 API (이미지, PDF, 문서 모두 지원)
+app.post('/api/analyze-file', async (req, res) => {
+  try {
+    const { file, fileName, fileType } = req.body;
+    
+    if (!file) {
+      return res.json({ success: false, error: '파일이 없습니다.' });
+    }
+    
+    console.log('🔍 [File] 파일 분석 요청:', fileName, fileType);
+    
+    // base64 데이터에서 실제 데이터 부분만 추출
+    const base64Data = file.includes('base64,') ? file.split('base64,')[1] : file;
+    
+    // 파일 타입에 따른 처리
+    let analysisPrompt = '';
+    let messageContent = [];
+    
+    if (fileType === 'image') {
+      // 이미지 분석 (GPT-4o Vision)
+      analysisPrompt = `당신은 보험설계사를 돕는 AI 분석 전문가입니다.
+
+업로드된 이미지를 분석하여 다음과 같이 답변하세요:
+
+## 보험증권 분석 시:
+1. **보험 종류**: (종신보험, 건강보험, 실손보험 등)
+2. **보험회사**: 
+3. **피보험자 정보**: (확인 가능한 경우)
+4. **보장 내용 요약**:
+   - 사망보험금:
+   - 장해보험금:
+   - 암진단금:
+   - 뇌혈관/심혈관:
+   - 실손의료비:
+   - 입원/수술:
+   - 기타 특약:
+5. **분석 의견**: (부족한 보장, 추천 사항)
+
+## 병원 서류 (진단서, 영수증, 요양급여내역서) 분석 시:
+1. **서류 종류**:
+2. **주요 내용 요약**:
+3. **관련 보험 청구 가이드**:
+4. **예상 보상 정보**: (해당되는 경우)
+
+## 기타 서류:
+- 서류의 종류와 주요 내용을 요약
+- 보험과 관련된 조언 제공
+
+항상 친절하고 전문적으로 답변하세요.
+이미지가 불분명하면 솔직히 말씀해주세요.`;
+      
+      messageContent = [
+        { type: 'text', text: `파일명: ${fileName}\n\n이 이미지를 분석해주세요.` },
+        { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
+      ];
+    } else if (fileType === 'pdf') {
+      // PDF 분석 (GPT-4o Vision - PDF를 이미지처럼 처리)
+      analysisPrompt = `당신은 보험설계사를 돕는 AI 문서 분석 전문가입니다.
+
+업로드된 PDF 문서를 분석하여 다음과 같이 답변하세요:
+
+## 보험 관련 문서 (약관, 상품설명서, 증권) 분석 시:
+1. **문서 종류**: 
+2. **보험회사/상품명**:
+3. **주요 보장 내용**:
+4. **특이사항/주의점**:
+5. **요약 및 조언**:
+
+## 병원/의료 서류 분석 시:
+1. **서류 종류**:
+2. **주요 내용**:
+3. **보험 청구 관련 정보**:
+
+## 기타 문서:
+- 문서의 종류와 목적
+- 주요 내용 요약
+- 보험 관련 조언
+
+문서가 길면 핵심 내용을 요약해주세요.
+읽기 어려운 부분이 있으면 솔직히 말씀해주세요.`;
+
+      messageContent = [
+        { type: 'text', text: `파일명: ${fileName}\n\n이 PDF 문서를 분석해주세요.` },
+        { type: 'image_url', image_url: { url: `data:application/pdf;base64,${base64Data}` } }
+      ];
+    } else {
+      // 기타 문서 (텍스트 추출 시도)
+      analysisPrompt = `당신은 보험설계사를 돕는 AI 문서 분석 전문가입니다.
+업로드된 문서를 분석하고 보험 관련 조언을 제공해주세요.`;
+      
+      messageContent = [
+        { type: 'text', text: `파일명: ${fileName}\n파일 형식: ${fileType}\n\n이 문서를 분석해주세요.` },
+        { type: 'image_url', image_url: { url: `data:application/octet-stream;base64,${base64Data}` } }
+      ];
+    }
+    
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: analysisPrompt },
+          { role: 'user', content: messageContent }
+        ],
+        max_tokens: 2000
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.choices && data.choices[0]) {
+      const analysis = data.choices[0].message.content;
+      console.log('✅ [File] 파일 분석 완료:', fileName);
+      res.json({ success: true, analysis });
+    } else {
+      console.error('❌ [File] API 응답 오류:', data);
+      res.json({ success: false, error: 'API 응답 오류' });
+    }
+    
+  } catch (error) {
+    console.error('❌ [File] 파일 분석 에러:', error);
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// 🆕 이미지 분석 API (GPT-4o Vision) - 기존 호환용 유지
 app.post('/api/analyze-image', async (req, res) => {
   try {
     const { image } = req.body;
