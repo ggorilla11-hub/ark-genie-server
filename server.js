@@ -50,6 +50,24 @@ const APP_PROMPT = `당신은 "지니"입니다. 보험설계사의 AI 개인비
 - "지니야" 호출: "네, 대표님!"
 - 전화 요청 (전화번호 포함): "알겠습니다"라고만 짧게 답하세요. 전화는 앱에서 처리합니다.`;
 
+// 🆕 v11.4: 분석 컨텍스트가 있을 때 사용할 프롬프트
+const APP_PROMPT_WITH_CONTEXT = `당신은 "지니"입니다. 보험설계사의 AI 개인비서입니다.
+
+절대 규칙:
+1. 무조건 한국어로만 말하세요
+2. 영어를 절대 사용하지 마세요
+3. 설계사님을 "대표님"이라고 호칭하세요
+4. 짧고 간결하게 1-2문장으로 답하세요
+
+명령 처리:
+- "지니야" 호출: "네, 대표님!"
+- 전화 요청 (전화번호 포함): "알겠습니다"라고만 짧게 답하세요. 전화는 앱에서 처리합니다.
+
+🔥 중요: 분석된 서류 정보
+아래는 대표님이 업로드하신 서류를 분석한 내용입니다. 대표님이 이 서류에 대해 질문하시면 반드시 아래 분석 내용을 기반으로 정확하게 답변하세요.
+
+{{ANALYSIS_CONTEXT}}`;
+
 // 🆕 전화지니 프롬프트 v3.1 - 마무리 멘트 수정 + 장소 추가
 const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구소의 AI 전화비서입니다.
 오상열 대표님을 대신해서 고객님께 상담 일정을 잡기 위해 전화드리는 것입니다.
@@ -138,7 +156,7 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '7.4 - 다양한 파일 분석 기능 추가',
+    version: '7.5 - 분석 결과 ↔ 대화 AI 연동',
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
       new: ['/api/call-realtime', '/media-stream', '/api/analyze-image', '/api/analyze-file']
@@ -596,7 +614,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 7.4 - 다양한 파일 분석 기능 추가');
+  console.log('📡 버전: 7.5 - 분석 결과 ↔ 대화 AI 연동');
   console.log('='.repeat(50));
 });
 
@@ -817,13 +835,43 @@ wss.on('connection', (ws, req) => {
   // ============================================
   let openaiWs = null;
   let lastAssistantItem = null;
+  let currentAnalysisContext = null; // 🆕 v11.4: 현재 분석 컨텍스트
 
   ws.on('message', (message) => {
     try {
       const msg = JSON.parse(message);
 
+      // 🆕 v11.4: 분석 컨텍스트 업데이트 메시지 처리
+      if (msg.type === 'update_context') {
+        currentAnalysisContext = msg.analysisContext;
+        console.log('📋 [v11.4] 분석 컨텍스트 업데이트:', currentAnalysisContext?.fileName);
+        
+        // OpenAI 세션이 열려있으면 프롬프트 업데이트
+        if (openaiWs && openaiWs.readyState === WebSocket.OPEN && currentAnalysisContext) {
+          const updatedPrompt = APP_PROMPT_WITH_CONTEXT.replace(
+            '{{ANALYSIS_CONTEXT}}',
+            `파일명: ${currentAnalysisContext.fileName}\n분석 내용:\n${currentAnalysisContext.analysis}`
+          );
+          
+          openaiWs.send(JSON.stringify({
+            type: 'session.update',
+            session: {
+              instructions: updatedPrompt
+            }
+          }));
+          console.log('📤 [v11.4] OpenAI 프롬프트 업데이트 완료');
+        }
+        return;
+      }
+
       if (msg.type === 'start_app') {
         console.log('📱 앱 Realtime 시작');
+        
+        // 🆕 v11.4: 시작 시 분석 컨텍스트 저장
+        if (msg.analysisContext) {
+          currentAnalysisContext = msg.analysisContext;
+          console.log('📋 [v11.4] 시작 시 분석 컨텍스트 수신:', currentAnalysisContext.fileName);
+        }
 
         openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17', {
           headers: {
@@ -835,11 +883,21 @@ wss.on('connection', (ws, req) => {
         openaiWs.on('open', () => {
           console.log('✅ OpenAI Realtime API 연결됨! 모드: 앱');
 
+          // 🆕 v11.4: 분석 컨텍스트가 있으면 포함된 프롬프트 사용
+          let promptToUse = APP_PROMPT;
+          if (currentAnalysisContext) {
+            promptToUse = APP_PROMPT_WITH_CONTEXT.replace(
+              '{{ANALYSIS_CONTEXT}}',
+              `파일명: ${currentAnalysisContext.fileName}\n분석 내용:\n${currentAnalysisContext.analysis}`
+            );
+            console.log('📋 [v11.4] 분석 컨텍스트 포함된 프롬프트 사용');
+          }
+
           openaiWs.send(JSON.stringify({
             type: 'session.update',
             session: {
               modalities: ['text', 'audio'],
-              instructions: APP_PROMPT,
+              instructions: promptToUse,
               voice: 'shimmer',
               input_audio_format: 'pcm16',
               output_audio_format: 'pcm16',
