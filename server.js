@@ -1,9 +1,9 @@
 // ============================================
-// ARK-Genie Server v6.1
-// 전화지니 대화 품질 개선 (프롬프트만 수정)
+// ARK-Genie Server v6.2
+// 전화지니 대화 품질 개선 + VAD 설정 조정
 // - 경청 강화 (먼저 듣기)
 // - 복명복창 필수
-// - VAD 설정은 기존 유지
+// - Barge-in 개선 (VAD 민감도 조정)
 // ============================================
 
 const express = require('express');
@@ -111,7 +111,7 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '6.1 - 전화지니 프롬프트 개선 (경청, 복명복창)',
+    version: '6.2 - 전화지니 Barge-in 개선',
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
       new: ['/api/call-realtime', '/media-stream']
@@ -344,7 +344,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 6.1 - 전화지니 프롬프트 개선 (경청, 복명복창)');
+  console.log('📡 버전: 6.2 - 전화지니 Barge-in 개선');
   console.log('='.repeat(50));
 });
 
@@ -401,9 +401,9 @@ wss.on('connection', (ws, req) => {
           input_audio_transcription: { model: 'whisper-1', language: 'ko' },
           turn_detection: {
             type: 'server_vad',
-            threshold: 0.5,              // 기존 유지
-            prefix_padding_ms: 300,      // 기존 유지
-            silence_duration_ms: 800     // 기존 유지
+            threshold: 0.3,              // 🆕 더 민감하게 감지
+            prefix_padding_ms: 200,      // 🆕 빠른 반응
+            silence_duration_ms: 600     // 🆕 적당한 대기
           }
         }
       }));
