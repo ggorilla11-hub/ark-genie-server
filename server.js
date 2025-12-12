@@ -1,6 +1,7 @@
 // ============================================
-// ARK-Genie Server v7.6
-// - PDF 분석 기능 추가 (pdf-parse)
+// ARK-Genie Server v7.7
+// - 다중 파일 분석 (동시 업로드 + 누적 분석)
+// - PDF 분석 기능 (pdf-parse)
 // - 상담예약 시나리오 프롬프트
 // - 자동 종료 15초
 // - 고객님으로만 호칭
@@ -52,7 +53,7 @@ const APP_PROMPT = `당신은 "지니"입니다. 보험설계사의 AI 개인비
 - "지니야" 호출: "네, 대표님!"
 - 전화 요청 (전화번호 포함): "알겠습니다"라고만 짧게 답하세요. 전화는 앱에서 처리합니다.`;
 
-// 🆕 v11.4: 분석 컨텍스트가 있을 때 사용할 프롬프트
+// 🆕 v15: 다중 파일 분석 컨텍스트용 프롬프트
 const APP_PROMPT_WITH_CONTEXT = `당신은 "지니"입니다. 보험설계사의 AI 개인비서입니다.
 
 절대 규칙:
@@ -66,7 +67,9 @@ const APP_PROMPT_WITH_CONTEXT = `당신은 "지니"입니다. 보험설계사의
 - 전화 요청 (전화번호 포함): "알겠습니다"라고만 짧게 답하세요. 전화는 앱에서 처리합니다.
 
 🔥 중요: 분석된 서류 정보
-아래는 대표님이 업로드하신 서류를 분석한 내용입니다. 대표님이 이 서류에 대해 질문하시면 반드시 아래 분석 내용을 기반으로 정확하게 답변하세요.
+아래는 대표님이 업로드하신 서류들을 분석한 내용입니다.
+대표님이 이 서류들에 대해 질문하시면 반드시 아래 분석 내용을 기반으로 정확하게 답변하세요.
+여러 서류가 있으면 비교 분석도 가능합니다. "비교해줘", "어떤 게 더 좋아?" 등의 질문에 답변하세요.
 
 {{ANALYSIS_CONTEXT}}`;
 
@@ -158,7 +161,7 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '7.6 - PDF 텍스트 분석 기능 추가',
+    version: '7.7 - 다중 파일 분석 (동시 업로드 + 누적 분석)',
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
       new: ['/api/call-realtime', '/media-stream', '/api/analyze-image', '/api/analyze-file']
@@ -665,7 +668,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 7.6 - PDF 텍스트 분석 기능 추가');
+  console.log('📡 버전: 7.7 - 다중 파일 분석 (동시 업로드 + 누적 분석)');
   console.log('='.repeat(50));
 });
 
@@ -886,23 +889,37 @@ wss.on('connection', (ws, req) => {
   // ============================================
   let openaiWs = null;
   let lastAssistantItem = null;
-  let currentAnalysisContext = null; // 🆕 v11.4: 현재 분석 컨텍스트
+  let currentAnalysisContextList = []; // 🆕 v15: 다중 파일 분석 컨텍스트
+
+  // 🆕 v15: 분석 컨텍스트 배열을 문자열로 변환하는 함수
+  const formatAnalysisContext = (contextList) => {
+    if (!contextList || contextList.length === 0) return '';
+    
+    return contextList.map((ctx, idx) => {
+      return `=== [${idx + 1}번 파일] ${ctx.fileName} ===\n${ctx.analysis}`;
+    }).join('\n\n');
+  };
 
   ws.on('message', (message) => {
     try {
       const msg = JSON.parse(message);
 
-      // 🆕 v11.4: 분석 컨텍스트 업데이트 메시지 처리
+      // 🆕 v15: 다중 분석 컨텍스트 업데이트 메시지 처리
       if (msg.type === 'update_context') {
-        currentAnalysisContext = msg.analysisContext;
-        console.log('📋 [v11.4] 분석 컨텍스트 업데이트:', currentAnalysisContext?.fileName);
+        // 배열 형태로 받기 (v15)
+        if (msg.analysisContextList) {
+          currentAnalysisContextList = msg.analysisContextList;
+          console.log('📋 [v15] 분석 컨텍스트 업데이트:', currentAnalysisContextList.length, '개 파일');
+        } else if (msg.analysisContext) {
+          // 하위 호환 (단일 파일)
+          currentAnalysisContextList = [msg.analysisContext];
+          console.log('📋 [v15] 단일 파일 컨텍스트 업데이트:', msg.analysisContext.fileName);
+        }
         
         // OpenAI 세션이 열려있으면 프롬프트 업데이트
-        if (openaiWs && openaiWs.readyState === WebSocket.OPEN && currentAnalysisContext) {
-          const updatedPrompt = APP_PROMPT_WITH_CONTEXT.replace(
-            '{{ANALYSIS_CONTEXT}}',
-            `파일명: ${currentAnalysisContext.fileName}\n분석 내용:\n${currentAnalysisContext.analysis}`
-          );
+        if (openaiWs && openaiWs.readyState === WebSocket.OPEN && currentAnalysisContextList.length > 0) {
+          const contextText = formatAnalysisContext(currentAnalysisContextList);
+          const updatedPrompt = APP_PROMPT_WITH_CONTEXT.replace('{{ANALYSIS_CONTEXT}}', contextText);
           
           openaiWs.send(JSON.stringify({
             type: 'session.update',
@@ -910,7 +927,7 @@ wss.on('connection', (ws, req) => {
               instructions: updatedPrompt
             }
           }));
-          console.log('📤 [v11.4] OpenAI 프롬프트 업데이트 완료');
+          console.log('📤 [v15] OpenAI 프롬프트 업데이트 완료 -', currentAnalysisContextList.length, '개 파일');
         }
         return;
       }
@@ -918,10 +935,13 @@ wss.on('connection', (ws, req) => {
       if (msg.type === 'start_app') {
         console.log('📱 앱 Realtime 시작');
         
-        // 🆕 v11.4: 시작 시 분석 컨텍스트 저장
-        if (msg.analysisContext) {
-          currentAnalysisContext = msg.analysisContext;
-          console.log('📋 [v11.4] 시작 시 분석 컨텍스트 수신:', currentAnalysisContext.fileName);
+        // 🆕 v15: 시작 시 다중 분석 컨텍스트 저장
+        if (msg.analysisContextList && msg.analysisContextList.length > 0) {
+          currentAnalysisContextList = msg.analysisContextList;
+          console.log('📋 [v15] 시작 시 분석 컨텍스트 수신:', currentAnalysisContextList.length, '개 파일');
+        } else if (msg.analysisContext) {
+          // 하위 호환
+          currentAnalysisContextList = [msg.analysisContext];
         }
 
         openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17', {
@@ -934,14 +954,12 @@ wss.on('connection', (ws, req) => {
         openaiWs.on('open', () => {
           console.log('✅ OpenAI Realtime API 연결됨! 모드: 앱');
 
-          // 🆕 v11.4: 분석 컨텍스트가 있으면 포함된 프롬프트 사용
+          // 🆕 v15: 다중 분석 컨텍스트가 있으면 포함된 프롬프트 사용
           let promptToUse = APP_PROMPT;
-          if (currentAnalysisContext) {
-            promptToUse = APP_PROMPT_WITH_CONTEXT.replace(
-              '{{ANALYSIS_CONTEXT}}',
-              `파일명: ${currentAnalysisContext.fileName}\n분석 내용:\n${currentAnalysisContext.analysis}`
-            );
-            console.log('📋 [v11.4] 분석 컨텍스트 포함된 프롬프트 사용');
+          if (currentAnalysisContextList.length > 0) {
+            const contextText = formatAnalysisContext(currentAnalysisContextList);
+            promptToUse = APP_PROMPT_WITH_CONTEXT.replace('{{ANALYSIS_CONTEXT}}', contextText);
+            console.log('📋 [v15] 분석 컨텍스트 포함된 프롬프트 사용 -', currentAnalysisContextList.length, '개 파일');
           }
 
           openaiWs.send(JSON.stringify({
