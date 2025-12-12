@@ -1,8 +1,8 @@
 // ============================================
-// ARK-Genie Server v6.3
-// - 자동 종료 프롬프트 추가
+// ARK-Genie Server v6.4
+// - 자동 종료 기능 (5초 후 전화 끊기)
 // - 오상열 대표 정보 명시
-// - 사족 줄이기 (네 알겠습니다 반복 감소)
+// - 사족 줄이기
 // ============================================
 
 const express = require('express');
@@ -105,7 +105,7 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '6.3 - 자동종료 + 대표정보 + 사족감소',
+    version: '6.4 - 자동종료 기능 추가',
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
       new: ['/api/call-realtime', '/media-stream']
@@ -341,7 +341,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 6.3 - 자동종료 + 대표정보 + 사족감소');
+  console.log('📡 버전: 6.4 - 자동종료 기능 추가');
   console.log('='.repeat(50));
 });
 
@@ -368,6 +368,8 @@ wss.on('connection', (ws, req) => {
 
     let openaiWs = null;
     let streamSid = null;
+    let callSid = null;  // 🆕 통화 종료용
+    let endCallTimer = null;  // 🆕 자동 종료 타이머
 
     // 프롬프트에 고객 정보 삽입
     const phonePrompt = PHONE_GENIE_PROMPT
@@ -440,9 +442,46 @@ wss.on('connection', (ws, req) => {
         // 디버깅용 로그
         if (event.type === 'response.audio_transcript.done') {
           console.log('🤖 [Realtime] 지니:', event.transcript);
+          
+          // 🆕 자동 종료 감지: 지니가 종료 인사를 하면 3초 후 전화 끊기
+          const transcript = event.transcript || '';
+          const endPhrases = ['안녕히 계세요', '좋은 하루 되세요', '감사합니다'];
+          const isEndPhrase = endPhrases.some(phrase => transcript.includes(phrase));
+          
+          if (isEndPhrase) {
+            console.log('🔚 [Realtime] 종료 인사 감지 - 5초 후 자동 종료');
+            
+            // 기존 타이머 취소
+            if (endCallTimer) clearTimeout(endCallTimer);
+            
+            // 5초 후 전화 종료
+            endCallTimer = setTimeout(() => {
+              console.log('📞 [Realtime] 자동 종료 실행!');
+              
+              // Twilio 통화 종료
+              if (callSid) {
+                const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+                client.calls(callSid)
+                  .update({ status: 'completed' })
+                  .then(() => console.log('✅ [Realtime] 통화 종료 완료:', callSid))
+                  .catch(err => console.error('❌ [Realtime] 통화 종료 실패:', err.message));
+              }
+              
+              // WebSocket 정리
+              if (openaiWs) openaiWs.close();
+              ws.close();
+            }, 5000);
+          }
         }
         if (event.type === 'conversation.item.input_audio_transcription.completed') {
           console.log('👤 [Realtime] 고객:', event.transcript);
+          
+          // 🆕 고객이 말하면 종료 타이머 취소 (대화 계속)
+          if (endCallTimer) {
+            console.log('🔄 [Realtime] 고객 응답 - 종료 타이머 취소');
+            clearTimeout(endCallTimer);
+            endCallTimer = null;
+          }
         }
         if (event.type === 'error') {
           console.error('❌ [Realtime] OpenAI 에러:', event.error);
@@ -468,7 +507,8 @@ wss.on('connection', (ws, req) => {
         switch (data.event) {
           case 'start':
             streamSid = data.start.streamSid;
-            console.log('📞 [Realtime] Twilio Stream 시작:', streamSid);
+            callSid = data.start.callSid;  // 🆕 callSid 저장
+            console.log('📞 [Realtime] Twilio Stream 시작:', streamSid, 'CallSid:', callSid);
             break;
 
           case 'media':
