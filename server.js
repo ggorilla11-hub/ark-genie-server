@@ -511,10 +511,24 @@ wss.on('connection', (ws, req) => {
           }
         }
         if (event.type === 'conversation.item.input_audio_transcription.completed') {
-          console.log('👤 [Realtime] 고객:', event.transcript);
+          const transcript = event.transcript || '';
+          console.log('👤 [Realtime] 고객:', transcript);
           
-          // 🆕 고객이 말하면 종료 타이머 취소 (대화 계속)
-          if (endCallTimer) {
+          // 🆕 ARS 자동응답 감지 (타이머 취소 안 함)
+          const isARS = transcript.includes('눌러주세요') || 
+                        transcript.includes('음성 녹음') || 
+                        transcript.includes('호출 번호') ||
+                        transcript.includes('시간이 지났습니다') ||
+                        transcript.includes('번을 눌러') ||
+                        transcript.includes('남기시려면') ||
+                        transcript.includes('연결이 되지 않') ||
+                        transcript.includes('통화 중이') ||
+                        transcript.includes('전화를 받을 수 없');
+          
+          if (isARS) {
+            console.log('🤖 [Realtime] ARS 자동응답 감지 - 타이머 유지');
+          } else if (endCallTimer) {
+            // 진짜 고객 응답일 때만 타이머 취소
             console.log('🔄 [Realtime] 고객 응답 - 종료 타이머 취소');
             clearTimeout(endCallTimer);
             endCallTimer = null;
