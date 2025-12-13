@@ -1,5 +1,6 @@
 // ============================================
-// ARK-Genie Server v7.7
+// ARK-Genie Server v7.8
+// - RAG 시스템 추가 (오상열 대표님 책 3권)
 // - 다중 파일 분석 (동시 업로드 + 누적 분석)
 // - PDF 분석 기능 (pdf-parse)
 // - 상담예약 시나리오 프롬프트
@@ -11,6 +12,7 @@ const express = require('express');
 const WebSocket = require('ws');
 const twilio = require('twilio');
 const pdfParse = require('pdf-parse'); // 🆕 PDF 텍스트 추출
+const fs = require('fs'); // 🆕 v7.8: RAG 파일 읽기
 const app = express();
 
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -37,6 +39,65 @@ const callStatusMap = new Map();
 const callContextMap = new Map(); // 전화 컨텍스트 저장 (고객명, 목적 등)
 
 // ============================================
+// 🆕 v7.8: RAG 지식 베이스 로드
+// ============================================
+let ragChunks = [];
+try {
+  const ragData = fs.readFileSync('./rag_chunks.json', 'utf-8');
+  ragChunks = JSON.parse(ragData);
+  console.log(`📚 [RAG] 지식 베이스 로드 완료: ${ragChunks.length}개 청크`);
+} catch (e) {
+  console.log('📚 [RAG] 지식 베이스 파일 없음 - RAG 비활성화');
+}
+
+// 🆕 v7.8: 키워드 기반 RAG 검색 함수
+const searchRAG = (query, topK = 5) => {
+  if (ragChunks.length === 0) return [];
+  
+  // 검색 키워드 추출 (한글 단어 + 영어 단어)
+  const keywords = query.toLowerCase()
+    .replace(/[^\w가-힣\s]/g, '')
+    .split(/\s+/)
+    .filter(w => w.length >= 2);
+  
+  if (keywords.length === 0) return [];
+  
+  // 각 청크에 점수 부여
+  const scored = ragChunks.map(chunk => {
+    const content = chunk.content.toLowerCase();
+    let score = 0;
+    
+    for (const keyword of keywords) {
+      // 키워드 출현 횟수
+      const matches = (content.match(new RegExp(keyword, 'g')) || []).length;
+      score += matches * 2;
+      
+      // 제목에 포함되면 가중치
+      if (chunk.book.toLowerCase().includes(keyword)) {
+        score += 5;
+      }
+    }
+    
+    return { ...chunk, score };
+  });
+  
+  // 점수 기준 정렬 후 상위 K개 반환
+  return scored
+    .filter(c => c.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topK);
+};
+
+// 🆕 v7.8: RAG 컨텍스트 포맷팅
+const formatRAGContext = (chunks) => {
+  if (!chunks || chunks.length === 0) return '';
+  
+  return chunks.map((chunk, idx) => {
+    return `[참고자료 ${idx + 1}] 출처: ${chunk.book}\n${chunk.content.substring(0, 800)}...`;
+  }).join('\n\n');
+};
+
+// ============================================
 // 프롬프트 정의
 // ============================================
 
@@ -52,6 +113,28 @@ const APP_PROMPT = `당신은 "지니"입니다. 보험설계사의 AI 개인비
 명령 처리:
 - "지니야" 호출: "네, 대표님!"
 - 전화 요청 (전화번호 포함): "알겠습니다"라고만 짧게 답하세요. 전화는 앱에서 처리합니다.`;
+
+// 🆕 v7.8: RAG 전문가 프롬프트
+const APP_PROMPT_WITH_RAG = `당신은 "지니"입니다. 보험설계사의 AI 개인비서이자 **보험금융 전문가**입니다.
+
+📚 당신의 지식 기반:
+오상열 CFP 대표님의 저서 3권을 완벽히 학습했습니다:
+1. "소원을 말해봐" - 원트재무설계
+2. "빚부터 갚아라" - 10억목돈마련절대법칙
+3. "금융집짓기" - 금융의 집을 설계하다
+
+절대 규칙:
+1. 무조건 한국어로만 말하세요
+2. 영어를 절대 사용하지 마세요
+3. 설계사님을 "대표님"이라고 호칭하세요
+4. 재무설계, 보험, 금융 질문에는 오상열 대표님의 책 내용을 바탕으로 전문적으로 답변하세요
+5. 일반 대화는 짧게, 전문 질문은 상세하게 답변하세요
+
+🔥 참고 자료 (오상열 대표님 저서에서 발췌):
+{{RAG_CONTEXT}}
+
+위 참고 자료를 바탕으로 대표님의 질문에 전문적으로 답변하세요.
+출처를 명시할 때는 "오상열 대표님의 [책 제목]에 따르면..."으로 시작하세요.`;
 
 // 🆕 v15: 다중 파일 분석 컨텍스트용 프롬프트
 const APP_PROMPT_WITH_CONTEXT = `당신은 "지니"입니다. 보험설계사의 AI 개인비서입니다.
@@ -72,6 +155,30 @@ const APP_PROMPT_WITH_CONTEXT = `당신은 "지니"입니다. 보험설계사의
 여러 서류가 있으면 비교 분석도 가능합니다. "비교해줘", "어떤 게 더 좋아?" 등의 질문에 답변하세요.
 
 {{ANALYSIS_CONTEXT}}`;
+
+// 🆕 v7.8: RAG + 파일 분석 통합 프롬프트
+const APP_PROMPT_WITH_RAG_AND_CONTEXT = `당신은 "지니"입니다. 보험설계사의 AI 개인비서이자 **보험금융 전문가**입니다.
+
+📚 당신의 지식 기반:
+오상열 CFP 대표님의 저서 3권을 완벽히 학습했습니다:
+1. "소원을 말해봐" - 원트재무설계
+2. "빚부터 갚아라" - 10억목돈마련절대법칙
+3. "금융집짓기" - 금융의 집을 설계하다
+
+절대 규칙:
+1. 무조건 한국어로만 말하세요
+2. 영어를 절대 사용하지 마세요
+3. 설계사님을 "대표님"이라고 호칭하세요
+4. 재무설계, 보험, 금융 질문에는 오상열 대표님의 책 내용을 바탕으로 전문적으로 답변하세요
+5. 업로드된 서류에 대한 질문은 분석 내용을 기반으로 답변하세요
+
+🔥 참고 자료 (오상열 대표님 저서에서 발췌):
+{{RAG_CONTEXT}}
+
+📄 분석된 서류 정보:
+{{ANALYSIS_CONTEXT}}
+
+위 자료들을 종합하여 대표님의 질문에 전문적으로 답변하세요.`;
 
 // 🆕 전화지니 프롬프트 v3.1 - 마무리 멘트 수정 + 장소 추가
 const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구소의 AI 전화비서입니다.
@@ -161,12 +268,49 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '7.7 - 다중 파일 분석 (동시 업로드 + 누적 분석)',
+    version: '7.8 - RAG 시스템 (오상열 대표님 책 3권 학습)',
+    rag: {
+      enabled: ragChunks.length > 0,
+      chunks: ragChunks.length,
+      books: ['소원을 말해봐', '빚부터 갚아라', '금융집짓기']
+    },
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
-      new: ['/api/call-realtime', '/media-stream', '/api/analyze-image', '/api/analyze-file']
+      new: ['/api/call-realtime', '/media-stream', '/api/analyze-image', '/api/analyze-file', '/api/rag-search']
     }
   });
+});
+
+// 🆕 v7.8: RAG 검색 API
+app.post('/api/rag-search', async (req, res) => {
+  try {
+    const { query } = req.body;
+    
+    if (!query) {
+      return res.json({ success: false, error: '검색어가 없습니다.' });
+    }
+    
+    console.log('🔍 [RAG] 검색 요청:', query);
+    
+    const results = searchRAG(query, 5);
+    
+    console.log(`✅ [RAG] 검색 결과: ${results.length}개 청크`);
+    
+    res.json({
+      success: true,
+      query: query,
+      results: results.map(r => ({
+        book: r.book,
+        score: r.score,
+        preview: r.content.substring(0, 200) + '...'
+      })),
+      context: formatRAGContext(results)
+    });
+    
+  } catch (error) {
+    console.error('❌ [RAG] 검색 에러:', error);
+    res.json({ success: false, error: error.message });
+  }
 });
 
 // 🆕 통합 파일 분석 API (이미지, PDF, 문서 모두 지원)
@@ -668,7 +812,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 7.7 - 다중 파일 분석 (동시 업로드 + 누적 분석)');
+  console.log('📡 버전: 7.8 - RAG 시스템 (오상열 대표님 책 3권 학습)');
   console.log('='.repeat(50));
 });
 
@@ -900,6 +1044,41 @@ wss.on('connection', (ws, req) => {
     }).join('\n\n');
   };
 
+  // 🆕 v7.8: RAG + 분석 컨텍스트 통합 프롬프트 생성
+  const buildPromptWithRAG = (analysisContextList, userMessage = '') => {
+    const hasAnalysis = analysisContextList && analysisContextList.length > 0;
+    const hasRAG = ragChunks.length > 0;
+    
+    // RAG 검색 수행 (사용자 메시지가 있을 때)
+    let ragContext = '';
+    if (hasRAG && userMessage) {
+      const ragResults = searchRAG(userMessage, 3);
+      if (ragResults.length > 0) {
+        ragContext = formatRAGContext(ragResults);
+        console.log(`📚 [RAG] 검색 결과: ${ragResults.length}개 청크 (질문: ${userMessage.substring(0, 30)}...)`);
+      }
+    }
+    
+    // 프롬프트 선택
+    if (hasAnalysis && ragContext) {
+      // RAG + 파일 분석 둘 다
+      const analysisText = formatAnalysisContext(analysisContextList);
+      return APP_PROMPT_WITH_RAG_AND_CONTEXT
+        .replace('{{RAG_CONTEXT}}', ragContext)
+        .replace('{{ANALYSIS_CONTEXT}}', analysisText);
+    } else if (ragContext) {
+      // RAG만
+      return APP_PROMPT_WITH_RAG.replace('{{RAG_CONTEXT}}', ragContext);
+    } else if (hasAnalysis) {
+      // 파일 분석만
+      const analysisText = formatAnalysisContext(analysisContextList);
+      return APP_PROMPT_WITH_CONTEXT.replace('{{ANALYSIS_CONTEXT}}', analysisText);
+    } else {
+      // 기본
+      return APP_PROMPT;
+    }
+  };
+
   ws.on('message', (message) => {
     try {
       const msg = JSON.parse(message);
@@ -918,8 +1097,7 @@ wss.on('connection', (ws, req) => {
         
         // OpenAI 세션이 열려있으면 프롬프트 업데이트
         if (openaiWs && openaiWs.readyState === WebSocket.OPEN && currentAnalysisContextList.length > 0) {
-          const contextText = formatAnalysisContext(currentAnalysisContextList);
-          const updatedPrompt = APP_PROMPT_WITH_CONTEXT.replace('{{ANALYSIS_CONTEXT}}', contextText);
+          const updatedPrompt = buildPromptWithRAG(currentAnalysisContextList);
           
           openaiWs.send(JSON.stringify({
             type: 'session.update',
@@ -954,12 +1132,14 @@ wss.on('connection', (ws, req) => {
         openaiWs.on('open', () => {
           console.log('✅ OpenAI Realtime API 연결됨! 모드: 앱');
 
-          // 🆕 v15: 다중 분석 컨텍스트가 있으면 포함된 프롬프트 사용
-          let promptToUse = APP_PROMPT;
+          // 🆕 v7.8: RAG 포함 프롬프트 사용
+          let promptToUse = buildPromptWithRAG(currentAnalysisContextList);
+          
           if (currentAnalysisContextList.length > 0) {
-            const contextText = formatAnalysisContext(currentAnalysisContextList);
-            promptToUse = APP_PROMPT_WITH_CONTEXT.replace('{{ANALYSIS_CONTEXT}}', contextText);
             console.log('📋 [v15] 분석 컨텍스트 포함된 프롬프트 사용 -', currentAnalysisContextList.length, '개 파일');
+          }
+          if (ragChunks.length > 0) {
+            console.log('📚 [RAG] RAG 지식 베이스 활성화 -', ragChunks.length, '개 청크');
           }
 
           openaiWs.send(JSON.stringify({
