@@ -1,6 +1,8 @@
 // ============================================
-// ARK-Genie Server v7.8
-// - RAG 시스템 추가 (오상열 대표님 책 3권)
+// ARK-Genie Server v18.0
+// - 🆕 고객발굴 OCR 분석 (/api/analyze-prospect)
+// - 🆕 영업 메시지 생성 (/api/generate-prospect-message)
+// - RAG 시스템 (오상열 대표님 책 3권)
 // - 다중 파일 분석 (동시 업로드 + 누적 분석)
 // - PDF 분석 기능 (pdf-parse)
 // - 상담예약 시나리오 프롬프트
@@ -268,7 +270,7 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '7.8 - RAG 시스템 (오상열 대표님 책 3권 학습)',
+    version: '18.0 - 고객발굴 OCR + 메시지 생성',
     rag: {
       enabled: ragChunks.length > 0,
       chunks: ragChunks.length,
@@ -276,7 +278,8 @@ app.get('/', (req, res) => {
     },
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
-      new: ['/api/call-realtime', '/media-stream', '/api/analyze-image', '/api/analyze-file', '/api/rag-search']
+      new: ['/api/call-realtime', '/media-stream', '/api/analyze-image', '/api/analyze-file', '/api/rag-search'],
+      prospect: ['/api/analyze-prospect', '/api/generate-prospect-message']
     }
   });
 });
@@ -309,6 +312,272 @@ app.post('/api/rag-search', async (req, res) => {
     
   } catch (error) {
     console.error('❌ [RAG] 검색 에러:', error);
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// 🆕 v18: 고객발굴 OCR 분석 API
+// - 영수증/명함에서 사업자정보 추출
+// - 공공데이터 연동 준비
+// - 보험 필요성 분석
+// ============================================
+app.post('/api/analyze-prospect', async (req, res) => {
+  try {
+    const { image, imageType } = req.body; // imageType: 'receipt' | 'businessCard' | 'both'
+    
+    if (!image) {
+      return res.json({ success: false, error: '이미지가 없습니다.' });
+    }
+    
+    console.log('🔍 [Prospect] 고객발굴 OCR 분석 요청:', imageType);
+    
+    // base64 이미지에서 데이터 부분만 추출
+    const base64Data = image.includes('base64,') ? image.split('base64,')[1] : image;
+    
+    // 고객발굴 전용 OCR 프롬프트
+    const prospectPrompt = `당신은 보험설계사의 고객발굴을 돕는 AI OCR 전문가입니다.
+
+## 📋 분석 대상
+업로드된 이미지는 ${imageType === 'receipt' ? '영수증' : imageType === 'businessCard' ? '명함' : '영수증 또는 명함'}입니다.
+
+## 🎯 추출해야 할 정보
+
+### 영수증인 경우:
+1. **사업자등록번호**: (XXX-XX-XXXXX 형식, 없으면 "미확인")
+2. **상호명/가게명**: 
+3. **대표자명**: (없으면 "미확인")
+4. **사업장주소**: (가능한 상세하게)
+5. **전화번호**: (일반전화 또는 휴대폰)
+6. **업종추정**: (음식점, 카페, 소매업 등)
+7. **기타정보**: (영업시간, 특이사항 등)
+
+### 명함인 경우:
+1. **사업자등록번호**: (있는 경우만)
+2. **회사명/상호**:
+3. **대표자명/담당자명**:
+4. **직책/직위**:
+5. **사업장주소**:
+6. **휴대폰번호**: (필수!)
+7. **일반전화**:
+8. **이메일**:
+9. **팩스**:
+10. **업종추정**:
+
+## 📊 출력 형식 (반드시 이 JSON 형식으로!)
+
+\`\`\`json
+{
+  "documentType": "receipt 또는 businessCard",
+  "extracted": {
+    "businessNumber": "사업자등록번호 또는 미확인",
+    "companyName": "상호명",
+    "ownerName": "대표자명 또는 미확인",
+    "address": "주소",
+    "phone": "전화번호 또는 미확인",
+    "mobile": "휴대폰번호 또는 미확인",
+    "email": "이메일 또는 미확인",
+    "businessType": "업종 추정",
+    "position": "직책 (명함인 경우)",
+    "fax": "팩스 (있는 경우)"
+  },
+  "confidence": "high/medium/low",
+  "insuranceAnalysis": {
+    "businessCategory": "다중이용업소/일반사업장/소매업 등",
+    "mandatoryInsurance": ["의무보험 목록"],
+    "recommendedInsurance": ["추천보험 목록"],
+    "riskFactors": ["위험요소 목록"],
+    "salesPoints": ["영업포인트 목록"]
+  },
+  "rawText": "OCR로 읽은 원본 텍스트 전체"
+}
+\`\`\`
+
+## ⚠️ 중요 규칙
+1. 반드시 위 JSON 형식으로만 응답하세요
+2. 확인되지 않은 정보는 "미확인"으로 표시
+3. 추정인 경우 "(추정)" 표시
+4. 사업자등록번호는 정확히 10자리 숫자만 유효
+5. 전화번호는 하이픈(-) 포함하여 표시
+6. 이미지가 불분명하면 confidence를 "low"로
+
+## 🏢 업종별 의무보험 참고
+- 음식점(150㎡ 이상): 다중이용업소 → 화재배상책임보험 의무
+- 노래방, PC방, 학원, 유흥주점: 다중이용업소 → 화재배상책임보험 의무
+- 승강기 보유: 승강기배상책임보험 의무
+- 가스 사용: 가스배상책임보험 권장
+- 직원 1인 이상: 산재보험 의무, 고용보험 의무`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: prospectPrompt },
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: '이 이미지에서 사업자 정보를 추출하고 보험 분석을 해주세요.' },
+              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
+            ]
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.1 // 정확한 추출을 위해 낮은 temperature
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.choices && data.choices[0]) {
+      const rawResponse = data.choices[0].message.content;
+      console.log('✅ [Prospect] OCR 분석 완료');
+      
+      // JSON 파싱 시도
+      try {
+        // ```json과 ``` 제거
+        let jsonStr = rawResponse;
+        if (jsonStr.includes('```json')) {
+          jsonStr = jsonStr.split('```json')[1].split('```')[0];
+        } else if (jsonStr.includes('```')) {
+          jsonStr = jsonStr.split('```')[1].split('```')[0];
+        }
+        
+        const parsedData = JSON.parse(jsonStr.trim());
+        
+        res.json({ 
+          success: true, 
+          data: parsedData,
+          raw: rawResponse
+        });
+      } catch (parseError) {
+        // JSON 파싱 실패 시 원본 텍스트 반환
+        console.log('⚠️ [Prospect] JSON 파싱 실패, 원본 반환');
+        res.json({ 
+          success: true, 
+          data: null,
+          raw: rawResponse,
+          parseError: 'JSON 파싱 실패'
+        });
+      }
+    } else {
+      console.error('❌ [Prospect] API 응답 오류:', data);
+      res.json({ success: false, error: 'API 응답 오류', details: data });
+    }
+    
+  } catch (error) {
+    console.error('❌ [Prospect] 분석 에러:', error);
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// 🆕 v18: 고객발굴 메시지 생성 API
+// - 분석 결과를 바탕으로 영업 메시지 생성
+// - 카톡/문자/이메일/편지 형식
+// ============================================
+app.post('/api/generate-prospect-message', async (req, res) => {
+  try {
+    const { prospectData, messageType, agentInfo } = req.body;
+    // messageType: 'kakao' | 'sms' | 'email' | 'letter'
+    // agentInfo: { name, phone, company }
+    
+    if (!prospectData) {
+      return res.json({ success: false, error: '분석 데이터가 없습니다.' });
+    }
+    
+    console.log('📝 [Message] 영업 메시지 생성 요청:', messageType);
+    
+    const messagePrompts = {
+      kakao: `카카오톡 메시지 형식으로 작성하세요.
+- 3-4줄로 짧게
+- 이모지 1-2개만 사용
+- 부담스럽지 않은 톤
+- 마지막에 "편하실 때 연락 주세요"`,
+      
+      sms: `문자 메시지 형식으로 작성하세요.
+- 90자 이내로 매우 짧게
+- 이모지 사용 금지
+- 핵심만 전달`,
+      
+      email: `이메일 형식으로 작성하세요.
+- 제목(Subject)과 본문 분리
+- 정중하고 격식있는 톤
+- 구체적인 분석 내용 포함
+- 서명 포함`,
+      
+      letter: `우편 편지 형식으로 작성하세요.
+- A4 1장 분량
+- 매우 정중하고 격식있는 톤
+- 손글씨 느낌의 따뜻한 문체
+- 구체적인 분석 내용 상세히
+- 회신 방법 안내
+- 날짜, 보내는 사람, 받는 사람 형식 포함`
+    };
+    
+    const generatePrompt = `당신은 보험설계사의 영업 메시지를 작성하는 전문가입니다.
+
+## 📋 고객 정보
+${JSON.stringify(prospectData, null, 2)}
+
+## 👤 설계사 정보
+- 이름: ${agentInfo?.name || '홍길동'}
+- 연락처: ${agentInfo?.phone || '010-0000-0000'}
+- 소속: ${agentInfo?.company || '보험사'}
+
+## 📝 메시지 형식
+${messagePrompts[messageType] || messagePrompts.kakao}
+
+## ⚠️ 필수 규칙
+1. 특정 보험사/상품명 절대 언급 금지
+2. 단정적 수치 금지 (약, 추정 표현 사용)
+3. "무료 점검", "무료 분석" 표현 사용
+4. 부담주지 않는 톤 유지
+5. 의무보험 안내 시 "~일 수 있습니다" 표현
+
+## 📌 마지막에 반드시 포함
+"※ 본 내용은 공공데이터 기준 참고용이며, 실제와 다를 수 있습니다."
+
+메시지를 작성해주세요:`;
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: generatePrompt },
+          { role: 'user', content: '위 정보를 바탕으로 영업 메시지를 작성해주세요.' }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.choices && data.choices[0]) {
+      const message = data.choices[0].message.content;
+      console.log('✅ [Message] 메시지 생성 완료:', messageType);
+      res.json({ 
+        success: true, 
+        messageType,
+        message 
+      });
+    } else {
+      console.error('❌ [Message] API 응답 오류:', data);
+      res.json({ success: false, error: 'API 응답 오류' });
+    }
+    
+  } catch (error) {
+    console.error('❌ [Message] 메시지 생성 에러:', error);
     res.json({ success: false, error: error.message });
   }
 });
@@ -812,7 +1081,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 7.8 - RAG 시스템 (오상열 대표님 책 3권 학습)');
+  console.log('📡 버전: 18.0 - 고객발굴 OCR + 메시지 생성');
   console.log('='.repeat(50));
 });
 
