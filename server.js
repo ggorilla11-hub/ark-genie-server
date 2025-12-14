@@ -1081,7 +1081,7 @@ const server = app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log('🚀 AI지니 서버 시작!');
   console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 18.0 - 고객발굴 OCR + 메시지 생성');
+  console.log('📡 버전: 7.8 - RAG 시스템 (오상열 대표님 책 3권 학습)');
   console.log('='.repeat(50));
 });
 
