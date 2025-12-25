@@ -1,7 +1,8 @@
 // ============================================
-// ARK-Genie Server v18.0
-// - 🆕 고객발굴 OCR 분석 (/api/analyze-prospect)
-// - 🆕 영업 메시지 생성 (/api/generate-prospect-message)
+// ARK-Genie Server v19.0
+// - 🆕 구글시트 연동 API (/api/sheets/*)
+// - 고객발굴 OCR 분석 (/api/analyze-prospect)
+// - 영업 메시지 생성 (/api/generate-prospect-message)
 // - RAG 시스템 (오상열 대표님 책 3권)
 // - 다중 파일 분석 (동시 업로드 + 누적 분석)
 // - PDF 분석 기능 (pdf-parse)
@@ -13,8 +14,9 @@
 const express = require('express');
 const WebSocket = require('ws');
 const twilio = require('twilio');
-const pdfParse = require('pdf-parse'); // 🆕 PDF 텍스트 추출
-const fs = require('fs'); // 🆕 v7.8: RAG 파일 읽기
+const pdfParse = require('pdf-parse');
+const fs = require('fs');
+const { google } = require('googleapis'); // 🆕 v19: 구글 API
 const app = express();
 
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -23,7 +25,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   if (req.method === 'OPTIONS') return res.sendStatus(200);
   next();
 });
@@ -37,8 +39,38 @@ const TWILIO_NUMBER = process.env.TWILIO_NUMBER;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const SERVER_DOMAIN = process.env.SERVER_DOMAIN || 'ark-genie-server.onrender.com';
 
+// 🆕 v19: 구글시트 환경변수
+const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n') : null;
+const GOOGLE_SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID;
+
 const callStatusMap = new Map();
-const callContextMap = new Map(); // 전화 컨텍스트 저장 (고객명, 목적 등)
+const callContextMap = new Map();
+
+// ============================================
+// 🆕 v19: 구글시트 인증 설정
+// ============================================
+let sheets = null;
+let sheetsAuth = null;
+
+if (GOOGLE_SERVICE_ACCOUNT_EMAIL && GOOGLE_PRIVATE_KEY && GOOGLE_SPREADSHEET_ID) {
+  try {
+    sheetsAuth = new google.auth.JWT(
+      GOOGLE_SERVICE_ACCOUNT_EMAIL,
+      null,
+      GOOGLE_PRIVATE_KEY,
+      ['https://www.googleapis.com/auth/spreadsheets']
+    );
+    
+    sheets = google.sheets({ version: 'v4', auth: sheetsAuth });
+    console.log('📊 [Google Sheets] 연동 설정 완료!');
+    console.log('   - 스프레드시트 ID:', GOOGLE_SPREADSHEET_ID);
+  } catch (e) {
+    console.error('❌ [Google Sheets] 인증 설정 실패:', e.message);
+  }
+} else {
+  console.log('⚠️ [Google Sheets] 환경변수 미설정 - 구글시트 기능 비활성화');
+}
 
 // ============================================
 // 🆕 v7.8: RAG 지식 베이스 로드
@@ -56,7 +88,6 @@ try {
 const searchRAG = (query, topK = 5) => {
   if (ragChunks.length === 0) return [];
   
-  // 검색 키워드 추출 (한글 단어 + 영어 단어)
   const keywords = query.toLowerCase()
     .replace(/[^\w가-힣\s]/g, '')
     .split(/\s+/)
@@ -64,17 +95,14 @@ const searchRAG = (query, topK = 5) => {
   
   if (keywords.length === 0) return [];
   
-  // 각 청크에 점수 부여
   const scored = ragChunks.map(chunk => {
     const content = chunk.content.toLowerCase();
     let score = 0;
     
     for (const keyword of keywords) {
-      // 키워드 출현 횟수
       const matches = (content.match(new RegExp(keyword, 'g')) || []).length;
       score += matches * 2;
       
-      // 제목에 포함되면 가중치
       if (chunk.book.toLowerCase().includes(keyword)) {
         score += 5;
       }
@@ -83,7 +111,6 @@ const searchRAG = (query, topK = 5) => {
     return { ...chunk, score };
   });
   
-  // 점수 기준 정렬 후 상위 K개 반환
   return scored
     .filter(c => c.score > 0)
     .sort((a, b) => b.score - a.score)
@@ -103,7 +130,6 @@ const formatRAGContext = (chunks) => {
 // 프롬프트 정의
 // ============================================
 
-// 앱지니 프롬프트 (기존 유지)
 const APP_PROMPT = `당신은 "지니"입니다. 보험설계사의 AI 개인비서입니다.
 
 절대 규칙:
@@ -116,7 +142,6 @@ const APP_PROMPT = `당신은 "지니"입니다. 보험설계사의 AI 개인비
 - "지니야" 호출: "네, 대표님!"
 - 전화 요청 (전화번호 포함): "알겠습니다"라고만 짧게 답하세요. 전화는 앱에서 처리합니다.`;
 
-// 🆕 v7.8: RAG 전문가 프롬프트
 const APP_PROMPT_WITH_RAG = `당신은 "지니"입니다. 보험설계사의 AI 개인비서이자 **보험금융 전문가**입니다.
 
 📚 당신의 지식 기반:
@@ -138,7 +163,6 @@ const APP_PROMPT_WITH_RAG = `당신은 "지니"입니다. 보험설계사의 AI 
 위 참고 자료를 바탕으로 대표님의 질문에 전문적으로 답변하세요.
 출처를 명시할 때는 "오상열 대표님의 [책 제목]에 따르면..."으로 시작하세요.`;
 
-// 🆕 v15: 다중 파일 분석 컨텍스트용 프롬프트
 const APP_PROMPT_WITH_CONTEXT = `당신은 "지니"입니다. 보험설계사의 AI 개인비서입니다.
 
 절대 규칙:
@@ -158,7 +182,6 @@ const APP_PROMPT_WITH_CONTEXT = `당신은 "지니"입니다. 보험설계사의
 
 {{ANALYSIS_CONTEXT}}`;
 
-// 🆕 v7.8: RAG + 파일 분석 통합 프롬프트
 const APP_PROMPT_WITH_RAG_AND_CONTEXT = `당신은 "지니"입니다. 보험설계사의 AI 개인비서이자 **보험금융 전문가**입니다.
 
 📚 당신의 지식 기반:
@@ -182,7 +205,6 @@ const APP_PROMPT_WITH_RAG_AND_CONTEXT = `당신은 "지니"입니다. 보험설�
 
 위 자료들을 종합하여 대표님의 질문에 전문적으로 답변하세요.`;
 
-// 🆕 전화지니 프롬프트 v3.1 - 마무리 멘트 수정 + 장소 추가
 const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구소의 AI 전화비서입니다.
 오상열 대표님을 대신해서 고객님께 상담 일정을 잡기 위해 전화드리는 것입니다.
 
@@ -264,13 +286,345 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. 오원트금융연구�
 `;
 
 // ============================================
-// 기존 엔드포인트 (v5.0 그대로 유지)
+// 🆕 v19: 구글시트 API 엔드포인트
+// ============================================
+
+// 구글시트 연결 상태 확인
+app.get('/api/sheets/status', async (req, res) => {
+  try {
+    if (!sheets) {
+      return res.json({ 
+        success: false, 
+        connected: false,
+        error: '구글시트 연동이 설정되지 않았습니다.' 
+      });
+    }
+
+    // 연결 테스트 - 시트 정보 가져오기
+    const response = await sheets.spreadsheets.get({
+      spreadsheetId: GOOGLE_SPREADSHEET_ID
+    });
+
+    res.json({
+      success: true,
+      connected: true,
+      spreadsheetId: GOOGLE_SPREADSHEET_ID,
+      title: response.data.properties.title,
+      sheets: response.data.sheets.map(s => s.properties.title),
+      lastSync: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ [Sheets] 상태 확인 에러:', error.message);
+    res.json({ 
+      success: false, 
+      connected: false,
+      error: error.message 
+    });
+  }
+});
+
+// 고객 목록 조회
+app.get('/api/sheets/customers', async (req, res) => {
+  try {
+    if (!sheets) {
+      return res.json({ success: false, error: '구글시트 연동이 설정되지 않았습니다.' });
+    }
+
+    console.log('📊 [Sheets] 고객 목록 조회 요청');
+
+    // 시트에서 데이터 읽기 (A:H = 고객ID, 이름, 전화번호, 이메일, 회사, 직책, 등록일, 메모)
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: GOOGLE_SPREADSHEET_ID,
+      range: 'Sheet1!A:H'
+    });
+
+    const rows = response.data.values || [];
+    
+    if (rows.length === 0) {
+      return res.json({ 
+        success: true, 
+        customers: [],
+        total: 0,
+        message: '등록된 고객이 없습니다.'
+      });
+    }
+
+    // 첫 번째 행은 헤더
+    const headers = rows[0];
+    const customers = rows.slice(1).map((row, index) => ({
+      id: row[0] || `${index + 1}`,
+      name: row[1] || '',
+      phone: row[2] || '',
+      email: row[3] || '',
+      company: row[4] || '',
+      position: row[5] || '',
+      registeredDate: row[6] || '',
+      memo: row[7] || ''
+    })).filter(c => c.name); // 이름이 있는 것만
+
+    console.log(`✅ [Sheets] 고객 ${customers.length}명 조회 완료`);
+
+    res.json({
+      success: true,
+      customers: customers,
+      total: customers.length,
+      lastSync: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ [Sheets] 고객 목록 조회 에러:', error.message);
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// 고객 추가
+app.post('/api/sheets/customers', async (req, res) => {
+  try {
+    if (!sheets) {
+      return res.json({ success: false, error: '구글시트 연동이 설정되지 않았습니다.' });
+    }
+
+    const { name, phone, email, company, position, memo } = req.body;
+
+    if (!name || !phone) {
+      return res.json({ success: false, error: '이름과 전화번호는 필수입니다.' });
+    }
+
+    console.log('📊 [Sheets] 고객 추가 요청:', name, phone);
+
+    // 현재 행 수 확인해서 새 ID 생성
+    const countResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: GOOGLE_SPREADSHEET_ID,
+      range: 'Sheet1!A:A'
+    });
+    
+    const currentRows = countResponse.data.values || [];
+    const newId = currentRows.length; // 헤더 포함해서 다음 번호
+
+    // 오늘 날짜
+    const today = new Date().toISOString().split('T')[0];
+
+    // 새 행 추가
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: GOOGLE_SPREADSHEET_ID,
+      range: 'Sheet1!A:H',
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [[
+          newId.toString(),
+          name,
+          phone,
+          email || '',
+          company || '',
+          position || '',
+          today,
+          memo || ''
+        ]]
+      }
+    });
+
+    console.log(`✅ [Sheets] 고객 추가 완료: ${name}`);
+
+    res.json({
+      success: true,
+      message: '고객이 추가되었습니다.',
+      customer: {
+        id: newId.toString(),
+        name,
+        phone,
+        email: email || '',
+        company: company || '',
+        position: position || '',
+        registeredDate: today,
+        memo: memo || ''
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ [Sheets] 고객 추가 에러:', error.message);
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// 고객 수정
+app.put('/api/sheets/customers/:id', async (req, res) => {
+  try {
+    if (!sheets) {
+      return res.json({ success: false, error: '구글시트 연동이 설정되지 않았습니다.' });
+    }
+
+    const { id } = req.params;
+    const { name, phone, email, company, position, memo } = req.body;
+
+    console.log('📊 [Sheets] 고객 수정 요청:', id);
+
+    // ID로 행 찾기
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: GOOGLE_SPREADSHEET_ID,
+      range: 'Sheet1!A:H'
+    });
+
+    const rows = response.data.values || [];
+    const rowIndex = rows.findIndex((row, index) => index > 0 && row[0] === id);
+
+    if (rowIndex === -1) {
+      return res.json({ success: false, error: '해당 고객을 찾을 수 없습니다.' });
+    }
+
+    // 기존 데이터 유지하면서 업데이트
+    const existingRow = rows[rowIndex];
+    const updatedRow = [
+      id,
+      name || existingRow[1],
+      phone || existingRow[2],
+      email !== undefined ? email : existingRow[3],
+      company !== undefined ? company : existingRow[4],
+      position !== undefined ? position : existingRow[5],
+      existingRow[6], // 등록일은 유지
+      memo !== undefined ? memo : existingRow[7]
+    ];
+
+    // 행 업데이트
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: GOOGLE_SPREADSHEET_ID,
+      range: `Sheet1!A${rowIndex + 1}:H${rowIndex + 1}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [updatedRow]
+      }
+    });
+
+    console.log(`✅ [Sheets] 고객 수정 완료: ${name || existingRow[1]}`);
+
+    res.json({
+      success: true,
+      message: '고객 정보가 수정되었습니다.',
+      customer: {
+        id,
+        name: updatedRow[1],
+        phone: updatedRow[2],
+        email: updatedRow[3],
+        company: updatedRow[4],
+        position: updatedRow[5],
+        registeredDate: updatedRow[6],
+        memo: updatedRow[7]
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ [Sheets] 고객 수정 에러:', error.message);
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// 고객 삭제
+app.delete('/api/sheets/customers/:id', async (req, res) => {
+  try {
+    if (!sheets) {
+      return res.json({ success: false, error: '구글시트 연동이 설정되지 않았습니다.' });
+    }
+
+    const { id } = req.params;
+
+    console.log('📊 [Sheets] 고객 삭제 요청:', id);
+
+    // ID로 행 찾기
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: GOOGLE_SPREADSHEET_ID,
+      range: 'Sheet1!A:A'
+    });
+
+    const rows = response.data.values || [];
+    const rowIndex = rows.findIndex((row, index) => index > 0 && row[0] === id);
+
+    if (rowIndex === -1) {
+      return res.json({ success: false, error: '해당 고객을 찾을 수 없습니다.' });
+    }
+
+    // 시트 ID 가져오기
+    const sheetInfo = await sheets.spreadsheets.get({
+      spreadsheetId: GOOGLE_SPREADSHEET_ID
+    });
+    const sheetId = sheetInfo.data.sheets[0].properties.sheetId;
+
+    // 행 삭제
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: GOOGLE_SPREADSHEET_ID,
+      requestBody: {
+        requests: [{
+          deleteDimension: {
+            range: {
+              sheetId: sheetId,
+              dimension: 'ROWS',
+              startIndex: rowIndex,
+              endIndex: rowIndex + 1
+            }
+          }
+        }]
+      }
+    });
+
+    console.log(`✅ [Sheets] 고객 삭제 완료: ID ${id}`);
+
+    res.json({
+      success: true,
+      message: '고객이 삭제되었습니다.',
+      deletedId: id
+    });
+
+  } catch (error) {
+    console.error('❌ [Sheets] 고객 삭제 에러:', error.message);
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// 시트 다운로드 (CSV 형식)
+app.get('/api/sheets/download', async (req, res) => {
+  try {
+    if (!sheets) {
+      return res.json({ success: false, error: '구글시트 연동이 설정되지 않았습니다.' });
+    }
+
+    console.log('📊 [Sheets] 다운로드 요청');
+
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: GOOGLE_SPREADSHEET_ID,
+      range: 'Sheet1!A:H'
+    });
+
+    const rows = response.data.values || [];
+    
+    // CSV 형식으로 변환
+    const csv = rows.map(row => row.map(cell => `"${(cell || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+
+    // UTF-8 BOM 추가 (한글 깨짐 방지)
+    const bom = '\uFEFF';
+    
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename=AI_genie_customers.csv');
+    res.send(bom + csv);
+
+    console.log(`✅ [Sheets] 다운로드 완료: ${rows.length}행`);
+
+  } catch (error) {
+    console.error('❌ [Sheets] 다운로드 에러:', error.message);
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// ============================================
+// 기존 엔드포인트 (v18.0 그대로 유지)
 // ============================================
 
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '18.0 - 고객발굴 OCR + 메시지 생성',
+    version: '19.0 - 구글시트 연동 추가',
+    googleSheets: {
+      enabled: !!sheets,
+      spreadsheetId: GOOGLE_SPREADSHEET_ID ? '설정됨' : '미설정'
+    },
     rag: {
       enabled: ragChunks.length > 0,
       chunks: ragChunks.length,
@@ -279,7 +633,8 @@ app.get('/', (req, res) => {
     endpoints: {
       existing: ['/api/chat', '/api/call', '/api/call-status/:callSid', '/incoming-call'],
       new: ['/api/call-realtime', '/media-stream', '/api/analyze-image', '/api/analyze-file', '/api/rag-search'],
-      prospect: ['/api/analyze-prospect', '/api/generate-prospect-message']
+      prospect: ['/api/analyze-prospect', '/api/generate-prospect-message'],
+      sheets: ['/api/sheets/status', '/api/sheets/customers', '/api/sheets/download']
     }
   });
 });
@@ -318,13 +673,10 @@ app.post('/api/rag-search', async (req, res) => {
 
 // ============================================
 // 🆕 v18: 고객발굴 OCR 분석 API
-// - 영수증/명함에서 사업자정보 추출
-// - 공공데이터 연동 준비
-// - 보험 필요성 분석
 // ============================================
 app.post('/api/analyze-prospect', async (req, res) => {
   try {
-    const { image, imageType } = req.body; // imageType: 'receipt' | 'businessCard' | 'both'
+    const { image, imageType } = req.body;
     
     if (!image) {
       return res.json({ success: false, error: '이미지가 없습니다.' });
@@ -332,10 +684,8 @@ app.post('/api/analyze-prospect', async (req, res) => {
     
     console.log('🔍 [Prospect] 고객발굴 OCR 분석 요청:', imageType);
     
-    // base64 이미지에서 데이터 부분만 추출
     const base64Data = image.includes('base64,') ? image.split('base64,')[1] : image;
     
-    // 고객발굴 전용 OCR 프롬프트
     const prospectPrompt = `당신은 보험설계사의 고객발굴을 돕는 AI OCR 전문가입니다.
 
 ## 📋 분석 대상
@@ -399,14 +749,7 @@ app.post('/api/analyze-prospect', async (req, res) => {
 3. 추정인 경우 "(추정)" 표시
 4. 사업자등록번호는 정확히 10자리 숫자만 유효
 5. 전화번호는 하이픈(-) 포함하여 표시
-6. 이미지가 불분명하면 confidence를 "low"로
-
-## 🏢 업종별 의무보험 참고
-- 음식점(150㎡ 이상): 다중이용업소 → 화재배상책임보험 의무
-- 노래방, PC방, 학원, 유흥주점: 다중이용업소 → 화재배상책임보험 의무
-- 승강기 보유: 승강기배상책임보험 의무
-- 가스 사용: 가스배상책임보험 권장
-- 직원 1인 이상: 산재보험 의무, 고용보험 의무`;
+6. 이미지가 불분명하면 confidence를 "low"로`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -427,7 +770,7 @@ app.post('/api/analyze-prospect', async (req, res) => {
           }
         ],
         max_tokens: 2000,
-        temperature: 0.1 // 정확한 추출을 위해 낮은 temperature
+        temperature: 0.1
       })
     });
     
@@ -437,9 +780,7 @@ app.post('/api/analyze-prospect', async (req, res) => {
       const rawResponse = data.choices[0].message.content;
       console.log('✅ [Prospect] OCR 분석 완료');
       
-      // JSON 파싱 시도
       try {
-        // ```json과 ``` 제거
         let jsonStr = rawResponse;
         if (jsonStr.includes('```json')) {
           jsonStr = jsonStr.split('```json')[1].split('```')[0];
@@ -449,100 +790,70 @@ app.post('/api/analyze-prospect', async (req, res) => {
         
         const parsedData = JSON.parse(jsonStr.trim());
         
-        res.json({ 
-          success: true, 
+        res.json({
+          success: true,
           data: parsedData,
           raw: rawResponse
         });
+        
       } catch (parseError) {
-        // JSON 파싱 실패 시 원본 텍스트 반환
-        console.log('⚠️ [Prospect] JSON 파싱 실패, 원본 반환');
-        res.json({ 
-          success: true, 
+        console.log('⚠️ [Prospect] JSON 파싱 실패, raw 응답 반환');
+        res.json({
+          success: true,
           data: null,
           raw: rawResponse,
-          parseError: 'JSON 파싱 실패'
+          parseError: parseError.message
         });
       }
     } else {
-      console.error('❌ [Prospect] API 응답 오류:', data);
-      res.json({ success: false, error: 'API 응답 오류', details: data });
+      res.json({ success: false, error: 'OpenAI 응답 없음' });
     }
     
   } catch (error) {
-    console.error('❌ [Prospect] 분석 에러:', error);
+    console.error('❌ [Prospect] OCR 분석 에러:', error);
     res.json({ success: false, error: error.message });
   }
 });
 
 // ============================================
-// 🆕 v18: 고객발굴 메시지 생성 API
-// - 분석 결과를 바탕으로 영업 메시지 생성
-// - 카톡/문자/이메일/편지 형식
+// 🆕 v18: 영업 메시지 생성 API
 // ============================================
 app.post('/api/generate-prospect-message', async (req, res) => {
   try {
-    const { prospectData, messageType, agentInfo } = req.body;
-    // messageType: 'kakao' | 'sms' | 'email' | 'letter'
-    // agentInfo: { name, phone, company }
+    const { prospectData, messageType } = req.body;
     
     if (!prospectData) {
-      return res.json({ success: false, error: '분석 데이터가 없습니다.' });
+      return res.json({ success: false, error: '고객발굴 데이터가 없습니다.' });
     }
     
-    console.log('📝 [Message] 영업 메시지 생성 요청:', messageType);
+    console.log('📝 [Prospect] 영업 메시지 생성 요청:', messageType);
     
-    const messagePrompts = {
-      kakao: `카카오톡 메시지 형식으로 작성하세요.
-- 3-4줄로 짧게
-- 이모지 1-2개만 사용
-- 부담스럽지 않은 톤
-- 마지막에 "편하실 때 연락 주세요"`,
-      
-      sms: `문자 메시지 형식으로 작성하세요.
-- 90자 이내로 매우 짧게
-- 이모지 사용 금지
-- 핵심만 전달`,
-      
-      email: `이메일 형식으로 작성하세요.
-- 제목(Subject)과 본문 분리
-- 정중하고 격식있는 톤
-- 구체적인 분석 내용 포함
-- 서명 포함`,
-      
-      letter: `우편 편지 형식으로 작성하세요.
-- A4 1장 분량
-- 매우 정중하고 격식있는 톤
-- 손글씨 느낌의 따뜻한 문체
-- 구체적인 분석 내용 상세히
-- 회신 방법 안내
-- 날짜, 보내는 사람, 받는 사람 형식 포함`
-    };
-    
-    const generatePrompt = `당신은 보험설계사의 영업 메시지를 작성하는 전문가입니다.
+    const messagePrompt = `당신은 보험설계사의 영업 메시지 작성 전문가입니다.
 
-## 📋 고객 정보
+## 📋 고객발굴 데이터
 ${JSON.stringify(prospectData, null, 2)}
 
-## 👤 설계사 정보
-- 이름: ${agentInfo?.name || '홍길동'}
-- 연락처: ${agentInfo?.phone || '010-0000-0000'}
-- 소속: ${agentInfo?.company || '보험사'}
+## 🎯 작성할 메시지 유형
+${messageType === 'sms' ? 'SMS 문자 메시지 (90자 이내)' : 
+  messageType === 'kakao' ? '카카오톡 메시지 (300자 이내)' : 
+  'DM/이메일 메시지 (500자 이내)'}
 
-## 📝 메시지 형식
-${messagePrompts[messageType] || messagePrompts.kakao}
+## ✅ 메시지 작성 규칙
+1. 업종에 맞는 맞춤형 메시지
+2. 의무보험이 있다면 반드시 언급
+3. 강압적이지 않고 친근한 톤
+4. 구체적인 혜택 제시
+5. 연락처/방문 유도 문구 포함
 
-## ⚠️ 필수 규칙
-1. 특정 보험사/상품명 절대 언급 금지
-2. 단정적 수치 금지 (약, 추정 표현 사용)
-3. "무료 점검", "무료 분석" 표현 사용
-4. 부담주지 않는 톤 유지
-5. 의무보험 안내 시 "~일 수 있습니다" 표현
-
-## 📌 마지막에 반드시 포함
-"※ 본 내용은 공공데이터 기준 참고용이며, 실제와 다를 수 있습니다."
-
-메시지를 작성해주세요:`;
+## 📝 출력 형식
+\`\`\`json
+{
+  "message": "작성된 메시지",
+  "messageType": "${messageType}",
+  "keyPoints": ["핵심 포인트1", "핵심 포인트2"],
+  "callToAction": "콜투액션 문구"
+}
+\`\`\``;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -553,10 +864,10 @@ ${messagePrompts[messageType] || messagePrompts.kakao}
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: generatePrompt },
-          { role: 'user', content: '위 정보를 바탕으로 영업 메시지를 작성해주세요.' }
+          { role: 'system', content: messagePrompt },
+          { role: 'user', content: '이 고객에게 보낼 영업 메시지를 작성해주세요.' }
         ],
-        max_tokens: 1500,
+        max_tokens: 1000,
         temperature: 0.7
       })
     });
@@ -564,167 +875,51 @@ ${messagePrompts[messageType] || messagePrompts.kakao}
     const data = await response.json();
     
     if (data.choices && data.choices[0]) {
-      const message = data.choices[0].message.content;
-      console.log('✅ [Message] 메시지 생성 완료:', messageType);
-      res.json({ 
-        success: true, 
-        messageType,
-        message 
-      });
+      const rawResponse = data.choices[0].message.content;
+      console.log('✅ [Prospect] 메시지 생성 완료');
+      
+      try {
+        let jsonStr = rawResponse;
+        if (jsonStr.includes('```json')) {
+          jsonStr = jsonStr.split('```json')[1].split('```')[0];
+        } else if (jsonStr.includes('```')) {
+          jsonStr = jsonStr.split('```')[1].split('```')[0];
+        }
+        
+        const parsedData = JSON.parse(jsonStr.trim());
+        res.json({ success: true, data: parsedData });
+        
+      } catch (parseError) {
+        res.json({ success: true, message: rawResponse });
+      }
     } else {
-      console.error('❌ [Message] API 응답 오류:', data);
-      res.json({ success: false, error: 'API 응답 오류' });
+      res.json({ success: false, error: 'OpenAI 응답 없음' });
     }
     
   } catch (error) {
-    console.error('❌ [Message] 메시지 생성 에러:', error);
+    console.error('❌ [Prospect] 메시지 생성 에러:', error);
     res.json({ success: false, error: error.message });
   }
 });
 
-// 🆕 통합 파일 분석 API (이미지, PDF, 문서 모두 지원)
-app.post('/api/analyze-file', async (req, res) => {
+// ============================================
+// 기존 채팅 API
+// ============================================
+app.post('/api/chat', async (req, res) => {
   try {
-    const { file, fileName, fileType } = req.body;
+    const { message, context } = req.body;
     
-    if (!file) {
-      return res.json({ success: false, error: '파일이 없습니다.' });
-    }
+    console.log('💬 [Chat] 요청:', message?.substring(0, 50));
     
-    console.log('🔍 [File] 파일 분석 요청:', fileName, fileType);
+    let systemPrompt = APP_PROMPT;
     
-    // base64 데이터에서 실제 데이터 부분만 추출
-    const base64Data = file.includes('base64,') ? file.split('base64,')[1] : file;
-    
-    // 파일 타입에 따른 처리
-    let analysisPrompt = '';
-    let messageContent = [];
-    
-    if (fileType === 'image') {
-      // 이미지 분석 (GPT-4o Vision)
-      analysisPrompt = `당신은 보험설계사를 돕는 AI 분석 전문가입니다.
-
-업로드된 이미지를 분석하여 다음과 같이 답변하세요:
-
-## 보험증권 분석 시:
-1. **보험 종류**: (종신보험, 건강보험, 실손보험 등)
-2. **보험회사**: 
-3. **피보험자 정보**: (확인 가능한 경우)
-4. **보장 내용 요약**:
-   - 사망보험금:
-   - 장해보험금:
-   - 암진단금:
-   - 뇌혈관/심혈관:
-   - 실손의료비:
-   - 입원/수술:
-   - 기타 특약:
-5. **분석 의견**: (부족한 보장, 추천 사항)
-
-## 병원 서류 (진단서, 영수증, 요양급여내역서) 분석 시:
-1. **서류 종류**:
-2. **주요 내용 요약**:
-3. **관련 보험 청구 가이드**:
-4. **예상 보상 정보**: (해당되는 경우)
-
-## 기타 서류:
-- 서류의 종류와 주요 내용을 요약
-- 보험과 관련된 조언 제공
-
-항상 친절하고 전문적으로 답변하세요.
-이미지가 불분명하면 솔직히 말씀해주세요.`;
-      
-      messageContent = [
-        { type: 'text', text: `파일명: ${fileName}\n\n이 이미지를 분석해주세요.` },
-        { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
-      ];
-    } else if (fileType === 'pdf') {
-      // 🆕 PDF 분석 (텍스트 추출 후 GPT-4o 분석)
-      console.log('📄 [PDF] PDF 텍스트 추출 시작...');
-      
-      try {
-        // base64 → Buffer 변환
-        const pdfBuffer = Buffer.from(base64Data, 'base64');
-        
-        // PDF에서 텍스트 추출
-        const pdfData = await pdfParse(pdfBuffer);
-        const extractedText = pdfData.text;
-        const pageCount = pdfData.numpages;
-        
-        console.log(`📄 [PDF] 추출 완료: ${pageCount}페이지, ${extractedText.length}자`);
-        
-        // 텍스트가 너무 길면 앞부분만 사용 (토큰 제한)
-        const maxChars = 15000; // 약 4000 토큰
-        const truncatedText = extractedText.length > maxChars 
-          ? extractedText.substring(0, maxChars) + '\n\n... (문서가 길어 일부만 분석했습니다)'
-          : extractedText;
-        
-        analysisPrompt = `당신은 보험설계사를 돕는 AI 문서 분석 전문가입니다.
-
-업로드된 PDF 문서의 텍스트를 분석하여 다음과 같이 답변하세요:
-
-## 보험증권 분석 시:
-1. **보험 종류**: (종신보험, 건강보험, 실손보험, 연금보험 등)
-2. **보험회사/상품명**:
-3. **계약자/피보험자 정보**: (확인 가능한 경우)
-4. **보장 내용 요약**:
-   - 사망보험금:
-   - 장해보험금:
-   - 암진단금:
-   - 뇌혈관/심혈관 진단금:
-   - 실손의료비:
-   - 입원/수술비:
-   - 기타 특약:
-5. **보험료 정보**: (월납/연납, 금액)
-6. **계약일/만기일**:
-7. **분석 의견**: (부족한 보장, 추천 사항)
-
-## 병원/의료 서류 분석 시:
-1. **서류 종류**: (진단서, 소견서, 영수증, 요양급여내역서 등)
-2. **환자 정보**: (확인 가능한 경우)
-3. **진단명/상병코드**:
-4. **치료 내용**:
-5. **보험 청구 관련 정보**:
-6. **예상 보상 정보**: (해당되는 경우)
-
-## 상품설명서/가입설계서 분석 시:
-1. **상품명**:
-2. **보험회사**:
-3. **주요 보장 내용**:
-4. **보험료 예시**:
-5. **특이사항/주의점**:
-6. **요약 및 추천 포인트**:
-
-## 기타 문서:
-- 문서의 종류와 목적 파악
-- 주요 내용 요약
-- 보험 관련 조언 제공
-
-문서 내용이 불분명하거나 일부만 추출된 경우 솔직히 말씀해주세요.
-핵심 정보를 빠짐없이 정리해주세요.`;
-
-        messageContent = [
-          { 
-            type: 'text', 
-            text: `파일명: ${fileName}\n총 페이지: ${pageCount}페이지\n\n=== PDF 문서 내용 ===\n${truncatedText}\n\n위 PDF 문서를 분석해주세요.` 
-          }
-        ];
-        
-      } catch (pdfError) {
-        console.error('❌ [PDF] 텍스트 추출 실패:', pdfError.message);
-        return res.json({ 
-          success: false, 
-          error: 'PDF 텍스트 추출 실패. 다른 형식의 PDF이거나 보안 설정이 있을 수 있습니다.' 
-        });
+    if (ragChunks.length > 0) {
+      const ragResults = searchRAG(message, 3);
+      if (ragResults.length > 0) {
+        const ragContext = formatRAGContext(ragResults);
+        systemPrompt = APP_PROMPT_WITH_RAG.replace('{{RAG_CONTEXT}}', ragContext);
+        console.log(`📚 [Chat] RAG 적용: ${ragResults.length}개 청크`);
       }
-    } else {
-      // 기타 문서 (텍스트 추출 시도)
-      analysisPrompt = `당신은 보험설계사를 돕는 AI 문서 분석 전문가입니다.
-업로드된 문서를 분석하고 보험 관련 조언을 제공해주세요.`;
-      
-      messageContent = [
-        { type: 'text', text: `파일명: ${fileName}\n파일 형식: ${fileType}\n\n이 문서를 분석해주세요.` },
-        { type: 'image_url', image_url: { url: `data:application/octet-stream;base64,${base64Data}` } }
-      ];
     }
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -736,42 +931,42 @@ app.post('/api/analyze-file', async (req, res) => {
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: analysisPrompt },
-          { role: 'user', content: messageContent }
+          { role: 'system', content: systemPrompt },
+          ...(context || []),
+          { role: 'user', content: message }
         ],
-        max_tokens: 2000
+        max_tokens: 1000,
+        temperature: 0.7
       })
     });
     
     const data = await response.json();
     
     if (data.choices && data.choices[0]) {
-      const analysis = data.choices[0].message.content;
-      console.log('✅ [File] 파일 분석 완료:', fileName);
-      res.json({ success: true, analysis });
+      res.json({ success: true, response: data.choices[0].message.content });
     } else {
-      console.error('❌ [File] API 응답 오류:', data);
-      res.json({ success: false, error: 'API 응답 오류' });
+      res.json({ success: false, error: 'OpenAI 응답 없음' });
     }
     
   } catch (error) {
-    console.error('❌ [File] 파일 분석 에러:', error);
+    console.error('❌ [Chat] 에러:', error);
     res.json({ success: false, error: error.message });
   }
 });
 
-// 🆕 이미지 분석 API (GPT-4o Vision) - 기존 호환용 유지
+// ============================================
+// 기존 이미지 분석 API
+// ============================================
 app.post('/api/analyze-image', async (req, res) => {
   try {
-    const { image } = req.body;
+    const { image, prompt } = req.body;
     
     if (!image) {
       return res.json({ success: false, error: '이미지가 없습니다.' });
     }
     
-    console.log('🔍 [Vision] 이미지 분석 요청 수신');
+    console.log('🖼️ [Image] 분석 요청');
     
-    // base64 이미지에서 데이터 부분만 추출
     const base64Data = image.includes('base64,') ? image.split('base64,')[1] : image;
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -784,81 +979,60 @@ app.post('/api/analyze-image', async (req, res) => {
         model: 'gpt-4o',
         messages: [
           {
-            role: 'system',
-            content: `당신은 보험설계사를 돕는 AI 분석 전문가입니다.
-
-업로드된 이미지를 분석하여 다음과 같이 답변하세요:
-
-## 보험증권 분석 시:
-1. **보험 종류**: (종신보험, 건강보험, 실손보험 등)
-2. **보험회사**: 
-3. **피보험자 정보**: (확인 가능한 경우)
-4. **보장 내용 요약**:
-   - 사망보험금:
-   - 장해보험금:
-   - 암진단금:
-   - 뇌혈관/심혈관:
-   - 실손의료비:
-   - 입원/수술:
-   - 기타 특약:
-5. **분석 의견**: (부족한 보장, 추천 사항)
-
-## 병원 서류 (진단서, 영수증, 요양급여내역서) 분석 시:
-1. **서류 종류**:
-2. **주요 내용 요약**:
-3. **관련 보험 청구 가이드**:
-4. **예상 보상 정보**: (해당되는 경우)
-
-## 기타 서류:
-- 서류의 종류와 주요 내용을 요약
-- 보험과 관련된 조언 제공
-
-항상 친절하고 전문적으로 답변하세요.
-이미지가 불분명하면 솔직히 말씀해주세요.`
-          },
-          {
             role: 'user',
             content: [
-              {
-                type: 'text',
-                text: '이 이미지를 분석해주세요.'
-              },
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${base64Data}`
-                }
-              }
+              { type: 'text', text: prompt || '이 이미지를 분석해주세요.' },
+              { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${base64Data}` } }
             ]
           }
         ],
-        max_tokens: 1500
+        max_tokens: 2000
       })
     });
     
     const data = await response.json();
     
     if (data.choices && data.choices[0]) {
-      const analysis = data.choices[0].message.content;
-      console.log('✅ [Vision] 이미지 분석 완료');
-      res.json({ success: true, analysis });
+      console.log('✅ [Image] 분석 완료');
+      res.json({ success: true, analysis: data.choices[0].message.content });
     } else {
-      console.error('❌ [Vision] API 응답 오류:', data);
-      res.json({ success: false, error: 'API 응답 오류' });
+      res.json({ success: false, error: 'OpenAI 응답 없음' });
     }
     
   } catch (error) {
-    console.error('❌ [Vision] 이미지 분석 에러:', error);
+    console.error('❌ [Image] 분석 에러:', error);
     res.json({ success: false, error: error.message });
   }
 });
 
-// 기존 텍스트 채팅 (유지)
-app.post('/api/chat', async (req, res) => {
+// ============================================
+// 기존 파일 분석 API (PDF 포함)
+// ============================================
+app.post('/api/analyze-file', async (req, res) => {
   try {
-    const { message } = req.body;
-    if (!message) return res.json({ reply: '네, 대표님!' });
-
+    const { file, fileName, fileType, prompt } = req.body;
+    
+    if (!file) {
+      return res.json({ success: false, error: '파일이 없습니다.' });
+    }
+    
+    console.log('📄 [File] 분석 요청:', fileName, fileType);
+    
+    let textContent = '';
+    
+    if (fileType === 'application/pdf' || fileName?.endsWith('.pdf')) {
+      const base64Data = file.includes('base64,') ? file.split('base64,')[1] : file;
+      const pdfBuffer = Buffer.from(base64Data, 'base64');
+      const pdfData = await pdfParse(pdfBuffer);
+      textContent = pdfData.text;
+      console.log('📄 [File] PDF 텍스트 추출 완료:', textContent.length, '자');
+    } else {
+      const base64Data = file.includes('base64,') ? file.split('base64,')[1] : file;
+      textContent = Buffer.from(base64Data, 'base64').toString('utf-8');
+    }
+    
+    const analysisPrompt = prompt || `다음 문서를 분석해주세요:\n\n${textContent.substring(0, 10000)}`;
+    
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -868,254 +1042,133 @@ app.post('/api/chat', async (req, res) => {
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: APP_PROMPT },
-          { role: 'user', content: message }
+          { role: 'system', content: '당신은 문서 분석 전문가입니다. 보험 증권, 계약서, 재무 문서 등을 정확하게 분석합니다.' },
+          { role: 'user', content: analysisPrompt }
         ],
-        max_tokens: 200
+        max_tokens: 2000
       })
     });
-
+    
     const data = await response.json();
-    res.json({ reply: data.choices?.[0]?.message?.content || '네, 대표님!' });
+    
+    if (data.choices && data.choices[0]) {
+      console.log('✅ [File] 분석 완료');
+      res.json({ 
+        success: true, 
+        analysis: data.choices[0].message.content,
+        fileName: fileName,
+        textLength: textContent.length
+      });
+    } else {
+      res.json({ success: false, error: 'OpenAI 응답 없음' });
+    }
+    
   } catch (error) {
-    res.json({ reply: '네, 대표님!' });
-  }
-});
-
-// 기존 전화 발신 - TTS 방식 (백업용으로 유지)
-app.post('/api/call', async (req, res) => {
-  const { to, customerName } = req.body;
-  console.log('📞 [기존방식] /api/call 요청:', customerName, to);
-
-  if (!to) return res.json({ success: false, error: '전화번호가 필요합니다' });
-
-  let phoneNumber = to.replace(/[-\s]/g, '');
-  if (phoneNumber.startsWith('010')) {
-    phoneNumber = '+82' + phoneNumber.slice(1);
-  }
-  if (!phoneNumber.startsWith('+')) {
-    phoneNumber = '+82' + phoneNumber;
-  }
-
-  const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-
-  try {
-    const call = await client.calls.create({
-      url: `https://${SERVER_DOMAIN}/incoming-call?customerName=${encodeURIComponent(customerName || '고객')}`,
-      to: phoneNumber,
-      from: TWILIO_NUMBER,
-      statusCallback: `https://${SERVER_DOMAIN}/call-status`,
-      statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed']
-    });
-
-    console.log('✅ [기존방식] 전화 발신 성공:', call.sid);
-    callStatusMap.set(call.sid, 'ringing');
-    res.json({ success: true, callSid: call.sid, mode: 'legacy-tts' });
-  } catch (error) {
-    console.error('❌ 발신 에러:', error);
+    console.error('❌ [File] 분석 에러:', error);
     res.json({ success: false, error: error.message });
   }
 });
 
-// 기존 통화 상태 조회 (유지)
-app.get('/api/call-status/:callSid', (req, res) => {
-  const { callSid } = req.params;
-  const status = callStatusMap.get(callSid) || 'unknown';
-  res.json({ callSid, status });
+// ============================================
+// Twilio 전화 관련 API (기존 유지)
+// ============================================
+app.post('/api/call', async (req, res) => {
+  try {
+    const { phoneNumber, customerName, purpose } = req.body;
+    
+    if (!phoneNumber) {
+      return res.json({ success: false, error: '전화번호가 없습니다.' });
+    }
+    
+    console.log('📞 [Call] 발신 요청:', phoneNumber, customerName);
+    
+    const twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+    
+    const call = await twilioClient.calls.create({
+      url: `https://${SERVER_DOMAIN}/incoming-call?purpose=${encodeURIComponent(purpose || '상담예약')}&customerName=${encodeURIComponent(customerName || '')}`,
+      to: phoneNumber,
+      from: TWILIO_NUMBER,
+      statusCallback: `https://${SERVER_DOMAIN}/call-status`,
+      statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
+      statusCallbackMethod: 'POST'
+    });
+    
+    callStatusMap.set(call.sid, { status: 'initiated', phoneNumber, customerName });
+    callContextMap.set(call.sid, { customerName, purpose });
+    
+    console.log('✅ [Call] 발신 성공:', call.sid);
+    
+    res.json({ success: true, callSid: call.sid });
+    
+  } catch (error) {
+    console.error('❌ [Call] 발신 에러:', error);
+    res.json({ success: false, error: error.message });
+  }
 });
 
-// 기존 통화 상태 콜백 (유지)
+app.get('/api/call-status/:callSid', (req, res) => {
+  const { callSid } = req.params;
+  const status = callStatusMap.get(callSid);
+  res.json({ success: true, status: status || { status: 'unknown' } });
+});
+
 app.post('/call-status', (req, res) => {
   const { CallSid, CallStatus } = req.body;
-  console.log('📊 통화 상태 업데이트:', CallSid, CallStatus);
-  callStatusMap.set(CallSid, CallStatus);
+  console.log('📞 [Call] 상태 업데이트:', CallSid, CallStatus);
+  
+  if (callStatusMap.has(CallSid)) {
+    const current = callStatusMap.get(CallSid);
+    current.status = CallStatus;
+    callStatusMap.set(CallSid, current);
+  }
+  
   res.sendStatus(200);
 });
 
-// 기존 TTS 방식 incoming-call (백업용 유지)
-app.post('/incoming-call', async (req, res) => {
-  const customerName = req.query.customerName || '고객';
-  console.log('📞 [기존방식] 전화 연결됨! 고객:', customerName);
-
+app.all('/incoming-call', (req, res) => {
+  const purpose = req.query.purpose || '상담예약';
+  const customerName = req.query.customerName || '';
+  
+  console.log('📞 [Call] 수신 처리:', purpose, customerName);
+  
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
-  <Say voice="Google.ko-KR-Standard-A" language="ko-KR">안녕하세요! 저는 오원트금융연구소 AI비서 지니입니다. 오상열 대표님께서 ${customerName}님과 상담 일정을 잡고 싶다고 하셔서 연락드렸습니다. 편하신 시간이 있으실까요?</Say>
-  <Gather input="speech" language="ko-KR" timeout="5" action="/handle-response?customerName=${encodeURIComponent(customerName)}" method="POST">
-    <Say voice="Google.ko-KR-Standard-A" language="ko-KR">말씀해 주세요.</Say>
-  </Gather>
-  <Say voice="Google.ko-KR-Standard-A" language="ko-KR">응답이 없으시네요. 나중에 다시 연락드리겠습니다. 좋은 하루 되세요!</Say>
-</Response>`;
-
-  res.type('text/xml');
-  res.send(twiml);
-});
-
-// 기존 TTS 방식 handle-response (백업용 유지)
-app.post('/handle-response', async (req, res) => {
-  const customerName = req.query.customerName || '고객';
-  const speechResult = req.body.SpeechResult || '';
-  console.log('👤 [기존방식] 고객 응답:', speechResult);
-
-  let gptReply = '네, 알겠습니다. 오상열 대표님께 전달드리겠습니다. 좋은 하루 되세요!';
-
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          {
-            role: 'system',
-            content: `당신은 오원트금융연구소의 AI 전화비서 지니입니다.
-고객과 상담 일정을 잡는 중입니다.
-고객 이름: ${customerName}
-
-- 반드시 한국어로만 답하세요
-- 짧고 친절하게 1-2문장으로 답하세요
-- 고객이 시간을 말하면 확인하고 감사인사
-- 고객이 거절하면 공손히 마무리`
-          },
-          { role: 'user', content: speechResult }
-        ],
-        max_tokens: 100
-      })
-    });
-
-    const data = await response.json();
-    gptReply = data.choices?.[0]?.message?.content || gptReply;
-    console.log('🤖 [기존방식] 지니 응답:', gptReply);
-  } catch (error) {
-    console.error('GPT 에러:', error);
-  }
-
-  const twiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="Google.ko-KR-Standard-A" language="ko-KR">${gptReply}</Say>
-  <Gather input="speech" language="ko-KR" timeout="5" action="/handle-response?customerName=${encodeURIComponent(customerName)}" method="POST">
-  </Gather>
-  <Say voice="Google.ko-KR-Standard-A" language="ko-KR">네, 감사합니다. 좋은 하루 되세요!</Say>
-</Response>`;
-
-  res.type('text/xml');
-  res.send(twiml);
-});
-
-// ============================================
-// 🆕 새로운 전화지니 (Realtime API 방식)
-// ============================================
-
-// 새 전화 발신 엔드포인트 (Realtime API 사용)
-app.post('/api/call-realtime', async (req, res) => {
-  const { to, customerName, purpose } = req.body;
-  console.log('📞 [Realtime] /api/call-realtime 요청:', customerName, to, purpose);
-
-  if (!to) return res.json({ success: false, error: '전화번호가 필요합니다' });
-
-  let phoneNumber = to.replace(/[-\s]/g, '');
-  if (phoneNumber.startsWith('010')) {
-    phoneNumber = '+82' + phoneNumber.slice(1);
-  }
-  if (!phoneNumber.startsWith('+')) {
-    phoneNumber = '+82' + phoneNumber;
-  }
-
-  const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-
-  try {
-    // 전화 컨텍스트 저장 (나중에 WebSocket에서 사용)
-    const callContext = {
-      customerName: customerName || '고객',
-      purpose: purpose || '상담 일정 예약',
-      startTime: new Date().toISOString()
-    };
-
-    const call = await client.calls.create({
-      url: `https://${SERVER_DOMAIN}/incoming-call-realtime?customerName=${encodeURIComponent(customerName || '고객')}&purpose=${encodeURIComponent(purpose || '상담 일정 예약')}`,
-      to: phoneNumber,
-      from: TWILIO_NUMBER,
-      statusCallback: `https://${SERVER_DOMAIN}/call-status`,
-      statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed']
-    });
-
-    console.log('✅ [Realtime] 전화 발신 성공:', call.sid);
-    callStatusMap.set(call.sid, 'ringing');
-    callContextMap.set(call.sid, callContext);
-
-    res.json({ success: true, callSid: call.sid, mode: 'realtime-api' });
-  } catch (error) {
-    console.error('❌ [Realtime] 발신 에러:', error);
-    res.json({ success: false, error: error.message });
-  }
-});
-
-// 🆕 Realtime API용 incoming-call (Media Stream 연결)
-app.post('/incoming-call-realtime', async (req, res) => {
-  const customerName = req.query.customerName || '고객';
-  const purpose = req.query.purpose || '상담 일정 예약';
-  console.log('📞 [Realtime] 전화 연결됨! 고객:', customerName, '목적:', purpose);
-
-  // TwiML: Media Stream으로 연결
-  const twiml = `<?xml version="1.0" encoding="UTF-8"?>
-<Response>
-  <Say voice="Google.ko-KR-Standard-A" language="ko-KR">잠시만 기다려주세요. AI 비서 지니가 연결됩니다.</Say>
   <Connect>
-    <Stream url="wss://${SERVER_DOMAIN}/media-stream?customerName=${encodeURIComponent(customerName)}&amp;purpose=${encodeURIComponent(purpose)}" />
+    <Stream url="wss://${SERVER_DOMAIN}/media-stream?purpose=${encodeURIComponent(purpose)}&amp;customerName=${encodeURIComponent(customerName)}" />
   </Connect>
 </Response>`;
-
+  
   res.type('text/xml');
   res.send(twiml);
 });
 
 // ============================================
-// 서버 시작 및 WebSocket 설정
+// HTTP 서버 시작
 // ============================================
-
-const PORT = process.env.PORT || 10000;
-
+const PORT = process.env.PORT || 3001;
 const server = app.listen(PORT, () => {
-  console.log('='.repeat(50));
-  console.log('🚀 AI지니 서버 시작!');
-  console.log(`📍 포트: ${PORT}`);
-  console.log('📡 버전: 7.8 - RAG 시스템 (오상열 대표님 책 3권 학습)');
-  console.log('='.repeat(50));
+  console.log(`🚀 서버 시작! 포트: ${PORT}`);
 });
 
 // ============================================
-// WebSocket 서버 설정
+// WebSocket 서버 (기존 유지)
 // ============================================
-
 const wss = new WebSocket.Server({ server });
 
 wss.on('connection', (ws, req) => {
-  const url = new URL(req.url, `https://${SERVER_DOMAIN}`);
-  const pathname = url.pathname;
-
-  console.log('🔌 WebSocket 연결됨! 경로:', pathname);
-
-  // ============================================
-  // 🆕 전화지니용 Media Stream (Twilio ↔ OpenAI)
-  // ============================================
-  if (pathname === '/media-stream') {
-    const customerName = url.searchParams.get('customerName') || '고객';
-    const purpose = url.searchParams.get('purpose') || '상담 일정 예약';
-
-    console.log('📞 [Realtime] Media Stream 시작 - 고객:', customerName, '목적:', purpose);
-
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  
+  if (url.pathname === '/media-stream') {
+    const purpose = url.searchParams.get('purpose') || '상담예약';
+    const customerName = url.searchParams.get('customerName') || '';
+    
+    console.log('📞 [Realtime] 전화 연결:', purpose, customerName);
+    
     let openaiWs = null;
     let streamSid = null;
-    let callSid = null;  // 🆕 통화 종료용
-    let endCallTimer = null;  // 🆕 자동 종료 타이머
-
-    // 프롬프트에 고객 정보 삽입
-    const phonePrompt = PHONE_GENIE_PROMPT
-      .replace('{{CALL_PURPOSE}}', purpose);
-
-    // OpenAI Realtime API 연결
+    let callSid = null;
+    let endCallTimer = null;
+    
     openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17', {
       headers: {
         'Authorization': `Bearer ${OPENAI_API_KEY}`,
@@ -1124,118 +1177,90 @@ wss.on('connection', (ws, req) => {
     });
 
     openaiWs.on('open', () => {
-      console.log('✅ [Realtime] OpenAI 연결됨! 고객:', customerName);
-
-      // 세션 설정
+      console.log('✅ [Realtime] OpenAI 연결됨 (전화 모드)');
+      
+      const phonePrompt = PHONE_GENIE_PROMPT.replace('{{CALL_PURPOSE}}', purpose);
+      
       openaiWs.send(JSON.stringify({
         type: 'session.update',
         session: {
           modalities: ['text', 'audio'],
           instructions: phonePrompt,
-          voice: 'shimmer', // 여성 음성
-          input_audio_format: 'g711_ulaw', // Twilio 형식
-          output_audio_format: 'g711_ulaw', // Twilio 형식
+          voice: 'shimmer',
+          input_audio_format: 'g711_ulaw',
+          output_audio_format: 'g711_ulaw',
           input_audio_transcription: { model: 'whisper-1', language: 'ko' },
           turn_detection: {
             type: 'server_vad',
             threshold: 0.5,
-            prefix_padding_ms: 300,
-            silence_duration_ms: 800 // 대화 자연스럽게
+            prefix_padding_ms: 500,
+            silence_duration_ms: 2000
           }
         }
       }));
-
-      // AI가 먼저 인사 (전화 발신이므로)
+      
       setTimeout(() => {
         openaiWs.send(JSON.stringify({
-          type: 'conversation.item.create',
-          item: {
-            type: 'message',
-            role: 'user',
-            content: [{
-              type: 'input_text',
-              text: `전화가 연결되었습니다. ${customerName}님께 인사하고 ${purpose}에 대해 이야기를 시작하세요.`
-            }]
+          type: 'response.create',
+          response: {
+            modalities: ['text', 'audio']
           }
         }));
-        openaiWs.send(JSON.stringify({ type: 'response.create' }));
       }, 500);
     });
 
-    // OpenAI → Twilio (AI 응답을 고객에게 전달)
     openaiWs.on('message', (data) => {
       try {
         const event = JSON.parse(data.toString());
-
-        // 오디오 델타 → Twilio로 전송
+        
         if (event.type === 'response.audio.delta' && event.delta) {
-          if (streamSid) {
-            ws.send(JSON.stringify({
-              event: 'media',
-              streamSid: streamSid,
-              media: { payload: event.delta }
-            }));
-          }
+          ws.send(JSON.stringify({
+            event: 'media',
+            streamSid: streamSid,
+            media: { payload: event.delta }
+          }));
         }
-
-        // 디버깅용 로그
+        
         if (event.type === 'response.audio_transcript.done') {
-          console.log('🤖 [Realtime] 지니:', event.transcript);
+          console.log('🤖 지니(전화):', event.transcript);
           
-          // 🆕 자동 종료 감지: 지니가 종료 인사를 하면 15초 후 전화 끊기
           const transcript = event.transcript || '';
-          const endPhrases = ['안녕히 계세요', '좋은 하루 되세요', '예약 완료'];
-          const isEndPhrase = endPhrases.some(phrase => transcript.includes(phrase));
+          const isEnding = 
+            transcript.includes('안녕히 계세요') ||
+            transcript.includes('좋은 하루') ||
+            transcript.includes('감사합니다') ||
+            transcript.includes('예약 완료');
           
-          if (isEndPhrase) {
-            console.log('🔚 [Realtime] 종료 인사 감지! 내용:', transcript);
-            
-            // 기존 타이머 취소 후 새로 시작
-            if (endCallTimer) {
-              clearTimeout(endCallTimer);
-              console.log('🔄 [Realtime] 기존 타이머 취소, 새 타이머 시작');
-            }
-            
-            // 15초 후 전화 종료
-            endCallTimer = setTimeout(() => {
-              console.log('📞 [Realtime] 자동 종료 실행!');
-              
-              // Twilio 통화 종료
+          if (isEnding && !endCallTimer) {
+            console.log('⏱️ [Realtime] 종료 멘트 감지 - 15초 후 통화 종료');
+            endCallTimer = setTimeout(async () => {
+              console.log('📞 [Realtime] 15초 경과 - 통화 종료');
               if (callSid) {
-                const client = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
-                client.calls(callSid)
-                  .update({ status: 'completed' })
-                  .then(() => console.log('✅ [Realtime] 통화 종료 완료:', callSid))
-                  .catch(err => console.error('❌ [Realtime] 통화 종료 실패:', err.message));
+                try {
+                  const twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+                  await twilioClient.calls(callSid).update({ status: 'completed' });
+                } catch (e) {
+                  console.error('통화 종료 에러:', e);
+                }
               }
-              
-              // WebSocket 정리
-              if (openaiWs) openaiWs.close();
-              ws.close();
             }, 15000);
-            
-            console.log('⏱️ [Realtime] 15초 타이머 시작됨');
           }
         }
+        
         if (event.type === 'conversation.item.input_audio_transcription.completed') {
-          const transcript = event.transcript || '';
-          console.log('👤 [Realtime] 고객:', transcript);
+          console.log('👤 고객(전화):', event.transcript);
           
-          // 🆕 ARS 자동응답 감지 (타이머 취소 안 함)
-          const isARS = transcript.includes('눌러주세요') || 
-                        transcript.includes('음성 녹음') || 
-                        transcript.includes('호출 번호') ||
-                        transcript.includes('시간이 지났습니다') ||
-                        transcript.includes('번을 눌러') ||
-                        transcript.includes('남기시려면') ||
-                        transcript.includes('연결이 되지 않') ||
-                        transcript.includes('통화 중이') ||
-                        transcript.includes('전화를 받을 수 없');
+          const transcript = event.transcript || '';
+          const isARS = 
+            transcript.includes('없는 번호') ||
+            transcript.includes('연결이 되지') ||
+            transcript.includes('전화를 받지') ||
+            transcript.includes('삐') ||
+            transcript.length < 3;
           
           if (isARS) {
             console.log('🤖 [Realtime] ARS 자동응답 감지 - 타이머 유지');
           } else if (endCallTimer) {
-            // 진짜 고객 응답일 때만 타이머 취소
             console.log('🔄 [Realtime] 고객 응답 - 종료 타이머 취소');
             clearTimeout(endCallTimer);
             endCallTimer = null;
@@ -1257,7 +1282,6 @@ wss.on('connection', (ws, req) => {
       console.log('🔌 [Realtime] OpenAI 연결 종료');
     });
 
-    // Twilio → OpenAI (고객 음성을 AI에게 전달)
     ws.on('message', (message) => {
       try {
         const data = JSON.parse(message);
@@ -1265,12 +1289,11 @@ wss.on('connection', (ws, req) => {
         switch (data.event) {
           case 'start':
             streamSid = data.start.streamSid;
-            callSid = data.start.callSid;  // 🆕 callSid 저장
+            callSid = data.start.callSid;
             console.log('📞 [Realtime] Twilio Stream 시작:', streamSid, 'CallSid:', callSid);
             break;
 
           case 'media':
-            // 고객 음성 → OpenAI로 전달
             if (openaiWs && openaiWs.readyState === WebSocket.OPEN) {
               openaiWs.send(JSON.stringify({
                 type: 'input_audio_buffer.append',
@@ -1294,7 +1317,7 @@ wss.on('connection', (ws, req) => {
       if (openaiWs) openaiWs.close();
     });
 
-    return; // Media Stream 처리 완료
+    return;
   }
 
   // ============================================
@@ -1302,9 +1325,8 @@ wss.on('connection', (ws, req) => {
   // ============================================
   let openaiWs = null;
   let lastAssistantItem = null;
-  let currentAnalysisContextList = []; // 🆕 v15: 다중 파일 분석 컨텍스트
+  let currentAnalysisContextList = [];
 
-  // 🆕 v15: 분석 컨텍스트 배열을 문자열로 변환하는 함수
   const formatAnalysisContext = (contextList) => {
     if (!contextList || contextList.length === 0) return '';
     
@@ -1313,37 +1335,30 @@ wss.on('connection', (ws, req) => {
     }).join('\n\n');
   };
 
-  // 🆕 v7.8: RAG + 분석 컨텍스트 통합 프롬프트 생성
   const buildPromptWithRAG = (analysisContextList, userMessage = '') => {
     const hasAnalysis = analysisContextList && analysisContextList.length > 0;
     const hasRAG = ragChunks.length > 0;
     
-    // RAG 검색 수행 (사용자 메시지가 있을 때)
     let ragContext = '';
     if (hasRAG && userMessage) {
       const ragResults = searchRAG(userMessage, 3);
       if (ragResults.length > 0) {
         ragContext = formatRAGContext(ragResults);
-        console.log(`📚 [RAG] 검색 결과: ${ragResults.length}개 청크 (질문: ${userMessage.substring(0, 30)}...)`);
+        console.log(`📚 [RAG] 검색 결과: ${ragResults.length}개 청크`);
       }
     }
     
-    // 프롬프트 선택
     if (hasAnalysis && ragContext) {
-      // RAG + 파일 분석 둘 다
       const analysisText = formatAnalysisContext(analysisContextList);
       return APP_PROMPT_WITH_RAG_AND_CONTEXT
         .replace('{{RAG_CONTEXT}}', ragContext)
         .replace('{{ANALYSIS_CONTEXT}}', analysisText);
     } else if (ragContext) {
-      // RAG만
       return APP_PROMPT_WITH_RAG.replace('{{RAG_CONTEXT}}', ragContext);
     } else if (hasAnalysis) {
-      // 파일 분석만
       const analysisText = formatAnalysisContext(analysisContextList);
       return APP_PROMPT_WITH_CONTEXT.replace('{{ANALYSIS_CONTEXT}}', analysisText);
     } else {
-      // 기본
       return APP_PROMPT;
     }
   };
@@ -1352,19 +1367,15 @@ wss.on('connection', (ws, req) => {
     try {
       const msg = JSON.parse(message);
 
-      // 🆕 v15: 다중 분석 컨텍스트 업데이트 메시지 처리
       if (msg.type === 'update_context') {
-        // 배열 형태로 받기 (v15)
         if (msg.analysisContextList) {
           currentAnalysisContextList = msg.analysisContextList;
           console.log('📋 [v15] 분석 컨텍스트 업데이트:', currentAnalysisContextList.length, '개 파일');
         } else if (msg.analysisContext) {
-          // 하위 호환 (단일 파일)
           currentAnalysisContextList = [msg.analysisContext];
           console.log('📋 [v15] 단일 파일 컨텍스트 업데이트:', msg.analysisContext.fileName);
         }
         
-        // OpenAI 세션이 열려있으면 프롬프트 업데이트
         if (openaiWs && openaiWs.readyState === WebSocket.OPEN && currentAnalysisContextList.length > 0) {
           const updatedPrompt = buildPromptWithRAG(currentAnalysisContextList);
           
@@ -1374,7 +1385,7 @@ wss.on('connection', (ws, req) => {
               instructions: updatedPrompt
             }
           }));
-          console.log('📤 [v15] OpenAI 프롬프트 업데이트 완료 -', currentAnalysisContextList.length, '개 파일');
+          console.log('📤 [v15] OpenAI 프롬프트 업데이트 완료');
         }
         return;
       }
@@ -1382,12 +1393,10 @@ wss.on('connection', (ws, req) => {
       if (msg.type === 'start_app') {
         console.log('📱 앱 Realtime 시작');
         
-        // 🆕 v15: 시작 시 다중 분석 컨텍스트 저장
         if (msg.analysisContextList && msg.analysisContextList.length > 0) {
           currentAnalysisContextList = msg.analysisContextList;
           console.log('📋 [v15] 시작 시 분석 컨텍스트 수신:', currentAnalysisContextList.length, '개 파일');
         } else if (msg.analysisContext) {
-          // 하위 호환
           currentAnalysisContextList = [msg.analysisContext];
         }
 
@@ -1401,14 +1410,13 @@ wss.on('connection', (ws, req) => {
         openaiWs.on('open', () => {
           console.log('✅ OpenAI Realtime API 연결됨! 모드: 앱');
 
-          // 🆕 v7.8: RAG 포함 프롬프트 사용
           let promptToUse = buildPromptWithRAG(currentAnalysisContextList);
           
           if (currentAnalysisContextList.length > 0) {
-            console.log('📋 [v15] 분석 컨텍스트 포함된 프롬프트 사용 -', currentAnalysisContextList.length, '개 파일');
+            console.log('📋 [v15] 분석 컨텍스트 포함된 프롬프트 사용');
           }
           if (ragChunks.length > 0) {
-            console.log('📚 [RAG] RAG 지식 베이스 활성화 -', ragChunks.length, '개 청크');
+            console.log('📚 [RAG] RAG 지식 베이스 활성화');
           }
 
           openaiWs.send(JSON.stringify({
