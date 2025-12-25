@@ -1,6 +1,6 @@
 {
   "name": "ark-genie-server",
-  "version": "7.6.0",
+  "version": "19.0.0",
   "description": "ARK-Genie AI Assistant Server",
   "main": "server.js",
   "scripts": {
@@ -10,7 +10,8 @@
     "express": "^4.18.2",
     "ws": "^8.14.2",
     "twilio": "^4.19.0",
-    "pdf-parse": "^1.1.1"
+    "pdf-parse": "^1.1.1",
+    "googleapis": "^129.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
