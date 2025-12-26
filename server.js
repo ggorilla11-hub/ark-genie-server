@@ -1,8 +1,7 @@
 // ============================================
-// ARK-Genie Server v21.9 - Barge-in + 시나리오 로깅 강화
-// - 🆕 전화지니 Barge-in (끼어들기) 기능 추가
-// - 🆕 purpose 로깅 강화
-// - 상담예약, 연체안내, 생일축하, 지니소개, 만기안내, 안부전화
+// ARK-Genie Server v21.10 - URL 파라미터 수정
+// - 🆕 TwiML Stream URL 수정 (&amp; → &)
+// - Barge-in + 시나리오 6종
 // ============================================
 
 const express = require('express');
@@ -732,7 +731,7 @@ app.get('/api/sheets/download', async (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '21.9 - Barge-in + 시나리오 6종',
+    version: '21.10 - URL 파라미터 수정',
     googleSheets: {
       enabled: !!sheets,
       spreadsheetId: GOOGLE_SPREADSHEET_ID ? '설정됨' : '미설정'
@@ -1337,10 +1336,13 @@ app.all('/incoming-call', (req, res) => {
   
   console.log('📞 [Call] 수신 처리:', purpose, customerName);
   
+  const streamUrl = `wss://${SERVER_DOMAIN}/media-stream?purpose=${encodeURIComponent(purpose)}&customerName=${encodeURIComponent(customerName)}`;
+  console.log('📞 [Call] Stream URL:', streamUrl);
+  
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Connect>
-    <Stream url="wss://${SERVER_DOMAIN}/media-stream?purpose=${encodeURIComponent(purpose)}&amp;customerName=${encodeURIComponent(customerName)}" />
+    <Stream url="${streamUrl}" />
   </Connect>
 </Response>`;
   
