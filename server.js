@@ -1,6 +1,6 @@
 // ============================================
-// ARK-Genie Server v21.10 - URL 파라미터 수정
-// - 🆕 TwiML Stream URL 수정 (&amp; → &)
+// ARK-Genie Server v21.12 - JSON 파라미터 방식
+// - 🆕 TwiML에서 JSON으로 파라미터 전달 (& 문제 해결)
 // - Barge-in + 시나리오 6종
 // ============================================
 
@@ -731,7 +731,7 @@ app.get('/api/sheets/download', async (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '21.10 - URL 파라미터 수정',
+    version: '21.12 - JSON 파라미터 방식',
     googleSheets: {
       enabled: !!sheets,
       spreadsheetId: GOOGLE_SPREADSHEET_ID ? '설정됨' : '미설정'
@@ -1336,7 +1336,11 @@ app.all('/incoming-call', (req, res) => {
   
   console.log('📞 [Call] 수신 처리:', purpose, customerName);
   
-  const streamUrl = `wss://${SERVER_DOMAIN}/media-stream?purpose=${encodeURIComponent(purpose)}&customerName=${encodeURIComponent(customerName)}`;
+  // 파라미터를 하나로 합쳐서 전달 (& 문제 회피)
+  const params = JSON.stringify({ purpose, customerName });
+  const encodedParams = encodeURIComponent(params);
+  const streamUrl = `wss://${SERVER_DOMAIN}/media-stream?data=${encodedParams}`;
+  
   console.log('📞 [Call] Stream URL:', streamUrl);
   
   const twiml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -1367,8 +1371,24 @@ wss.on('connection', (ws, req) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   
   if (url.pathname === '/media-stream') {
-    const purpose = url.searchParams.get('purpose') || '상담예약';
-    const customerName = url.searchParams.get('customerName') || '';
+    // JSON 파라미터 파싱
+    let purpose = '상담예약';
+    let customerName = '';
+    
+    const dataParam = url.searchParams.get('data');
+    if (dataParam) {
+      try {
+        const parsed = JSON.parse(decodeURIComponent(dataParam));
+        purpose = parsed.purpose || '상담예약';
+        customerName = parsed.customerName || '';
+      } catch (e) {
+        console.error('📞 [Realtime] 파라미터 파싱 에러:', e.message);
+      }
+    } else {
+      // 기존 방식 호환
+      purpose = url.searchParams.get('purpose') || '상담예약';
+      customerName = url.searchParams.get('customerName') || '';
+    }
     
     console.log('📞 [Realtime] 전화 연결:', purpose, customerName);
     
