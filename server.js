@@ -1,8 +1,9 @@
 // ============================================
-// ARK-Genie Server v21.3 - 초단순 OCR (담보 표만 집중)
-// - 🆕 프롬프트 극단적 단순화
-// - 🆕 "의료비/명함" 언급 제거 (혼란 방지)
-// - 🆕 보험가입금액 vs 보험료 구분 강조
+// ARK-Genie Server v21.5 - 스캔 PDF 안내 강화
+// - 🆕 스캔 PDF 감지 기준: 100자 → 200자
+// - 🆕 스캔 PDF일 때 친절한 안내 메시지
+// - 🆕 success: true로 반환 (에러가 아닌 안내)
+// - PDF 분석 강화 + 초단순 OCR
 // ============================================
 
 const express = require('express');
@@ -1137,25 +1138,67 @@ app.post('/api/analyze-file', async (req, res) => {
     const { file, fileName, fileType, prompt } = req.body;
     
     if (!file) {
+      console.log('❌ [File] 파일 데이터 없음');
       return res.json({ success: false, error: '파일이 없습니다.' });
     }
     
     console.log('📄 [File] 분석 요청:', fileName, fileType);
+    console.log('📄 [File] 파일 크기:', Math.round(file.length / 1024), 'KB');
     
     let textContent = '';
     
-    if (fileType === 'application/pdf' || fileName?.endsWith('.pdf')) {
-      const base64Data = file.includes('base64,') ? file.split('base64,')[1] : file;
-      const pdfBuffer = Buffer.from(base64Data, 'base64');
-      const pdfData = await pdfParse(pdfBuffer);
-      textContent = pdfData.text;
-      console.log('📄 [File] PDF 텍스트 추출 완료:', textContent.length, '자');
-    } else {
-      const base64Data = file.includes('base64,') ? file.split('base64,')[1] : file;
-      textContent = Buffer.from(base64Data, 'base64').toString('utf-8');
+    try {
+      if (fileType === 'application/pdf' || fileName?.endsWith('.pdf')) {
+        const base64Data = file.includes('base64,') ? file.split('base64,')[1] : file;
+        const pdfBuffer = Buffer.from(base64Data, 'base64');
+        console.log('📄 [File] PDF 버퍼 크기:', Math.round(pdfBuffer.length / 1024), 'KB');
+        
+        const pdfData = await pdfParse(pdfBuffer);
+        textContent = pdfData.text;
+        console.log('📄 [File] PDF 텍스트 추출 완료:', textContent.length, '자');
+        console.log('📄 [File] PDF 페이지 수:', pdfData.numpages);
+        
+        // 텍스트가 너무 적으면 스캔 PDF일 가능성
+        if (textContent.length < 200) {
+          console.log('⚠️ [File] PDF 텍스트가 너무 적음 (' + textContent.length + '자) - 스캔 PDF 가능성');
+          return res.json({ 
+            success: true,
+            analysis: `⚠️ **스캔 PDF 감지**
+
+이 PDF는 이미지 기반(스캔) 문서로 보입니다.
+추출된 텍스트: ${textContent.length}자
+
+**해결 방법:**
+📸 문서를 **사진으로 촬영**하여 이미지로 업로드해주세요.
+이미지 분석이 더 정확합니다!`,
+            hint: 'scan_pdf',
+            extractedLength: textContent.length
+          });
+        }
+      } else {
+        const base64Data = file.includes('base64,') ? file.split('base64,')[1] : file;
+        textContent = Buffer.from(base64Data, 'base64').toString('utf-8');
+        console.log('📄 [File] 텍스트 파일 크기:', textContent.length, '자');
+      }
+    } catch (parseError) {
+      console.error('❌ [File] 파일 파싱 에러:', parseError.message);
+      return res.json({ 
+        success: false, 
+        error: 'PDF 파일을 읽을 수 없습니다. 파일이 손상되었거나 보호된 PDF일 수 있습니다.',
+        detail: parseError.message
+      });
     }
     
-    // 🆕 v20: 보험 전문가 문서 분석 프롬프트
+    // 텍스트가 없으면 분석 불가
+    if (!textContent || textContent.trim().length === 0) {
+      console.log('❌ [File] 추출된 텍스트 없음');
+      return res.json({ 
+        success: false, 
+        error: '문서에서 텍스트를 추출할 수 없습니다. 이미지로 업로드해주세요.'
+      });
+    }
+    
+    // 🆕 v21.3: 보험 전문가 문서 분석 프롬프트
     const expertSystemPrompt = `당신은 20년 경력의 보험 전문가입니다. 오상열 CFP의 노하우로 문서를 분석합니다.
 
 ## 💰 오상열 CFP의 적정 보험금액 공식
@@ -1165,35 +1208,29 @@ app.post('/api/analyze-file', async (req, res) => {
 - 실손의료비: 5,000만원
 - 기본값: 연봉 5,000만원, 부채 0원
 
-### 월 보험료 기준
-- 기혼자: 소득의 10% 내외
-- 미혼자: 소득의 5% 내외
+## 📋 보험증권 분석 시:
+1. 담보/특약 목록과 보험가입금액
+2. 월 보험료
+3. 부족한 보장 분석
+4. 추천 사항
 
-## 📋 분석 시 포함할 내용:
+## 📋 의료비/보상 서류 분석 시:
+1. 청구 내용 요약
+2. 보상 가능성
+3. 필요 서류
 
-### 보험증권인 경우:
-1. 고객 정보 (이름, 나이, 성별)
-2. 보험회사, 상품명, 보험기간
-3. 주요 보장 내용 및 금액 (표 형식)
-4. 월/연 보험료
-5. ⚠️ 오상열 CFP 공식 기준 부족한 보장 분석
-   - 각 항목별 적정금액 vs 현재금액 비교
-   - 부족 금액 명시
-6. 💡 추천 사항
-   - 추가 필요 보험 종류
-   - 예상 추가 보험료
-   - 영업 포인트 (고객 설득 멘트)
-
-### 보상 청구 서류인 경우:
-1. 청구 종류 및 내용
-2. 보상 가능성 (높음/중간/낮음)
-3. 예상 보상 금액
-4. 필요 추가 서류
-5. 주의사항 (면책, 감액 가능성)
-
-구체적인 숫자와 근거를 제시해주세요.`;
+구체적인 숫자와 함께 분석해주세요.`;
     
-    const analysisPrompt = prompt || `다음 문서를 분석해주세요:\n\n${textContent.substring(0, 10000)}`;
+    // 텍스트 길이 제한 (30,000자로 확대)
+    const maxLength = 30000;
+    const truncatedText = textContent.substring(0, maxLength);
+    if (textContent.length > maxLength) {
+      console.log(`⚠️ [File] 텍스트 길이 제한: ${textContent.length} → ${maxLength}자`);
+    }
+    
+    const analysisPrompt = prompt || `다음 문서를 분석해주세요:\n\n${truncatedText}`;
+    
+    console.log('📄 [File] OpenAI 분석 요청 중...');
     
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
