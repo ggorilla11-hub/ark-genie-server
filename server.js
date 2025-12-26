@@ -1,6 +1,7 @@
 // ============================================
-// ARK-Genie Server v21.14 - callSid 기반 컨텍스트 조회
-// - 🆕 Twilio가 URL 파라미터 전달 안 함 → callContextMap 사용
+// ARK-Genie Server v21.15 - 세션 초기화 타이밍 수정
+// - 🆕 OpenAI 연결 완료 시에도 initializeSession 체크
+// - callSid 기반 컨텍스트 조회
 // - Barge-in + 시나리오 6종
 // ============================================
 
@@ -731,7 +732,7 @@ app.get('/api/sheets/download', async (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '21.14 - callSid 기반 컨텍스트',
+    version: '21.15 - 세션 초기화 타이밍 수정',
     googleSheets: {
       enabled: !!sheets,
       spreadsheetId: GOOGLE_SPREADSHEET_ID ? '설정됨' : '미설정'
@@ -1450,7 +1451,14 @@ wss.on('connection', (ws, req) => {
     });
 
     openaiWs.on('open', () => {
-      console.log('✅ [Realtime] OpenAI 연결됨 (전화 모드) - callSid 대기 중...');
+      console.log('✅ [Realtime] OpenAI 연결됨 (전화 모드)');
+      // callSid가 이미 있으면 바로 초기화
+      if (callSid) {
+        console.log('📞 [Realtime] callSid 이미 있음, 세션 초기화');
+        initializeSession();
+      } else {
+        console.log('📞 [Realtime] callSid 대기 중...');
+      }
     });
 
     openaiWs.on('message', (data) => {
