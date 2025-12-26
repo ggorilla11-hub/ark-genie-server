@@ -1,7 +1,7 @@
 // ============================================
-// ARK-Genie Server v21.17 - 통화 동의 확인 + 클로징 자동화
-// - 🆕 "잠시 통화 괜찮으실까요?" 필수 추가
-// - 🆕 목적 전달 후 클로징까지 자동 진행
+// ARK-Genie Server v21.18 - 카카오톡 친구톡 발송
+// - 🆕 카카오톡 친구톡 API 연동
+// - 통화 동의 확인 + 클로징 자동화
 // - "지니야" → "네, 대표님!"만 응답
 // - callSid 기반 컨텍스트 조회
 // - Barge-in + 시나리오 6종
@@ -38,6 +38,11 @@ const SERVER_DOMAIN = process.env.SERVER_DOMAIN || 'ark-genie-server.onrender.co
 const GOOGLE_SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const GOOGLE_PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY ? process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n') : null;
 const GOOGLE_SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID;
+
+// 카카오톡 API
+const KAKAO_REST_API_KEY = process.env.KAKAO_REST_API_KEY;
+const KAKAO_CHANNEL_ID = process.env.KAKAO_CHANNEL_ID;
+const KAKAO_ACCESS_TOKEN = process.env.KAKAO_ACCESS_TOKEN;
 
 const callStatusMap = new Map();
 const callContextMap = new Map();
@@ -716,7 +721,7 @@ app.get('/api/sheets/download', async (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '21.17 - 통화 동의 확인 + 클로징 자동화',
+    version: '21.18 - 카카오톡 친구톡 발송',
     googleSheets: {
       enabled: !!sheets,
       spreadsheetId: GOOGLE_SPREADSHEET_ID ? '설정됨' : '미설정'
@@ -1257,6 +1262,76 @@ app.post('/api/analyze-file', async (req, res) => {
     console.error('❌ [File] 분석 에러:', error);
     res.json({ success: false, error: error.message });
   }
+});
+
+// ============================================
+// 카카오톡 친구톡 발송 API
+// ============================================
+app.post('/api/kakao/send', async (req, res) => {
+  try {
+    const { phoneNumber, message, customerName } = req.body;
+    
+    if (!message) {
+      return res.json({ success: false, error: '메시지가 필요합니다.' });
+    }
+    
+    if (!KAKAO_ACCESS_TOKEN) {
+      return res.json({ success: false, error: '카카오 액세스 토큰이 설정되지 않았습니다.' });
+    }
+    
+    console.log('📱 [카카오톡] 발송 요청:', customerName || '나에게');
+    console.log('📱 [카카오톡] 메시지:', message.substring(0, 50) + '...');
+    
+    // 카카오톡 나에게 보내기 API (테스트용)
+    const response = await fetch('https://kapi.kakao.com/v2/api/talk/memo/default/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Bearer ${KAKAO_ACCESS_TOKEN}`
+      },
+      body: new URLSearchParams({
+        template_object: JSON.stringify({
+          object_type: 'text',
+          text: message,
+          link: {
+            web_url: 'https://ark-genie1-j27p.vercel.app',
+            mobile_web_url: 'https://ark-genie1-j27p.vercel.app'
+          }
+        })
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok || data.result_code === 0) {
+      console.log('✅ [카카오톡] 발송 성공!');
+      res.json({ 
+        success: true, 
+        message: '카카오톡 발송 완료',
+        customerName: customerName || '나에게 보내기'
+      });
+    } else {
+      console.error('❌ [카카오톡] 발송 실패:', data);
+      res.json({ 
+        success: false, 
+        error: data.msg || '카카오톡 발송 실패',
+        code: data.code
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ [카카오톡] 에러:', error);
+    res.json({ success: false, error: error.message });
+  }
+});
+
+// 카카오톡 발송 상태 확인
+app.get('/api/kakao/status', (req, res) => {
+  res.json({
+    success: true,
+    kakaoEnabled: !!KAKAO_ACCESS_TOKEN,
+    channelId: KAKAO_CHANNEL_ID || '미설정'
+  });
 });
 
 // ============================================
