@@ -1,6 +1,6 @@
 // ============================================
-// ARK-Genie Server v21.12 - JSON 파라미터 방식
-// - 🆕 TwiML에서 JSON으로 파라미터 전달 (& 문제 해결)
+// ARK-Genie Server v21.13 - JSON 파싱 디버깅
+// - 🆕 파라미터 파싱 디버깅 로그 추가
 // - Barge-in + 시나리오 6종
 // ============================================
 
@@ -731,7 +731,7 @@ app.get('/api/sheets/download', async (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '21.12 - JSON 파라미터 방식',
+    version: '21.13 - JSON 파싱 디버깅',
     googleSheets: {
       enabled: !!sheets,
       spreadsheetId: GOOGLE_SPREADSHEET_ID ? '설정됨' : '미설정'
@@ -1376,13 +1376,20 @@ wss.on('connection', (ws, req) => {
     let customerName = '';
     
     const dataParam = url.searchParams.get('data');
+    console.log('📞 [Realtime] Raw data param:', dataParam);
+    
     if (dataParam) {
       try {
-        const parsed = JSON.parse(decodeURIComponent(dataParam));
+        // URL 디코딩 후 JSON 파싱
+        const decodedData = decodeURIComponent(dataParam);
+        console.log('📞 [Realtime] Decoded data:', decodedData);
+        const parsed = JSON.parse(decodedData);
         purpose = parsed.purpose || '상담예약';
         customerName = parsed.customerName || '';
+        console.log('📞 [Realtime] Parsed:', purpose, customerName);
       } catch (e) {
         console.error('📞 [Realtime] 파라미터 파싱 에러:', e.message);
+        console.error('📞 [Realtime] dataParam was:', dataParam);
       }
     } else {
       // 기존 방식 호환
