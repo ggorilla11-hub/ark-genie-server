@@ -1,6 +1,6 @@
 // ============================================
-// ARK-Genie Server v21.13 - JSON 파싱 디버깅
-// - 🆕 파라미터 파싱 디버깅 로그 추가
+// ARK-Genie Server v21.14 - callSid 기반 컨텍스트 조회
+// - 🆕 Twilio가 URL 파라미터 전달 안 함 → callContextMap 사용
 // - Barge-in + 시나리오 6종
 // ============================================
 
@@ -731,7 +731,7 @@ app.get('/api/sheets/download', async (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '21.13 - JSON 파싱 디버깅',
+    version: '21.14 - callSid 기반 컨텍스트',
     googleSheets: {
       enabled: !!sheets,
       spreadsheetId: GOOGLE_SPREADSHEET_ID ? '설정됨' : '미설정'
@@ -1371,52 +1371,40 @@ wss.on('connection', (ws, req) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
   
   if (url.pathname === '/media-stream') {
-    // JSON 파라미터 파싱
+    // callSid로 컨텍스트 조회 방식
     let purpose = '상담예약';
     let customerName = '';
+    let pendingCallSid = null;
     
-    const dataParam = url.searchParams.get('data');
-    console.log('📞 [Realtime] Raw data param:', dataParam);
+    console.log('📞 [Realtime] WebSocket 연결 - callContextMap 대기 중...');
     
-    if (dataParam) {
-      try {
-        // URL 디코딩 후 JSON 파싱
-        const decodedData = decodeURIComponent(dataParam);
-        console.log('📞 [Realtime] Decoded data:', decodedData);
-        const parsed = JSON.parse(decodedData);
-        purpose = parsed.purpose || '상담예약';
-        customerName = parsed.customerName || '';
-        console.log('📞 [Realtime] Parsed:', purpose, customerName);
-      } catch (e) {
-        console.error('📞 [Realtime] 파라미터 파싱 에러:', e.message);
-        console.error('📞 [Realtime] dataParam was:', dataParam);
-      }
-    } else {
-      // 기존 방식 호환
-      purpose = url.searchParams.get('purpose') || '상담예약';
-      customerName = url.searchParams.get('customerName') || '';
-    }
-    
-    console.log('📞 [Realtime] 전화 연결:', purpose, customerName);
+    // Twilio start 이벤트에서 callSid를 받은 후 컨텍스트 조회
     
     let openaiWs = null;
     let streamSid = null;
     let callSid = null;
     let endCallTimer = null;
+    let sessionInitialized = false;
     
-    openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17', {
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'OpenAI-Beta': 'realtime=v1'
+    const initializeSession = () => {
+      if (sessionInitialized) return;
+      sessionInitialized = true;
+      
+      // callSid로 저장된 컨텍스트 조회
+      const context = callContextMap.get(callSid);
+      if (context) {
+        purpose = context.purpose || '상담예약';
+        customerName = context.customerName || '';
+        console.log('📞 [Realtime] callContextMap에서 조회:', purpose, customerName);
+      } else {
+        console.log('📞 [Realtime] callContextMap에 없음, 기본값 사용');
       }
-    });
-
-    openaiWs.on('open', () => {
-      console.log('✅ [Realtime] OpenAI 연결됨 (전화 모드)');
+      
+      console.log('📞 [Realtime] 전화 연결:', purpose, customerName);
       
       // 기본값 설정
-      const agentName = '오상열';  // TODO: 추후 동적으로 변경
-      const expiryDate = '다음 달';  // TODO: 추후 동적으로 변경
+      const agentName = '오상열';
+      const expiryDate = '다음 달';
       
       const phonePrompt = PHONE_GENIE_PROMPT
         .replace(/\{\{CALL_PURPOSE\}\}/g, purpose)
@@ -1452,6 +1440,17 @@ wss.on('connection', (ws, req) => {
           }
         }));
       }, 500);
+    };
+    
+    openaiWs = new WebSocket('wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17', {
+      headers: {
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'OpenAI-Beta': 'realtime=v1'
+      }
+    });
+
+    openaiWs.on('open', () => {
+      console.log('✅ [Realtime] OpenAI 연결됨 (전화 모드) - callSid 대기 중...');
     });
 
     openaiWs.on('message', (data) => {
@@ -1546,6 +1545,10 @@ wss.on('connection', (ws, req) => {
             streamSid = data.start.streamSid;
             callSid = data.start.callSid;
             console.log('📞 [Realtime] Twilio Stream 시작:', streamSid, 'CallSid:', callSid);
+            // callSid를 받은 후 세션 초기화
+            if (openaiWs && openaiWs.readyState === WebSocket.OPEN) {
+              initializeSession();
+            }
             break;
 
           case 'media':
