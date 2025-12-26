@@ -1334,6 +1334,60 @@ app.get('/api/kakao/status', (req, res) => {
   });
 });
 
+// 카카오톡 테스트 발송 (GET 방식 - 브라우저에서 쉽게 테스트)
+app.get('/api/kakao/test', async (req, res) => {
+  try {
+    if (!KAKAO_ACCESS_TOKEN) {
+      return res.json({ success: false, error: '카카오 액세스 토큰이 설정되지 않았습니다.' });
+    }
+    
+    const testMessage = '🎉 AI지니 카카오톡 테스트 성공!\n\n발송 시간: ' + new Date().toLocaleString('ko-KR');
+    
+    console.log('📱 [카카오톡] 테스트 발송 요청');
+    
+    const response = await fetch('https://kapi.kakao.com/v2/api/talk/memo/default/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Bearer ${KAKAO_ACCESS_TOKEN}`
+      },
+      body: new URLSearchParams({
+        template_object: JSON.stringify({
+          object_type: 'text',
+          text: testMessage,
+          link: {
+            web_url: 'https://ark-genie1-j27p.vercel.app',
+            mobile_web_url: 'https://ark-genie1-j27p.vercel.app'
+          }
+        })
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (response.ok || data.result_code === 0) {
+      console.log('✅ [카카오톡] 테스트 발송 성공!');
+      res.json({ 
+        success: true, 
+        message: '카카오톡 발송 성공! 카카오톡을 확인하세요.',
+        sentMessage: testMessage
+      });
+    } else {
+      console.error('❌ [카카오톡] 테스트 발송 실패:', data);
+      res.json({ 
+        success: false, 
+        error: data.msg || '카카오톡 발송 실패',
+        code: data.code,
+        detail: data
+      });
+    }
+    
+  } catch (error) {
+    console.error('❌ [카카오톡] 테스트 에러:', error);
+    res.json({ success: false, error: error.message });
+  }
+});
+
 // ============================================
 // Twilio 전화 관련 API
 // ============================================
