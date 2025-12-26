@@ -1,8 +1,8 @@
 // ============================================
-// ARK-Genie Server v21.8 - 전화지니 시나리오 6종
-// - 🆕 안부전화 시나리오 추가
+// ARK-Genie Server v21.9 - Barge-in + 시나리오 로깅 강화
+// - 🆕 전화지니 Barge-in (끼어들기) 기능 추가
+// - 🆕 purpose 로깅 강화
 // - 상담예약, 연체안내, 생일축하, 지니소개, 만기안내, 안부전화
-// - 설계사명, 고객명, 만기일 동적 대입
 // ============================================
 
 const express = require('express');
@@ -732,7 +732,7 @@ app.get('/api/sheets/download', async (req, res) => {
 app.get('/', (req, res) => {
   res.json({
     status: 'AI지니 서버 실행 중!',
-    version: '21.8 - 전화지니 시나리오 6종',
+    version: '21.9 - Barge-in + 시나리오 6종',
     googleSheets: {
       enabled: !!sheets,
       spreadsheetId: GOOGLE_SPREADSHEET_ID ? '설정됨' : '미설정'
@@ -1286,7 +1286,7 @@ app.post('/api/call', async (req, res) => {
       return res.json({ success: false, error: '전화번호가 없습니다.' });
     }
     
-    console.log('📞 [Call] 발신 요청:', phoneNumber, customerName);
+    console.log('📞 [Call] 발신 요청:', phoneNumber, customerName, '목적:', purpose);
     
     const twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
     
@@ -1434,6 +1434,16 @@ wss.on('connection', (ws, req) => {
             event: 'media',
             streamSid: streamSid,
             media: { payload: event.delta }
+          }));
+        }
+        
+        // 🆕 v21.8: Barge-in (고객이 말하기 시작하면 지니 멈춤)
+        if (event.type === 'input_audio_buffer.speech_started') {
+          console.log('🎤 [Realtime] 고객 말하기 시작 - Barge-in!');
+          // Twilio에 clear 명령 전송 (오디오 버퍼 비우기)
+          ws.send(JSON.stringify({
+            event: 'clear',
+            streamSid: streamSid
           }));
         }
         
