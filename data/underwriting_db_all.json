@@ -6446,7 +6446,7 @@
       "disease_code": null,
       "underwriting_status": "조건부인수",
       "surcharge_rate": null,
-      "underwriting_conditions": "[인카x삼성생명] 혈전용해/혈전제거 인수 우대플랜. 혈전용해 & 혈전제거 각 5천만원",
+      "underwriting_conditions": "[GA x 삼성생명] 혈전용해/혈전제거 인수 우대플랜. 혈전용해 & 혈전제거 각 5천만원",
       "special_notes": "인수 우대 기간 한정 플랜",
       "effective_period": "2026-01-06 ~ 2026-03-31",
       "is_new": false
@@ -6614,7 +6614,7 @@
       "disease_code": null,
       "underwriting_status": "정상인수",
       "surcharge_rate": null,
-      "underwriting_conditions": "인카특화플랜 (질병 1-5종 수술동반입원비 가입금액 2배). 당/타사 누적 X",
+      "underwriting_conditions": "GA특화플랜 (질병 1-5종 수술동반입원비 가입금액 2배). 당/타사 누적 X",
       "special_notes": "운영기간: 1/26~3/31 (조기종료 가능)",
       "effective_period": "2026-01-26 ~ 2026-03-31",
       "is_new": false
