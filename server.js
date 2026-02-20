@@ -1,5 +1,7 @@
 // ============================================
-// ARK-Genie Server v22.0 - Claude Vision 보험분석
+// ARK-Genie Server v23.0 - 통합 보험DB + Claude Vision
+// 업데이트: 2026.02.21
+// 변경: 38개사 통합 DB 탑재, 매월 업데이트 구조
 // ============================================
 const express = require('express');
 const WebSocket = require('ws');
@@ -39,8 +41,60 @@ const callStatusMap = new Map();
 const callContextMap = new Map();
 
 // ============================================
-// 보험상품 DB
+// 보험 DB (매월 업데이트 구조)
 // ============================================
+// 📌 매월 업데이트 방법:
+// 1. 새 소식지 PDF → Claude로 JSON 변환
+// 2. data/ 폴더의 해당 파일 교체
+// 3. GitHub 커밋 → Render 배포
+// 4. DB_VERSION의 month를 변경
+// ============================================
+
+const DB_VERSION = {
+  version: '1.0.0',
+  month: '2026-02',
+  lastUpdated: '2026-02-21',
+  totalInsurers: 38,
+  totalProducts: 398,
+  totalUnderwriting: 238,
+  totalFunds: 44
+};
+
+// --- DB 파일 로딩 (외부 JSON 우선, 없으면 인라인) ---
+let PRODUCT_DB = [];
+let UNDERWRITING_DB = [];
+let RATE_DB = {};
+
+try {
+  PRODUCT_DB = JSON.parse(fs.readFileSync('./data/product_db_all.json', 'utf-8'));
+  if (PRODUCT_DB.products) PRODUCT_DB = PRODUCT_DB.products;
+  console.log(`📦 [상품DB] ${PRODUCT_DB.length}개 로드`);
+} catch (e) {
+  console.log('⚠️ [상품DB] 외부파일 없음, 인라인 DB 사용');
+  PRODUCT_DB = [];
+}
+
+try {
+  UNDERWRITING_DB = JSON.parse(fs.readFileSync('./data/underwriting_db_all.json', 'utf-8'));
+  if (UNDERWRITING_DB.underwriting_rules) UNDERWRITING_DB = UNDERWRITING_DB.underwriting_rules;
+  console.log(`📦 [인수지침DB] ${UNDERWRITING_DB.length}개 로드`);
+} catch (e) {
+  console.log('⚠️ [인수지침DB] 외부파일 없음');
+  UNDERWRITING_DB = [];
+}
+
+try {
+  RATE_DB = JSON.parse(fs.readFileSync('./data/rate_db.json', 'utf-8'));
+  const lifeRates = Object.values(RATE_DB['공시이율']?.['생명보험사'] || {}).flat().length;
+  const nonLifeRates = Object.values(RATE_DB['공시이율']?.['손해보험사'] || {}).flat().length;
+  const funds = ['주식형','채권형','리밸런싱형'].reduce((s,t) => s + (RATE_DB['변액펀드수익률']?.[t]?.length || 0), 0);
+  console.log(`📦 [이율DB] 공시이율 ${lifeRates+nonLifeRates}건, 변액펀드 ${funds}개`);
+} catch (e) {
+  console.log('⚠️ [이율DB] 외부파일 없음');
+  RATE_DB = {};
+}
+
+// --- 하위호환: 기존 종신보험 8개사 (PDF 리포트용) ---
 const INSURANCE_DB = {
   종신보험_체증형: [
     { 보험사: "iM라이프", 상품명: "iM Plus세븐UP", 보험료_일반: 112300, 보험료_간편: 124400, 환급률_7년: "100%", 환급률_10년: "107.7%", 체증한도: "500%" },
@@ -51,28 +105,99 @@ const INSURANCE_DB = {
     { 보험사: "교보생명", 상품명: "K-밸류업", 보험료_일반: 151900, 보험료_간편: 159200, 환급률_7년: "100%", 환급률_10년: "107.5%", 체증한도: "640%" },
     { 보험사: "농협생명", 상품명: "스텝업700", 보험료_일반: 166600, 보험료_간편: 172200, 환급률_7년: "100%", 환급률_10년: "107.7%", 체증한도: "700%" },
     { 보험사: "ABL생명", 상품명: "우리WON세븐", 보험료_일반: 206250, 보험료_간편: 223200, 환급률_7년: "100%", 환급률_10년: "107%", 체증한도: "700%" }
-  ],
-  암주요치료비_손보: [
-    { 보험사: "현대해상", 선지급: "70%", 보장범위: "감/기/경/제", 비고: "선지급 70% 최고" },
-    { 보험사: "DB손보", 선지급: "50%", 보장범위: "감/기/경/제", 비고: "전이암 보장 우수" },
-    { 보험사: "메리츠화재", 선지급: "50%", 보장범위: "감/기", 비고: "모든병원 보장" },
-    { 보험사: "삼성화재", 선지급: "50%", 보장범위: "감/기/경/제", 비고: "전이암 호르몬 포함" },
-    { 보험사: "KB손보", 선지급: "50%", 보장범위: "감/기/경/제", 비고: "수술 매회 보장" }
-  ],
-  암주요치료비_생보: [
-    { 보험사: "미래에셋생명", 보장범위: "감/기/경/제", 비고: "전이암 호르몬포함 가장 우수" },
-    { 보험사: "삼성생명", 보장범위: "감/기/경/제", 비고: "선지급50%" },
-    { 보험사: "DB생명", 보장범위: "감/기/경/제", 비고: "모든병원+종합병원" }
-  ],
-  신상품: [
-    "삼성생명 혈전용해/제거 인수우대플랜(~3/31)",
-    "KB라이프 순환계주요치료비 신규",
-    "미래에셋 암주요치료비3종+전이암 신설",
-    "라이나 통합심뇌혈관 하이클래스 각3천만",
-    "농협 스텝업700 환급률7년100%/10년107.7%",
-    "교보 K-밸류업 라이트 연8%체증 최대431%"
   ]
 };
+
+// ============================================
+// DB 검색 엔진 (Claude 프롬프트에 관련 데이터만 전달)
+// ============================================
+
+// 키워드로 상품 검색 (보험사명, 상품유형, 상품명)
+function searchProducts(keywords, maxResults = 15) {
+  if (!PRODUCT_DB.length) return [];
+  const kws = keywords.toLowerCase().split(/[\s,]+/).filter(w => w.length >= 1);
+  
+  return PRODUCT_DB.map(p => {
+    const text = JSON.stringify(p).toLowerCase();
+    let score = 0;
+    for (const kw of kws) {
+      if (text.includes(kw)) score += 2;
+      // 보험사명 매칭 가중치
+      const insurer = (p.insurer || p.insurance_company || p['보험사명'] || '').toLowerCase();
+      if (insurer.includes(kw)) score += 5;
+      // 상품유형 매칭
+      const ptype = (p.product_type || p['상품유형'] || '').toLowerCase();
+      if (ptype.includes(kw)) score += 3;
+    }
+    return { ...p, _score: score };
+  })
+  .filter(p => p._score > 0)
+  .sort((a, b) => b._score - a._score)
+  .slice(0, maxResults)
+  .map(({ _score, ...p }) => p);
+}
+
+// 키워드로 인수지침 검색 (질병명, 보험사명, 질병코드)
+function searchUnderwriting(keywords, maxResults = 15) {
+  if (!UNDERWRITING_DB.length) return [];
+  const kws = keywords.toLowerCase().split(/[\s,]+/).filter(w => w.length >= 1);
+  
+  return UNDERWRITING_DB.map(r => {
+    const text = JSON.stringify(r).toLowerCase();
+    let score = 0;
+    for (const kw of kws) {
+      if (text.includes(kw)) score += 2;
+    }
+    return { ...r, _score: score };
+  })
+  .filter(r => r._score > 0)
+  .sort((a, b) => b._score - a._score)
+  .slice(0, maxResults)
+  .map(({ _score, ...r }) => r);
+}
+
+// 보험사별 공시이율 조회
+function getInterestRates(insurerName) {
+  if (!RATE_DB['공시이율']) return null;
+  const results = {};
+  for (const [sector, types] of Object.entries(RATE_DB['공시이율'])) {
+    for (const [type, companies] of Object.entries(types)) {
+      const match = companies.find(c => 
+        c['회사명'] && c['회사명'].includes(insurerName)
+      );
+      if (match) {
+        if (!results[sector]) results[sector] = {};
+        results[sector][type] = match;
+      }
+    }
+  }
+  return Object.keys(results).length ? results : null;
+}
+
+// 변액펀드 수익률 TOP N
+function getTopFunds(type = '주식형', topN = 5) {
+  const funds = RATE_DB['변액펀드수익률']?.[type] || [];
+  return funds
+    .filter(f => f['수익률_1년'] != null)
+    .sort((a, b) => (b['수익률_1년'] || 0) - (a['수익률_1년'] || 0))
+    .slice(0, topN);
+}
+
+// DB 상태 확인 API
+function getDBStatus() {
+  return {
+    version: DB_VERSION,
+    products: PRODUCT_DB.length,
+    underwriting: UNDERWRITING_DB.length,
+    rates: {
+      life: Object.values(RATE_DB['공시이율']?.['생명보험사'] || {}).flat().length,
+      nonLife: Object.values(RATE_DB['공시이율']?.['손해보험사'] || {}).flat().length,
+      funds: ['주식형','채권형','리밸런싱형'].reduce((s,t) => s + (RATE_DB['변액펀드수익률']?.[t]?.length || 0), 0)
+    }
+  };
+}
+
+console.log('📊 [DB현황]', JSON.stringify(getDBStatus(), null, 0));
 
 // ============================================
 // 구글시트 인증 설정
@@ -155,6 +280,27 @@ const PHONE_GENIE_PROMPT = `당신은 "지니"입니다. {{AGENT_NAME}} 설계�
 동의→목적진행, 거부→"다음에 다시 전화드리겠습니다. 좋은 하루 되세요!"
 ## 시나리오: 상담예약(일정잡기), 연체안내(통장확인), 생일축하, 지니소개, 만기안내, 안부전화
 ## 종료멘트: "좋은 하루 되세요!" 포함`;
+
+// ============================================
+// DB 상태 확인 API
+// ============================================
+app.get('/api/db-status', (req, res) => {
+  res.json({ success: true, ...getDBStatus() });
+});
+
+// DB 검색 API (테스트/디버그용)
+app.post('/api/db-search', (req, res) => {
+  const { type, keywords, maxResults } = req.body;
+  if (type === 'products') {
+    res.json({ success: true, results: searchProducts(keywords || '', maxResults || 10) });
+  } else if (type === 'underwriting') {
+    res.json({ success: true, results: searchUnderwriting(keywords || '', maxResults || 10) });
+  } else if (type === 'rates') {
+    res.json({ success: true, rates: getInterestRates(keywords || ''), topFunds: getTopFunds('주식형', 5) });
+  } else {
+    res.json({ success: false, error: 'type: products | underwriting | rates' });
+  }
+});
 
 // ============================================
 // 구글시트 API
@@ -280,7 +426,7 @@ app.post('/api/analyze-insurance', upload.single('file'), async (req, res) => {
 1. 사망보장 2. 암보장 3. 뇌혈관 4. 심장 5. 입원/수술 6. 실손
 
 ## 상품추천 DB (보험료 최저가 순)
-${JSON.stringify(INSURANCE_DB, null, 2)}
+${JSON.stringify(INSURANCE_DB.종신보험_체증형, null, 2)}
 
 ## 출력 (마크다운)
 # 📋 ARK-Genie 보험분석 리포트
@@ -306,7 +452,7 @@ ${JSON.stringify(INSURANCE_DB, null, 2)}
 ## ⚕️ 인수심사 참고
 
 ---
-*ARK-Genie v22.0 | ${new Date().toLocaleDateString('ko-KR')}*` }
+*ARK-Genie v23.0 | DB: ${DB_VERSION.month} | ${new Date().toLocaleDateString('ko-KR')}*` }
         ]
       }]
     });
@@ -406,57 +552,80 @@ app.post('/api/analyze-file', async (req, res) => {
     const base64Data = file.includes('base64,') ? file.split('base64,')[1] : file;
     const isImage = fileType && (fileType.startsWith('image/') || fileType.includes('image'));
     if (isImage) {
-      console.log('🏥 [보험분석] Claude Vision 이미지 분석:', fileName, 'fileType:', fileType);
+      console.log('🏥 [v23] Claude Vision 분석:', fileName);
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      const cvResponse = await anthropic.messages.create({
+
+      // Step 1: 서류 내용 추출 (구조화)
+      const extractResponse = await anthropic.messages.create({
         model: 'claude-sonnet-4-5-20250929',
-        max_tokens: 4000,
+        max_tokens: 2000,
         messages: [{ role: 'user', content: [
           { type: 'image', source: { type: 'base64', media_type: (['image/jpeg','image/png','image/gif','image/webp'].includes(fileType)) ? fileType : 'image/jpeg', data: base64Data } },
-          { type: 'text', text: `당신은 대한민국 최고의 보험 전문 분석가이자 20년 경력 CFP입니다. 이 서류를 분석하고 보험 상품을 추천해주세요.
+          { type: 'text', text: `이 보험 서류에서 다음 정보를 JSON으로 추출해주세요:
+{"서류종류":"보험증권/요양급여내역서/건강검진표/보장분석표/마이매니저스크린샷/기타","보험사":"","보장항목":[{"항목":"","금액":""}],"질병코드":[],"질병명":[],"가입자정보":{"성별":"","나이":""},"월보험료":"","핵심키워드":["암","종신","건강"]}
+JSON만 출력.` }
+        ] }]
+      });
+      let extracted = {};
+      try { extracted = JSON.parse(extractResponse.content[0].text.replace(/```json?|```/g, '').trim()); } catch (e) { extracted = { 서류종류: '기타', 핵심키워드: [], raw: extractResponse.content[0].text }; }
+      console.log('📋 [추출]', extracted.서류종류, extracted.핵심키워드?.join(','));
 
-## 서류 분석
-- 보험증권: 모든 특약, 보장금액, 보험료 추출
-- 요양급여내역서: 질병코드, 투약, 수술이력
-- 건강검진: 이상소견 추출
+      // Step 2: DB 검색
+      const kws = [...(extracted.핵심키워드||[]), ...(extracted.질병명||[]), extracted.보험사||''].filter(Boolean).join(' ');
+      const matchedProducts = searchProducts(kws, 10);
+      const matchedUW = searchUnderwriting(kws, 8);
+      let diseaseUW = [];
+      if (extracted.질병명?.length) diseaseUW = searchUnderwriting(extracted.질병명.join(' '), 8);
+      if (extracted.질병코드?.length) diseaseUW = [...diseaseUW, ...searchUnderwriting(extracted.질병코드.join(' '), 5)];
+      let rateInfo = '';
+      if (kws.match(/연금|저축|변액|이율/)) { const tf = getTopFunds('주식형', 5); if (tf.length) rateInfo = `\n## 변액펀드 수익률 TOP5\n${JSON.stringify(tf, null, 2)}`; }
+      console.log(`🔍 [DB] 상품${matchedProducts.length} 인수${matchedUW.length+diseaseUW.length}`);
 
-## 보장 Gap (6대 영역)
-1. 사망보장 2. 암보장 3. 뇌혈관 4. 심장 5. 입원/수술 6. 실손
+      // Step 3: 최종 분석
+      const dbCtx = `\n## ARK-Genie DB (${DB_VERSION.month}, ${DB_VERSION.totalInsurers}개사)\n### 관련상품 ${matchedProducts.length}건\n${JSON.stringify(matchedProducts.slice(0,8),null,2)}\n### 인수지침 ${matchedUW.length+diseaseUW.length}건\n${JSON.stringify([...matchedUW,...diseaseUW].slice(0,8),null,2)}\n### 종신보험 비교\n${JSON.stringify(INSURANCE_DB.종신보험_체증형,null,2)}${rateInfo}`;
 
-## 상품추천 DB (보험료 최저가 순)
-${JSON.stringify(INSURANCE_DB, null, 2)}
+      const cvResponse = await anthropic.messages.create({
+        model: 'claude-sonnet-4-5-20250929', max_tokens: 4000,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: (['image/jpeg','image/png','image/gif','image/webp'].includes(fileType)) ? fileType : 'image/jpeg', data: base64Data } },
+          { type: 'text', text: `당신은 대한민국 최고의 보험 전문 분석가이자 20년 경력 CFP(오상열)입니다.
+이 서류를 분석하고 아래 DB를 활용하여 최적의 보험 추천과 인수지침을 안내해주세요.
+${dbCtx}
 
 ## 출력 (마크다운)
 # 📋 ARK-Genie 보험분석 리포트
 
 ## 📄 서류 분석
-(서류종류, 핵심내용)
+(서류종류, 핵심내용 요약)
 
 ## 🔍 현재 보장 현황
 | 보장항목 | 보장금액 | 상태 |
 |---------|---------|------|
 
-## ⚠️ 보장 Gap
-| 부족 보장 | 긴급도 | 설명 |
-|----------|--------|------|
+## ⚠️ 보장 Gap 분석
+| 부족 보장 | 적정금액 | 현재 | 부족액 | 긴급도 |
+|----------|---------|------|--------|--------|
 
-## 🎯 추천 TOP 3
+## 🏥 인수지침 매칭
+| 보험사 | 인수가능여부 | 조건/할증 | 비고 |
+|--------|------------|----------|------|
+(질병코드/질병명 → 보험사별 인수 가능여부)
+
+## 🎯 추천 상품 TOP 3
 ### 1순위: [보험사] [상품명]
-- 보험료/환급률/추천이유
+- 보험료/보장내용/추천이유
 
 ## 💬 고객 상담 스크립트
 > 설계사가 바로 사용할 설득 문구 3~5문장
 
-## ⚕️ 인수심사 참고
-
 ---
-*ARK-Genie v22.0 | ${new Date().toLocaleDateString('ko-KR')}*` }
+*ARK-Genie v23.0 | DB: ${DB_VERSION.month} (${DB_VERSION.totalInsurers}개사/${DB_VERSION.totalProducts}상품) | ${new Date().toLocaleDateString('ko-KR')}*` }
         ] }]
       });
       const report = cvResponse.content[0].text;
-      console.log('✅ [보험분석] Claude Vision 완료:', fileName);
-      global.lastInsuranceAnalysis = { report, fileName, timestamp: new Date().toISOString() };
-      return res.json({ success: true, analysis: report, fileName, engine: 'claude-vision' });
+      console.log('✅ [v23] 완료:', fileName);
+      global.lastInsuranceAnalysis = { report, fileName, extracted, timestamp: new Date().toISOString() };
+      return res.json({ success: true, analysis: report, fileName, engine: 'claude-vision-v23', dbMatched: { products: matchedProducts.length, underwriting: matchedUW.length + diseaseUW.length } });
     }
     let textContent = '';
     try {
@@ -477,7 +646,7 @@ ${JSON.stringify(INSURANCE_DB, null, 2)}
     const data = await response.json();
     if (data.choices?.[0]) { res.json({ success: true, analysis: data.choices[0].message.content, fileName }); }
     else { res.json({ success: false, error: 'API 응답 없음' }); }
-  } catch (error) { res.json({ success: false, error: error.message }); }
+  } catch (error) { console.error('❌ [v23] 에러:', error.message); res.json({ success: false, error: error.message }); }
 });
 
 // ============================================
@@ -842,4 +1011,4 @@ wss.on('connection', (ws, req) => {
   });
 });
 
-console.log('✅ 서버 초기화 완료!');
+console.log('✅ ARK-Genie v23.0 서버 초기화 완료! (통합DB 탑재)');
