@@ -403,6 +403,61 @@ app.post('/api/analyze-file', async (req, res) => {
   try {
     const { file, fileName, fileType, prompt } = req.body;
     if (!file) return res.json({ success: false, error: '파일 없음' });
+    const base64Data = file.includes('base64,') ? file.split('base64,')[1] : file;
+    const isImage = fileType && (fileType.startsWith('image/') || fileType.includes('image'));
+    if (isImage) {
+      console.log('🏥 [보험분석] Claude Vision 이미지 분석:', fileName);
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const cvResponse = await anthropic.messages.create({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: [
+          { type: 'image', source: { type: 'base64', media_type: fileType || 'image/jpeg', data: base64Data } },
+          { type: 'text', text: `당신은 대한민국 최고의 보험 전문 분석가이자 20년 경력 CFP입니다. 이 서류를 분석하고 보험 상품을 추천해주세요.
+
+## 서류 분석
+- 보험증권: 모든 특약, 보장금액, 보험료 추출
+- 요양급여내역서: 질병코드, 투약, 수술이력
+- 건강검진: 이상소견 추출
+
+## 보장 Gap (6대 영역)
+1. 사망보장 2. 암보장 3. 뇌혈관 4. 심장 5. 입원/수술 6. 실손
+
+## 상품추천 DB (보험료 최저가 순)
+${JSON.stringify(INSURANCE_DB, null, 2)}
+
+## 출력 (마크다운)
+# 📋 ARK-Genie 보험분석 리포트
+
+## 📄 서류 분석
+(서류종류, 핵심내용)
+
+## 🔍 현재 보장 현황
+| 보장항목 | 보장금액 | 상태 |
+|---------|---------|------|
+
+## ⚠️ 보장 Gap
+| 부족 보장 | 긴급도 | 설명 |
+|----------|--------|------|
+
+## 🎯 추천 TOP 3
+### 1순위: [보험사] [상품명]
+- 보험료/환급률/추천이유
+
+## 💬 고객 상담 스크립트
+> 설계사가 바로 사용할 설득 문구 3~5문장
+
+## ⚕️ 인수심사 참고
+
+---
+*ARK-Genie v22.0 | ${new Date().toLocaleDateString('ko-KR')}*` }
+        ] }]
+      });
+      const report = cvResponse.content[0].text;
+      console.log('✅ [보험분석] Claude Vision 완료:', fileName);
+      global.lastInsuranceAnalysis = { report, fileName, timestamp: new Date().toISOString() };
+      return res.json({ success: true, analysis: report, fileName, engine: 'claude-vision' });
+    }
     let textContent = '';
     try {
       if (fileType === 'application/pdf' || fileName?.endsWith('.pdf')) {
