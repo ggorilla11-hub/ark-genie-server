@@ -1,0 +1,6847 @@
+{
+  "metadata": {
+    "description": "ARK-Genie 통합 인수지침 DB",
+    "total_rules": 238,
+    "last_updated": "2026-02-21",
+    "sources": [
+      "db1/underwriting_db.json: 13건",
+      "db2/underwriting_db.json: 3건",
+      "db3/underwriting_db.json: 4건",
+      "db4/underwriting_db.json: 6건",
+      "db5/underwriting_db.json: 43건",
+      "db6/underwriting_db.json: 6건",
+      "db7/underwriting_db.json: 12건",
+      "db8/underwriting_db.json: 3건",
+      "db10/underwriting_db.json: 3건",
+      "db12/hana_underwriting_db.json: 6건",
+      "db13/underwriting_db.json: 7건",
+      "db14/underwriting_db.json: 5건",
+      "db15/underwriting_db.json: 2건",
+      "db16/underwriting_db.json: 1건",
+      "db20/underwriting_db.json: 9건",
+      "db21/underwriting_db.json: 13건",
+      "db22/underwriting_db.json: 20건",
+      "db23/underwriting_db.json: 5건",
+      "db24/underwriting_db.json: 6건",
+      "db25/underwriting_db_hana.json: 6건",
+      "db26/underwriting_db_hanwha.json: 7건",
+      "db27/underwriting_db_hyundai.json: 5건",
+      "db28/underwriting_db_heungkuk.json: 7건",
+      "db29/underwriting_db_kb.json: 5건",
+      "db34/underwriting_db.json: 2건",
+      "db38/underwriting_db.json: 39건"
+    ]
+  },
+  "underwriting_rules": [
+    {
+      "insurance_company": "ABL생명",
+      "product_group": "건강보험",
+      "products": [
+        "(무)우리WON톡톡튀는여성건강보험(해약환급금 미지급형)2601",
+        "(무)우리WON건강N더보장종합보험(해약환급금 미지급형)2601",
+        "(무)우리WON건강N더보장종합보험(갱신형)2601"
+      ],
+      "review_type": "간편심사형",
+      "disclosure_items": [
+        {
+          "period": "최근 3개월 이내",
+          "items": [
+            "질병 확정 진단",
+            "질병 의심 소견",
+            "입원 필요 소견",
+            "수술 필요 소견",
+            "추가검사(재검사) 필요 소견"
+          ],
+          "notes": "질병 의심 소견이란 의사가 진단서나 소견서 또는 진료의뢰서 등을 포함하여 서면(전자문서 포함)으로 교부한 경우를 말합니다. 추가검사(재검사)에 대한 정의: 검사 결과 이상 소견이 확인되어 보다 정확한 진단을 위해 시행한 검사를 의미하며, 병증에 대한 치료 필요 없이 유지되는 상태에서 시행하는 정기검사 또는 추적관찰은 포함하지 않습니다."
+        },
+        {
+          "period": "최근 N년 이내",
+          "items": [
+            "입원",
+            "수술(제왕절개 포함)"
+          ],
+          "notes": "N년은 상품별 상이"
+        },
+        {
+          "period": "최근 5년 이내",
+          "items": [
+            "암 진단/입원/수술",
+            "협심증 진단/입원/수술",
+            "심근경색 진단/입원/수술",
+            "뇌졸중 진단/입원/수술",
+            "간경화증 진단/입원/수술",
+            "심장판막증 진단/입원/수술",
+            "투석중인 만성신장질환 진단/입원/수술"
+          ],
+          "notes": "7대 질병으로 진단받거나 입원 또는 수술을 받은 적이 있는지 고지"
+        }
+      ],
+      "special_acceptance": {
+        "promotion_name": "U/W 프로모션 - 간편심사 예외질환 확대인수",
+        "promotion_period": "2026년 1월~3월",
+        "details": "간편심사 예외질환 10,000개 인수 (KCD코드 기준)",
+        "exception_diseases_count": "약 940여개",
+        "specific_conditions": [
+          {
+            "condition": "골절(늑골, 흉추, 요추, 천골) 진단 시",
+            "before": "3개월 경과 후 심사",
+            "after": "즉시 인수",
+            "notes": "별도 입원/수술은 경과기간 상이함"
+          },
+          {
+            "condition": "양성신생물(난소, 맹장, 유방, 자궁) 진단 시",
+            "before": "3개월 경과 후 심사",
+            "after": "즉시 인수",
+            "notes": "별도 입원/수술은 경과기간 상이함"
+          }
+        ]
+      },
+      "effective_period": "2026.02.01~2026.02.28"
+    },
+    {
+      "insurance_company": "ABL생명",
+      "product_group": "간병보험",
+      "products": [
+        "(무)우리WON케어간병보험(해약환급금 미지급형)2601"
+      ],
+      "review_type": "간편심사형",
+      "disclosure_items": [
+        {
+          "period": "최근 3개월 이내",
+          "items": [
+            "질병 확정 진단",
+            "질병 의심 소견",
+            "입원 필요 소견",
+            "수술 필요 소견",
+            "추가검사(재검사) 필요 소견"
+          ],
+          "notes": "건강보험과 동일한 3개월 이내 고지사항"
+        },
+        {
+          "period": "최근 2년 이내",
+          "items": [
+            "입원",
+            "수술(제왕절개 포함)"
+          ],
+          "notes": ""
+        },
+        {
+          "period": "최근 5년 이내",
+          "items": [
+            "암 진단/입원/수술",
+            "간경화증 진단/입원/수술",
+            "뇌졸중 진단/입원/수술",
+            "경도인지장애 진단/입원/수술",
+            "치매 진단/입원/수술",
+            "파킨슨병 진단/입원/수술"
+          ],
+          "notes": "암에는 악성신생물, 백혈병 및 기타 혈액종양이 포함됩니다."
+        },
+        {
+          "period": "현재",
+          "items": [
+            "노인장기요양보험에 의한 장기요양급여 수급자이거나 장기요양인정 심의 중"
+          ],
+          "notes": ""
+        }
+      ],
+      "effective_period": "2026.02.01~2026.02.28"
+    },
+    {
+      "insurance_company": "ABL생명",
+      "product_group": "종신보험",
+      "products": [
+        "(무)우리WON세븐종신보험(해약환급금 일부지급형Ⅱ)2601",
+        "(무)우리WON더드림종신보험(해약환급금 일부지급형)2601",
+        "(무)우리WON상속종신보험(해약환급금 미지급형)2601",
+        "(무)우리WON더블종신보험(해약환급금 일부지급형)2601"
+      ],
+      "review_type": "간편심사형",
+      "disclosure_items": [
+        {
+          "period": "최근 3개월 이내",
+          "items": [
+            "질병 확정 진단",
+            "질병 의심 소견",
+            "입원 필요 소견",
+            "수술 필요 소견",
+            "추가검사(재검사) 필요 소견"
+          ],
+          "notes": ""
+        },
+        {
+          "period": "최근 2년 이내",
+          "items": [
+            "입원",
+            "수술(제왕절개 포함)"
+          ],
+          "notes": ""
+        },
+        {
+          "period": "최근 5년 이내",
+          "items": [
+            "암 진단/입원/수술"
+          ],
+          "notes": "암에는 악성신생물, 백혈병 및 기타 혈액종양이 포함됩니다. 7대질병이 아닌 '암'만 고지 (세븐종신 기준 3.2.5 간편심사)"
+        }
+      ],
+      "effective_period": "2026.02.01~2026.02.28"
+    },
+    {
+      "insurance_company": "DB생명",
+      "product_group": "건강보험",
+      "products": [
+        "건강100 내가고른 통합보험(2601)"
+      ],
+      "review_type": "일반심사 및 간편심사(355) 선택 가능",
+      "age_limits": {
+        "일반심사형": {
+          "male": {
+            "min": 15,
+            "max": 75
+          },
+          "female": {
+            "min": 15,
+            "max": 75
+          }
+        },
+        "간편심사형(355)": {
+          "male": {
+            "min": 15,
+            "max": 83
+          },
+          "female": {
+            "min": 15,
+            "max": 85
+          }
+        }
+      },
+      "underwriting_conditions": {
+        "무사고_만기연장": "85세 이전 4대질병 미진단(암(기타피부암 및 갑상선암 제외), 뇌졸중, 급성심근경색증, 장기요양 판정(1~2등급)) 충족시 추가비용 없이 85세→100세 만기로 연장"
+      },
+      "effective_period": "2026년 2월"
+    },
+    {
+      "insurance_company": "DB생명",
+      "product_group": "건강보험",
+      "products": [
+        "백년친구 New 간편N 내가고른 건강보험(2601)"
+      ],
+      "review_type": "간편심사",
+      "simplified_review_levels": [
+        "3.1.5",
+        "3.2.5",
+        "3.3.5",
+        "3.4.5",
+        "3.5.5"
+      ],
+      "age_limits": {
+        "male": {
+          "min": 15,
+          "max": 80
+        },
+        "female": {
+          "min": 15,
+          "max": 81
+        }
+      },
+      "special_features": [
+        "가입하고 무사고 1년이 지나면 보험료 DOWN (최대 355로 전환 가능)",
+        "대장점막내암 일반암化로 동일금액 보장",
+        "의료비등급할인 제도신설(3.5.5 간편심사형에 한함)"
+      ],
+      "effective_period": "2026년 2월"
+    },
+    {
+      "insurance_company": "DB생명",
+      "product_group": "건강보험",
+      "products": [
+        "초경증 간편 내가고른 건강보험(2601)"
+      ],
+      "review_type": "간편심사",
+      "simplified_review_levels": [
+        "3.7.5",
+        "3.10.5"
+      ],
+      "age_limits": {
+        "male": {
+          "min": 15,
+          "max": 80
+        },
+        "female": {
+          "min": 15,
+          "max": 84
+        }
+      },
+      "special_features": [
+        "의료비등급 할인율을 반영한 차별화된 보험료",
+        "해약환급금미지급형/표준형 선택 가능"
+      ],
+      "is_new_product": true,
+      "effective_period": "2026년 2월"
+    },
+    {
+      "insurance_company": "DB생명",
+      "product_group": "건강보험",
+      "products": [
+        "실속N 7대질병 건강보험(2601)"
+      ],
+      "review_type": "일반심사 및 간편심사(3.3.5) 선택 가능",
+      "age_limits": {
+        "일반심사형": {
+          "male": {
+            "min": 15,
+            "max": 70
+          },
+          "female": {
+            "min": 15,
+            "max": 70
+          }
+        },
+        "간편심사형(335)": {
+          "male": {
+            "min": 15,
+            "max": 80
+          },
+          "female": {
+            "min": 15,
+            "max": 80
+          }
+        }
+      },
+      "effective_period": "2026년 2월"
+    },
+    {
+      "insurance_company": "DB생명",
+      "product_group": "종신보험",
+      "products": [
+        "백년친구 700 암치료+ 종신보험(해약환급금일부지급형Ⅳ)(2602)"
+      ],
+      "review_type": "일반심사 및 간편심사",
+      "age_limits": {
+        "male": {
+          "min": 15,
+          "max": 65
+        },
+        "female": {
+          "min": 15,
+          "max": 70
+        }
+      },
+      "cancer_coverage_limit": {
+        "종합병원_암주요치료비_합산제외": "신상품 출시기념 3개월간 당사 및 타사합산(누적) 제외",
+        "항암중입자방사선치료비": "당사 합산 5천만 적용"
+      },
+      "is_new_product": true,
+      "effective_period": "2026년 2월"
+    },
+    {
+      "insurance_company": "DB생명",
+      "product_group": "종신보험",
+      "products": [
+        "경영인 정기보험(해약환급금일부지급형)(2601)",
+        "간편한 경영인 정기보험(해약환급금일부지급형)(2601)"
+      ],
+      "review_type": "일반심사 및 간편심사(3.2.5)",
+      "age_limits": {
+        "일반심사형": {
+          "male": {
+            "min": 20,
+            "max": 70
+          },
+          "female": {
+            "min": 26,
+            "max": 70
+          }
+        },
+        "간편심사형": {
+          "male": {
+            "min": 20,
+            "max": 70
+          },
+          "female": {
+            "min": 24,
+            "max": 70
+          }
+        }
+      },
+      "notes": "유병자 간편심사(3.2.5)로 가입 (간편심사형에 한함)",
+      "effective_period": "2026년 2월"
+    },
+    {
+      "insurance_company": "DB생명",
+      "product_group": "암진단",
+      "products": [
+        "New 내가고른 건강보험(2601) - 암진단특약"
+      ],
+      "coverage_limits": {
+        "일반심사형_40세이하": "최대 1억 5천만",
+        "일반심사형_60세이하": "최대 1억",
+        "일반심사형_61세이상": "최대 6천만"
+      },
+      "cancer_waiting_period": "계약일(부활일)부터 90일 경과 후 다음날",
+      "reduction_conditions": [
+        "1년 미만 암 진단확정시 암 진단자금의 50% 지급",
+        "유방암 180일 이내 진단확정시 보험가입금액의 20% 지급",
+        "유방암 180일 초과 1년 미만 진단확정시 보험가입금액의 50% 지급",
+        "1년 미만 유사암 진단확정시 유사암 진단자금의 50% 지급"
+      ],
+      "promotion": "3월까지 암 1억5천 플랜 가입한도 확대",
+      "effective_period": "2026년 2월"
+    },
+    {
+      "insurance_company": "KDB생명",
+      "product_group": "종신보험",
+      "products": [
+        "트리플찬스종신보험(무)"
+      ],
+      "review_type": "간편심사형",
+      "disclosure_items": [
+        {
+          "period": "최근 3개월 이내",
+          "items": [
+            "질병 확정 진단",
+            "질병 의심소견",
+            "치료",
+            "추가검사(재검사) 소견"
+          ],
+          "notes": "질병의심소견 및 필요소견이란 의사가 진단서나 소견서 또는 진료의뢰서 등을 포함하여 서면(전자문서 포함)으로 교부한 경우를 말합니다. 추가검사(재검사)란 검사 결과 이상 소견이 확인되어 보다 정확한 진단을 위해 시행한 검사를 의미하며, 정기검사 또는 추적관찰은 포함하지 않습니다."
+        },
+        {
+          "period": "최근 2년 이내",
+          "items": [
+            "입원",
+            "수술(제왕절개 포함)"
+          ],
+          "notes": ""
+        },
+        {
+          "period": "최근 5년 이내",
+          "items": [
+            "중대질환 진단/입원/수술"
+          ],
+          "notes": "중대질환: 암, 협심증, 심근경색, 뇌졸중증(뇌출혈, 뇌경색), 간경화증, 투석중인 만성콩팥질환, 루게릭병 또는 파킨슨병"
+        }
+      ],
+      "special_acceptance": {
+        "promotion_name": "간편심사 출시 - 최대한도 5천만원 한시운영",
+        "promotion_period": "2026년 2월 (한시)",
+        "details": "간편심사를 통해 유병자도 가입 가능, 가입금액 최대 5천만원"
+      },
+      "age_limits": {
+        "notes": "연령별 차등한도, UW가이드라인 참고"
+      },
+      "effective_period": "2026.02.01~2026.02.28"
+    },
+    {
+      "insurance_company": "KDB생명",
+      "product_group": "건강보험",
+      "products": [
+        "KDB라이프핏건강보험(무)"
+      ],
+      "review_type": "일반(표준체) 및 간편심사(325/355)",
+      "disclosure_items": [
+        {
+          "period": "간편심사 예외 질병",
+          "items": [
+            "KCD 소분류 기준 36,650개 질병 대폭 확대"
+          ],
+          "notes": "변경 전 3개월 이후 인수였던 과민성대장 증후군, 급성기관지 → 퇴원 직후 인수로 변경. 변경 전 암담보 인수 거절이었던 협심증, 뇌출혈 → 암담보 인수로 변경."
+        }
+      ],
+      "special_acceptance": {
+        "promotion_name": "비표준체 계약 효율적 인수 - 신체부위특정질병부담보특약 질병 확대",
+        "promotion_period": "2026년 2월~",
+        "details": "신체부위 부담보 수: 50개→52개(+2: 골반뼈, 안와골). 특정질병 부담보 수: 12개→36개(+24: 탈장, 자궁근종, 백내장, 골다공증, 골반염, 자궁내막증, 하지정맥류, 복막의질환, 천식, 빈혈, 수면장애, 두통, 결절종, 지방종, 수막염, 대상포진, 대장용종, 림프절염, 다낭성난소증후군, 성대질환, 위식도염, 무지외반, 어깨병변, 신우신염)"
+      },
+      "effective_period": "2026.02.01~2026.02.28"
+    },
+    {
+      "insurance_company": "KDB생명",
+      "product_group": "간병보험",
+      "products": [
+        "버팀목New케어보험(무)"
+      ],
+      "review_type": "일반",
+      "disclosure_items": [],
+      "special_acceptance": {
+        "promotion_name": "2월 한정 프로모션",
+        "promotion_period": "2026년 2월 한정",
+        "details": "최소보험료 3만원→2만원 인하. 골절/깁스치료 최소보험료 5만원 연계 삭제. 가입나이 확대(1~5등급, 1~인지지원 특약). 복합재가 200만원."
+      },
+      "effective_period": "2026.02.01~2026.02.28"
+    },
+    {
+      "id": "UW-KB-202602-001",
+      "insurer": "KB라이프",
+      "category": "간편심사 경증예외질환 확대",
+      "effective_date": "2026-02-04",
+      "end_date": null,
+      "change_type": "신규/변경",
+      "previous_value": "3,635개",
+      "new_value": "7,402개",
+      "description": "간편심사 예외질환 개수 업계 최대 수준으로 2배 확대",
+      "underwriting_result": "정상인수(자동승인)",
+      "conditions": "심사 기준 충족 시 자동 승인. 고지질병 갯수 무관하나 수술횟수, 입원일수, 치료 후 경과기간 등에 따라 심사기준 상이",
+      "notes": "판단결과 승낙이더라도 언더라이터 심사시 보험금과다청구/도덕적위험 높다고 판단되는 경우 가입제한 가능",
+      "disease_categories": [
+        {
+          "category": "양성종양",
+          "examples": [
+            "대장용종(직장용종)",
+            "소화기계양성신생물",
+            "유방양성신생물",
+            "난소 양성신생물",
+            "전립선 양성신생물"
+          ]
+        },
+        {
+          "category": "위장염",
+          "examples": [
+            "식도염",
+            "위염",
+            "위 및 십이지장의 기타질환",
+            "식도 천공",
+            "위궤양/십이지장궤양",
+            "급성위염"
+          ]
+        },
+        {
+          "category": "호흡기질환",
+          "examples": [
+            "편도염",
+            "폐렴",
+            "후두염",
+            "천식"
+          ]
+        },
+        {
+          "category": "안구질환",
+          "examples": [
+            "결막염",
+            "백내장",
+            "녹내장",
+            "맥락막의 기타장애",
+            "시신경염"
+          ]
+        },
+        {
+          "category": "근골격계질환",
+          "examples": [
+            "무릎관절증",
+            "추간판장애",
+            "힘줄파열",
+            "척추측만증",
+            "경추간판장애"
+          ]
+        },
+        {
+          "category": "임신관련질환",
+          "examples": [
+            "유산관련",
+            "임신중 당뇨병",
+            "임신중 질환(요도감염 등)",
+            "산후기 중 장애"
+          ]
+        }
+      ],
+      "applicable_products": [
+        "KB 3·10·5 딱좋은 초경증 건강보험 무배당",
+        "KB 3·N·5 딱좋은 요즘 건강보험 무배당",
+        "KB 3·N·5 딱좋은 요즘 건강보험 무배당(갱신형)",
+        "KB 5·10·5 딱좋은 플러스 건강보험 무배당"
+      ]
+    },
+    {
+      "id": "UW-KB-202602-002",
+      "insurer": "KB라이프",
+      "category": "간병인사용입원특약 연계조건 완화",
+      "effective_date": "2026-02-01",
+      "end_date": "2026-02-28",
+      "change_type": "한시적 완화",
+      "description": "간병인사용입원특약 주계약 연계조건 폐지 및 요양병원 간병인 전연령 7만원",
+      "underwriting_result": "조건부인수(한시완화)",
+      "details": [
+        {
+          "rider_name": "간병인사용입원특약(*5종 패키지)",
+          "previous_condition": "60세 이하: 주계약 300만 이상, 60세 초과: 주계약 200만 이상",
+          "new_condition": "주계약 연계조건 없음",
+          "period": "2월 한시적용"
+        },
+        {
+          "rider_name": "간병인(요양병원)입원",
+          "previous_condition": "60세 이하: 7만원, 61세 이상: 3만원",
+          "new_condition": "전연령: 7만원",
+          "period": "2월 한시적용"
+        }
+      ],
+      "five_package_riders": [
+        "간병인사용입원(요양병원 제외, 1일이상 180일한도)",
+        "간병인사용 요양병원 입원(1일이상 180일한도)",
+        "간호·간병통합서비스사용 입원(1일이상 180일한도)",
+        "간병인사용입원(요양/정신/한방병원제외, 181일이상)",
+        "간호간병통합서비스사용입원(요양/정신/한방병원제외, 181일이상)"
+      ],
+      "coverage_amounts": {
+        "간병인사용입원(요양병원제외)": "15만원/일",
+        "간병인사용_요양병원입원": "7만원/일",
+        "간호간병통합서비스사용입원": "7만원+3만원(종합병원)/일"
+      },
+      "applicable_products": [
+        "KB 딱좋은 건강보험 무배당 시리즈"
+      ]
+    },
+    {
+      "id": "UW-KB-202602-003",
+      "insurer": "KB라이프",
+      "category": "고연령 한도 확대",
+      "effective_date": "2026-01-21",
+      "end_date": null,
+      "change_type": "특별한도운영",
+      "description": "고연령 암진단/치료 특별한도 확대 시행",
+      "underwriting_result": "조건부인수(한도확대)",
+      "details_age_65": [
+        {
+          "rider_name": "암진단(*타사합산 4억)",
+          "previous_limit": "1억원",
+          "new_limit": "1.5억원"
+        },
+        {
+          "rider_name": "뇌혈관질환(죽상경화증 제외)",
+          "previous_limit": "3천만원",
+          "new_limit": "3천만원"
+        },
+        {
+          "rider_name": "허혈성심장질환(죽상경화증 제외)",
+          "previous_limit": "3천만원",
+          "new_limit": "3천만원"
+        },
+        {
+          "rider_name": "암주요치료, 상급종합병원 암주요치료",
+          "previous_limit": "2천만원",
+          "new_limit": "2천만원"
+        },
+        {
+          "rider_name": "항암방사선치료",
+          "previous_limit": "2천만원",
+          "new_limit": "3천만원"
+        },
+        {
+          "rider_name": "항암약물치료(호르몬치료보장)",
+          "previous_limit": "2천만원",
+          "new_limit": "3천만원"
+        },
+        {
+          "rider_name": "표적항암치료",
+          "previous_limit": "1억원",
+          "new_limit": "1억원"
+        }
+      ],
+      "details_age_70": [
+        {
+          "rider_name": "암진단(*타사합산 4억)",
+          "previous_limit": "5천만원",
+          "new_limit": "1억원"
+        },
+        {
+          "rider_name": "뇌혈관질환(죽상경화증 제외)",
+          "previous_limit": "2천만원",
+          "new_limit": "2천5백만원"
+        },
+        {
+          "rider_name": "허혈성심장질환(죽상경화증 제외)",
+          "previous_limit": "1천만원",
+          "new_limit": "2천5백만원"
+        },
+        {
+          "rider_name": "암주요치료, 상급종합병원 암주요치료",
+          "previous_limit": "1천만원",
+          "new_limit": "2천만원"
+        },
+        {
+          "rider_name": "항암방사선치료",
+          "previous_limit": "1천만원",
+          "new_limit": "2천5백만원"
+        },
+        {
+          "rider_name": "항암약물치료(호르몬치료보장)",
+          "previous_limit": "1천만원",
+          "new_limit": "1천만원"
+        },
+        {
+          "rider_name": "표적항암치료",
+          "previous_limit": "3천만원",
+          "new_limit": "7천만원"
+        }
+      ],
+      "applicable_products": [
+        "KB 딱좋은 건강보험 무배당 시리즈"
+      ]
+    },
+    {
+      "insurer": "동양생명",
+      "product_name": "(무)우리WON하는5배더행복한플러스종신보험",
+      "underwriting_type": [
+        {
+          "type": "일반심사형",
+          "description": "표준 건강고지 심사",
+          "max_coverage": null
+        },
+        {
+          "type": "간편심사형(3)",
+          "description": "간편고지 3개 항목 심사",
+          "restrictions": [
+            "납입면제특약 가입 불가",
+            "환급특약 가입 불가"
+          ]
+        }
+      ],
+      "age_limit": {
+        "15년납": {
+          "min_age": 25,
+          "max_age": 65
+        },
+        "20년납": {
+          "min_age": 15,
+          "max_age": 60
+        }
+      },
+      "premium_waiver_condition": "질병 및 재해 장해 50% 이상",
+      "death_benefit_restriction": "고의적 사고 및 2년 이내 자살 시 지급 제한",
+      "special_notes": [
+        "종신보험은 저축(연금) 목적에 적합하지 않음",
+        "중도해약시 환급금이 납부한 보험료보다 적거나 없을 수 있음",
+        "체증형은 표준형 대비 보험료가 비쌀 수 있음",
+        "(저)해약환급형은 해약환급금이 표준형보다 적거나 없을 수 있음"
+      ],
+      "effective_period": "2026년 02월~"
+    },
+    {
+      "insurer": "동양생명",
+      "product_name": "(무)우리WON하는치매간병보험",
+      "underwriting_type": [
+        {
+          "type": "일반심사형",
+          "description": "표준 건강고지 심사"
+        }
+      ],
+      "product_forms": [
+        {
+          "type": "해약환급금미지급형",
+          "description": "무해지 환급형, 해약 시 환급금 없음"
+        },
+        {
+          "type": "해약환급금일부지급형",
+          "description": "해약 시 일부 환급금 지급"
+        }
+      ],
+      "minimum_premium": 30000,
+      "minimum_premium_note": "주야간보호보장+방문요양+복지용구 가입금액 합산 100만원 이상 시 최소보험료 4만원",
+      "special_notes": [
+        "표적치매약물허가치료특약: 경도이상치매보장특약, 급여치매약물치료특약, 급여치매및뇌혈관질환CT/MRI검사지원특약 가입 시 알릴의무 치매고지만",
+        "2월까지 한시 한도유지 (상기 특약 가입 시)"
+      ],
+      "effective_period": "2026년 02월~"
+    },
+    {
+      "insurer": "동양생명",
+      "product_name": "(무)우리WON하는(건강,간편)보장보험+(갱신형)",
+      "underwriting_type": [
+        {
+          "type": "일반심사형",
+          "description": "표준 건강고지 심사"
+        }
+      ],
+      "product_forms": [
+        {
+          "type": "해약환급금미지급형",
+          "description": "무해지 환급형"
+        }
+      ],
+      "special_notes": [
+        "통합재해진단특약, 독감항바이러스치료제치료특약, 재해장해보장특약(3~100%) 3개 특약 업계 한도 없음"
+      ],
+      "effective_period": "2026년 02월~"
+    },
+    {
+      "insurer": "동양생명",
+      "product_name": "(무)수호천사 우리WON안심상속종신보험",
+      "underwriting_type": [
+        {
+          "type": "일반심사형",
+          "description": "최대 가입금액 30억",
+          "max_coverage": 3000000000
+        },
+        {
+          "type": "간편심사형(2)",
+          "description": "최대 가입금액 20억, 2년 내 질병사망시 가입금액 50% 지급",
+          "max_coverage": 2000000000,
+          "restrictions": [
+            "2년 내 질병사망시 보험가입금액 50% 지급"
+          ]
+        }
+      ],
+      "age_limit": {
+        "general": {
+          "min_age": 15,
+          "max_age_formula": "MIN(80, 90-납입년수)"
+        }
+      },
+      "premium_waiver_condition": "급성심근경색증 / 뇌출혈 / 암 / 50% 이상 재해장해 납입면제 특약 탑재",
+      "special_notes": [
+        "보험금청구권 신탁제도 탑재",
+        "보험계약대출 불가 (신탁 적용 시)",
+        "보험계약자=피보험자=위탁자 동일인 조건",
+        "수익자: 직계존비속, 배우자",
+        "가입금액 1억원 이상 시 보험료 2% 할인"
+      ],
+      "effective_period": "2026년 02월~"
+    },
+    {
+      "id": "UW-KB-202602-001",
+      "insurer": "KB라이프",
+      "category": "간편심사 경증예외질환 확대",
+      "effective_date": "2026-02-04",
+      "end_date": null,
+      "change_type": "신규/변경",
+      "previous_value": "3,635개",
+      "new_value": "7,402개",
+      "description": "간편심사 예외질환 개수 업계 최대 수준으로 2배 확대",
+      "underwriting_result": "정상인수(자동승인)",
+      "conditions": "심사 기준 충족 시 자동 승인. 고지질병 갯수 무관하나 수술횟수, 입원일수, 치료 후 경과기간 등에 따라 심사기준 상이",
+      "notes": "판단결과 승낙이더라도 언더라이터 심사시 보험금과다청구/도덕적위험 높다고 판단되는 경우 가입제한 가능",
+      "disease_categories": [
+        {
+          "category": "양성종양",
+          "examples": [
+            "대장용종(직장용종)",
+            "소화기계양성신생물",
+            "유방양성신생물",
+            "난소 양성신생물",
+            "전립선 양성신생물"
+          ]
+        },
+        {
+          "category": "위장염",
+          "examples": [
+            "식도염",
+            "위염",
+            "위 및 십이지장의 기타질환",
+            "식도 천공",
+            "위궤양/십이지장궤양",
+            "급성위염"
+          ]
+        },
+        {
+          "category": "호흡기질환",
+          "examples": [
+            "편도염",
+            "폐렴",
+            "후두염",
+            "천식"
+          ]
+        },
+        {
+          "category": "안구질환",
+          "examples": [
+            "결막염",
+            "백내장",
+            "녹내장",
+            "맥락막의 기타장애",
+            "시신경염"
+          ]
+        },
+        {
+          "category": "근골격계질환",
+          "examples": [
+            "무릎관절증",
+            "추간판장애",
+            "힘줄파열",
+            "척추측만증",
+            "경추간판장애"
+          ]
+        },
+        {
+          "category": "임신관련질환",
+          "examples": [
+            "유산관련",
+            "임신중 당뇨병",
+            "임신중 질환(요도감염 등)",
+            "산후기 중 장애"
+          ]
+        }
+      ],
+      "applicable_products": [
+        "KB 3·10·5 딱좋은 초경증 건강보험 무배당",
+        "KB 3·N·5 딱좋은 요즘 건강보험 무배당",
+        "KB 3·N·5 딱좋은 요즘 건강보험 무배당(갱신형)",
+        "KB 5·10·5 딱좋은 플러스 건강보험 무배당"
+      ]
+    },
+    {
+      "id": "UW-KB-202602-002",
+      "insurer": "KB라이프",
+      "category": "간병인사용입원특약 연계조건 완화",
+      "effective_date": "2026-02-01",
+      "end_date": "2026-02-28",
+      "change_type": "한시적 완화",
+      "description": "간병인사용입원특약 주계약 연계조건 폐지 및 요양병원 간병인 전연령 7만원",
+      "underwriting_result": "조건부인수(한시완화)",
+      "details": [
+        {
+          "rider_name": "간병인사용입원특약(*5종 패키지)",
+          "previous_condition": "60세 이하: 주계약 300만 이상, 60세 초과: 주계약 200만 이상",
+          "new_condition": "주계약 연계조건 없음",
+          "period": "2월 한시적용"
+        },
+        {
+          "rider_name": "간병인(요양병원)입원",
+          "previous_condition": "60세 이하: 7만원, 61세 이상: 3만원",
+          "new_condition": "전연령: 7만원",
+          "period": "2월 한시적용"
+        }
+      ],
+      "five_package_riders": [
+        "간병인사용입원(요양병원 제외, 1일이상 180일한도)",
+        "간병인사용 요양병원 입원(1일이상 180일한도)",
+        "간호·간병통합서비스사용 입원(1일이상 180일한도)",
+        "간병인사용입원(요양/정신/한방병원제외, 181일이상)",
+        "간호간병통합서비스사용입원(요양/정신/한방병원제외, 181일이상)"
+      ],
+      "coverage_amounts": {
+        "간병인사용입원(요양병원제외)": "15만원/일",
+        "간병인사용_요양병원입원": "7만원/일",
+        "간호간병통합서비스사용입원": "7만원+3만원(종합병원)/일"
+      },
+      "applicable_products": [
+        "KB 딱좋은 건강보험 무배당 시리즈"
+      ]
+    },
+    {
+      "id": "UW-KB-202602-003",
+      "insurer": "KB라이프",
+      "category": "고연령 한도 확대",
+      "effective_date": "2026-01-21",
+      "end_date": null,
+      "change_type": "특별한도운영",
+      "description": "고연령 암진단/치료 특별한도 확대 시행",
+      "underwriting_result": "조건부인수(한도확대)",
+      "details_age_65": [
+        {
+          "rider_name": "암진단(*타사합산 4억)",
+          "previous_limit": "1억원",
+          "new_limit": "1.5억원"
+        },
+        {
+          "rider_name": "뇌혈관질환(죽상경화증 제외)",
+          "previous_limit": "3천만원",
+          "new_limit": "3천만원"
+        },
+        {
+          "rider_name": "허혈성심장질환(죽상경화증 제외)",
+          "previous_limit": "3천만원",
+          "new_limit": "3천만원"
+        },
+        {
+          "rider_name": "암주요치료, 상급종합병원 암주요치료",
+          "previous_limit": "2천만원",
+          "new_limit": "2천만원"
+        },
+        {
+          "rider_name": "항암방사선치료",
+          "previous_limit": "2천만원",
+          "new_limit": "3천만원"
+        },
+        {
+          "rider_name": "항암약물치료(호르몬치료보장)",
+          "previous_limit": "2천만원",
+          "new_limit": "3천만원"
+        },
+        {
+          "rider_name": "표적항암치료",
+          "previous_limit": "1억원",
+          "new_limit": "1억원"
+        }
+      ],
+      "details_age_70": [
+        {
+          "rider_name": "암진단(*타사합산 4억)",
+          "previous_limit": "5천만원",
+          "new_limit": "1억원"
+        },
+        {
+          "rider_name": "뇌혈관질환(죽상경화증 제외)",
+          "previous_limit": "2천만원",
+          "new_limit": "2천5백만원"
+        },
+        {
+          "rider_name": "허혈성심장질환(죽상경화증 제외)",
+          "previous_limit": "1천만원",
+          "new_limit": "2천5백만원"
+        },
+        {
+          "rider_name": "암주요치료, 상급종합병원 암주요치료",
+          "previous_limit": "1천만원",
+          "new_limit": "2천만원"
+        },
+        {
+          "rider_name": "항암방사선치료",
+          "previous_limit": "1천만원",
+          "new_limit": "2천5백만원"
+        },
+        {
+          "rider_name": "항암약물치료(호르몬치료보장)",
+          "previous_limit": "1천만원",
+          "new_limit": "1천만원"
+        },
+        {
+          "rider_name": "표적항암치료",
+          "previous_limit": "3천만원",
+          "new_limit": "7천만원"
+        }
+      ],
+      "applicable_products": [
+        "KB 딱좋은 건강보험 무배당 시리즈"
+      ]
+    },
+    {
+      "id": "UW-KYOBO-202602-001",
+      "insurer": "교보생명",
+      "category": "종신보험 가입나이 한도",
+      "description": "교보생명 종신보험 3종 가입나이 기준",
+      "minimum_entry_age": {
+        "표준형": "15세",
+        "간편": "20세"
+      },
+      "products": {
+        "K-실속종신보험_표준": [
+          {
+            "type": "1종",
+            "amount": "3천만원이상",
+            "payment": "5년납",
+            "male": "70세",
+            "female": "70세"
+          },
+          {
+            "type": "1종",
+            "amount": "3천만원이상",
+            "payment": "6년납",
+            "male": "70세",
+            "female": "70세"
+          },
+          {
+            "type": "1종",
+            "amount": "3천만원이상",
+            "payment": "7년납",
+            "male": "70세",
+            "female": "70세"
+          },
+          {
+            "type": "1종",
+            "amount": "3천만원미만",
+            "payment": "5년납",
+            "male": "70세",
+            "female": "70세"
+          },
+          {
+            "type": "1종",
+            "amount": "3천만원미만",
+            "payment": "6년납",
+            "male": "70세",
+            "female": "70세"
+          },
+          {
+            "type": "1종",
+            "amount": "3천만원미만",
+            "payment": "7년납",
+            "male": "70세",
+            "female": "70세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원이상",
+            "payment": "5년납",
+            "male": "72세",
+            "female": "72세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원이상",
+            "payment": "7년납",
+            "male": "72세",
+            "female": "72세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원이상",
+            "payment": "10년납",
+            "male": "71세",
+            "female": "75세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원이상",
+            "payment": "12년납",
+            "male": "69세",
+            "female": "73세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원이상",
+            "payment": "15년납",
+            "male": "66세",
+            "female": "71세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원미만",
+            "payment": "5년납",
+            "male": "72세",
+            "female": "72세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원미만",
+            "payment": "10년납",
+            "male": "70세",
+            "female": "74세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원미만",
+            "payment": "12년납",
+            "male": "67세",
+            "female": "71세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원미만",
+            "payment": "15년납",
+            "male": "64세",
+            "female": "69세"
+          }
+        ],
+        "K-실속종신보험_간편": [
+          {
+            "type": "1종",
+            "amount": "3천만원이상",
+            "payment": "5년납",
+            "male": "70세",
+            "female": "70세"
+          },
+          {
+            "type": "1종",
+            "amount": "3천만원이상",
+            "payment": "7년납",
+            "male": "69세",
+            "female": "70세"
+          },
+          {
+            "type": "1종",
+            "amount": "3천만원미만",
+            "payment": "5년납",
+            "male": "69세",
+            "female": "70세"
+          },
+          {
+            "type": "1종",
+            "amount": "3천만원미만",
+            "payment": "7년납",
+            "male": "66세",
+            "female": "70세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원이상",
+            "payment": "5년납",
+            "male": "70세",
+            "female": "71세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원이상",
+            "payment": "7년납",
+            "male": "69세",
+            "female": "70세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원이상",
+            "payment": "10년납",
+            "male": "67세",
+            "female": "71세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원이상",
+            "payment": "15년납",
+            "male": "61세",
+            "female": "67세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원미만",
+            "payment": "10년납",
+            "male": "65세",
+            "female": "70세"
+          },
+          {
+            "type": "2종",
+            "amount": "3천만원미만",
+            "payment": "15년납",
+            "male": "60세",
+            "female": "65세"
+          }
+        ],
+        "K-밸류업종신보험": [
+          {
+            "type": "베이직_표준",
+            "male": "65세",
+            "female": "65세"
+          },
+          {
+            "type": "베이직_간편",
+            "male": "62세",
+            "female": "64세"
+          },
+          {
+            "type": "라이트_표준",
+            "male": "70세",
+            "female": "70세"
+          },
+          {
+            "type": "라이트_간편",
+            "male": "68세",
+            "female": "68세"
+          },
+          {
+            "type": "프라임_표준",
+            "male": "47세",
+            "female": "53세"
+          },
+          {
+            "type": "프라임_간편",
+            "male": null,
+            "female": null
+          }
+        ],
+        "3밸런스보장보험PLUS": [
+          {
+            "type": "표준1종(30%형)",
+            "payment": "7년납",
+            "male": "50세",
+            "female": "50세"
+          },
+          {
+            "type": "표준1종(30%형)",
+            "payment": "10~15년납",
+            "male": "50세",
+            "female": "50세"
+          },
+          {
+            "type": "표준2종(20%형)",
+            "payment": "5년납",
+            "male": "65세",
+            "female": "65세"
+          },
+          {
+            "type": "표준2종(20%형)",
+            "payment": "7~15년납",
+            "male": "60~63세",
+            "female": "60~63세"
+          },
+          {
+            "type": "간편",
+            "payment": "7년납",
+            "male": "60세",
+            "female": "60세"
+          },
+          {
+            "type": "간편",
+            "payment": "10년납",
+            "male": "57세",
+            "female": "60세"
+          },
+          {
+            "type": "간편",
+            "payment": "20년납",
+            "male": "51세",
+            "female": "55세"
+          },
+          {
+            "type": "플러스형",
+            "payment": "20년납",
+            "male": "55세",
+            "female": "55세"
+          }
+        ]
+      }
+    },
+    {
+      "id": "UW-KYOBO-202602-002",
+      "insurer": "교보생명",
+      "category": "경영인정기보험 가입나이",
+      "description": "교보(간편)경영인정기보험 가입연령",
+      "details": [
+        {
+          "type": "5%체증형_일반심사형",
+          "male": "22세~70세",
+          "female": "25세~70세"
+        },
+        {
+          "type": "5%체증형_간편심사형",
+          "male": "23세~70세",
+          "female": "30세~70세"
+        },
+        {
+          "type": "10%체증형_일반심사형",
+          "male": "30세~70세",
+          "female": "34세~70세"
+        },
+        {
+          "type": "10%체증형_간편심사형",
+          "male": "32세~70세",
+          "female": "39세~70세"
+        }
+      ]
+    },
+    {
+      "id": "UW-KYOBO-202602-003",
+      "insurer": "교보생명",
+      "category": "New헬스케어서비스 제공기준",
+      "description": "상품별/주계약금액별 헬스케어서비스 등급 기준",
+      "service_tiers": {
+        "프레스티지": {
+          "condition": "주계약 10억 이상 (간편K-밸류업은 주계약 2억이상)",
+          "duration": "10세 or 20년"
+        },
+        "프리미어": {
+          "condition": "주계약 2억 이상 (간편K-밸류업은 주계약 5천만원이상 2억미만)",
+          "duration": "10세 or 20년"
+        },
+        "헬스케어(R)": {
+          "condition": "주계약 1억 이상 (간편K-밸류업은 주계약 2천만원이상 5천만원미만)",
+          "duration": "10세 or 20년"
+        },
+        "15년형": {
+          "condition": "주계약 5천만~7천만 이상 (상품별 상이)",
+          "duration": "15년"
+        },
+        "건강특화형(20년)": {
+          "condition": "마이플랜건강보험 월보험료 5만 이상",
+          "duration": "20년"
+        },
+        "암특화형(15년)": {
+          "condition": "통합암보험 월보험료 3만 이상",
+          "duration": "15년"
+        },
+        "뇌심장특화형(15년)": {
+          "condition": "뇌·심장보험 월보험료 3만 이상",
+          "duration": "15년"
+        },
+        "치매간병특화형": {
+          "condition": "치매간병안심보험 월보험료 3만원 이상",
+          "duration": "MAX 만80세(20년)"
+        }
+      },
+      "한시적_특별부가": {
+        "3밸런스보장보험PLUS_15년형": "주계약 3천만~5천만이하, 기간: 1.1~6.30"
+      }
+    },
+    {
+      "insurer": "ABL생명",
+      "product_name": "WON더드림",
+      "product_type": "종신/단기납",
+      "screening_type": "간편심사",
+      "surrender_type": [
+        "표준형",
+        "저해약"
+      ],
+      "medical_activity_3mo": true,
+      "hospitalization_period": "2년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암"
+      ],
+      "acceptance_status": "간편심사 조건부인수",
+      "special_notes": "간편심사시 암만 고지",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "ABL생명",
+      "product_name": "WON상속",
+      "product_type": "종신/상속",
+      "screening_type": "간편심사",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "2년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암"
+      ],
+      "acceptance_status": "간편심사 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "DB생명",
+      "product_name": "뉴-알차고행복한Plus",
+      "product_type": "종신/단기납",
+      "screening_type": "간편심사",
+      "surrender_type": [
+        "표준형",
+        "저해약",
+        "무해약"
+      ],
+      "medical_activity_3mo": true,
+      "hospitalization_period": "2년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암"
+      ],
+      "acceptance_status": "간편심사 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "DB생명",
+      "product_name": "713/713골드",
+      "product_type": "종신/건강",
+      "screening_type": "간편심사",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "2년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "신"
+      ],
+      "acceptance_status": "간편심사 조건부인수",
+      "special_notes": "6대질병 고지",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "KDB생명",
+      "product_name": "더블찬스",
+      "product_type": "종신/단기납",
+      "screening_type": "간편심사",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "2년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "판",
+        "신",
+        "파"
+      ],
+      "acceptance_status": "간편심사 조건부인수",
+      "special_notes": "8대질병 고지",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "교보생명",
+      "product_name": "K-실속",
+      "product_type": "종신/단기납",
+      "screening_type": "간편심사",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "2년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "심",
+        "간"
+      ],
+      "acceptance_status": "간편심사 조건부인수(5대)",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "신한라이프",
+      "product_name": "통합종신ONE",
+      "product_type": "종신/기타",
+      "screening_type": "간편심사",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "3년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "판",
+        "신",
+        "파",
+        "특정뇌혈관질환"
+      ],
+      "acceptance_status": "간편심사 조건부인수",
+      "special_notes": "9대질병+특정뇌혈관질환 고지, 3년 입원/수술고지",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "한화생명",
+      "product_name": "H종신",
+      "product_type": "종신/단기납",
+      "screening_type": "간편심사",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "2년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "심"
+      ],
+      "acceptance_status": "간편심사 조건부인수(3대)",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "한화생명",
+      "product_name": "상속H",
+      "product_type": "종신/상속",
+      "screening_type": "간편심사",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "2년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "심"
+      ],
+      "acceptance_status": "간편심사 조건부인수(3대)",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "DB손보",
+      "product_name": "참좋은3.1.1",
+      "product_type": "건강/간편건강/손보",
+      "screening_type": "3.1.1",
+      "acceptance_type": "비갱신+갱신",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "1년",
+      "surgery_period": "1년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "신"
+      ],
+      "additional_disclosure": null,
+      "no_claim_conversion": false,
+      "acceptance_status": "간편심사 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "DB손보",
+      "product_name": "나에게맞춘간편",
+      "product_type": "건강/간편건강/손보",
+      "screening_type": "3.0.5~3.5.5",
+      "acceptance_type": "비갱신+갱신",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "0~5년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "신"
+      ],
+      "additional_disclosure": null,
+      "no_claim_conversion": true,
+      "acceptance_status": "간편심사 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "DB손보",
+      "product_name": "나에게맞춘더좋은초경증간편",
+      "product_type": "건강/경증간편/손보",
+      "screening_type": "3.6.5~3.8.5",
+      "acceptance_type": "비갱신+갱신",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "6,8년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "신"
+      ],
+      "additional_disclosure": null,
+      "no_claim_conversion": true,
+      "acceptance_status": "경증간편 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "KB손보",
+      "product_name": "고당지맞춤간편",
+      "product_type": "건강/간편건강/손보",
+      "screening_type": "3.5.5~3.10.5",
+      "acceptance_type": "비갱신+갱신",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "5,10년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "신",
+        "파"
+      ],
+      "additional_disclosure": {
+        "period": "고혈압, 당뇨, 이상지질혈증(투약/치료포함)"
+      },
+      "no_claim_conversion": false,
+      "acceptance_status": "간편심사 조건부인수(고당지 추가고지)",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "메리츠화재",
+      "product_name": "통합간편건강",
+      "product_type": "건강/간편건강/손보",
+      "screening_type": "3.0.5~3.10.5",
+      "acceptance_type": "비갱신+갱신",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "0~10년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "신"
+      ],
+      "additional_disclosure": null,
+      "no_claim_conversion": false,
+      "acceptance_status": "초간편~경증간편 전범위 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "삼성화재",
+      "product_name": "새로고침(100세)",
+      "product_type": "건강/간편건강/손보",
+      "screening_type": "3.1.5~3.5.5",
+      "acceptance_type": "비갱신+갱신",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "1~5년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "심",
+        "간",
+        "신"
+      ],
+      "no_claim_conversion": true,
+      "acceptance_status": "간편심사 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "한화손보",
+      "product_name": "3N5더간편건강",
+      "product_type": "건강/간편건강/손보",
+      "screening_type": "3.0.5~3.5.5+고혈압/당뇨",
+      "acceptance_type": "갱신",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "0~5년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "신",
+        "파"
+      ],
+      "additional_disclosure": {
+        "period": "5년",
+        "diseases": "고혈압, 당뇨(투약/치료포함)"
+      },
+      "no_claim_conversion": true,
+      "acceptance_status": "간편심사 조건부인수(고당 추가고지)",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "현대해상",
+      "product_name": "간편한3.10.10건강",
+      "product_type": "건강/간편건강/손보",
+      "screening_type": "3.10.10",
+      "acceptance_type": "비갱신+갱신",
+      "medical_activity_3mo": true,
+      "hospitalization_period": "10년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "신"
+      ],
+      "additional_disclosure": {
+        "period": "10년",
+        "diseases": "암, 뇌, 심"
+      },
+      "acceptance_status": "간편심사 조건부인수(10년 3대추가고지)",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "메리츠화재",
+      "product_name": "내Mom같은어린이",
+      "product_type": "태아보험/인수지침",
+      "category": "단일융모막",
+      "condition": "단일양막/2양막 모두 거절",
+      "acceptance_status": "거절",
+      "special_notes": "임신32주이후 사례별심사 가능",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "메리츠화재",
+      "product_name": "내Mom같은어린이",
+      "product_type": "태아보험/인수지침",
+      "category": "단태아",
+      "condition": "난임시술시 고지기반심사, 배란촉진제→자연임신→무서류인수",
+      "acceptance_status": "조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "메리츠화재",
+      "product_name": "내Mom같은어린이",
+      "product_type": "태아보험/인수지침",
+      "category": "쌍태아",
+      "condition": "난임시술/자연임신: 임신20주이후 태아정밀초음파검사 시행이후 서류심사",
+      "acceptance_status": "조건부인수(서류심사)",
+      "required_documents": "소견서(산모/태아건강상태, 양막/융모막개수), 태아정밀초음파결과지, 의무기록지전체",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "메리츠화재",
+      "product_name": "내Mom같은어린이",
+      "product_type": "태아보험/인수지침",
+      "category": "유산",
+      "condition": "1~3회유산 - 12주이내:무서류, 20주이내:최종유산4주후무서류, 20주이후:서류심사 / 4회이상:20주이후 최종유산4주후서류심사",
+      "acceptance_status": "조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "한화손보",
+      "product_name": "건강쑥쑥어린이",
+      "product_type": "태아보험/인수지침",
+      "category": "단일융모막",
+      "condition": "인수불가",
+      "acceptance_status": "거절",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "현대해상",
+      "product_name": "굿앤굿어린이종합Q",
+      "product_type": "태아보험/인수지침",
+      "category": "단일융모막",
+      "condition": "심사연기(출산이후)",
+      "acceptance_status": "심사연기",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "KB손보",
+      "product_name": "금쪽같은자녀Plus",
+      "product_type": "태아보험/인수지침",
+      "category": "단일융모막",
+      "condition": "심사연기(출산이후), 임신32주이후 사례별심사가능",
+      "acceptance_status": "심사연기",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "메리츠화재",
+      "product_name": "내Mom같은어린이",
+      "product_type": "태아보험/인수지침",
+      "category": "임신성고혈압",
+      "condition": "본태성/임신성/임신중독증: 거절",
+      "acceptance_status": "거절",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "현대해상",
+      "product_name": "굿앤굿어린이종합Q",
+      "product_type": "태아보험/인수지침",
+      "category": "임신성고혈압",
+      "condition": "간편內: 임신20주이내인수, 그외: 20주이후소견서심사 (단태아限, 태아/산모현상태양호, 동반질환없음, 합병증無, 혈압/혈당조절양호, 담보조정必)",
+      "acceptance_status": "조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "메리츠화재",
+      "product_name": "내Mom같은어린이",
+      "product_type": "태아보험/인수지침",
+      "category": "임신성당뇨",
+      "condition": "1형/2형당뇨: 거절, 임신성당뇨: 32주이후서류심사(경구투약無, 혈당조절양호限)",
+      "acceptance_status": "거절/조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "KB손보",
+      "product_name": "금쪽같은자녀Plus",
+      "product_type": "태아보험/인수지침",
+      "category": "임신성당뇨",
+      "condition": "임신전당뇨: 심사연기(출산이후), 임신성당뇨(투약無, 혈당조절양호시): 중기정밀초음파시행후 서류심사",
+      "acceptance_status": "심사연기/조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "메리츠화재",
+      "product_name": "내Mom같은어린이",
+      "product_type": "태아보험/인수지침",
+      "category": "자궁근종",
+      "condition": "현증인수(무서류심사), 다태아시 서류심사, 단태아시 근종위치/크기에따라 심사",
+      "acceptance_status": "조건부인수(무서류~서류심사)",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "메리츠화재",
+      "product_name": "내Mom같은어린이",
+      "product_type": "태아보험/인수지침",
+      "category": "갑상선기능항진증",
+      "condition": "갑상선항진증치료제투약: 거절(임신중투약없음시 서류심사), 갑상선기능저하증: 고지전제 무서류심사(인수보류기간無)",
+      "acceptance_status": "거절/조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "KB손보",
+      "product_name": "금쪽같은자녀Plus",
+      "product_type": "태아보험/인수지침",
+      "category": "갑상선기능항진증",
+      "condition": "갑상선기능항진증: 치료종결1년이상 무서류, 임신중투약시 서류심사 / 갑상선기능저하증/갑상선염: 투약無 또는 임신전부터투약중 무서류, 임신중투약시작시 서류심사",
+      "acceptance_status": "조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "메리츠화재",
+      "product_name": "내Mom같은어린이",
+      "product_type": "태아보험/간편플랜",
+      "category": "간편플랜요건",
+      "condition": "산모연령제한無, 임신주수31주이내, 산모10대질환&태아이상소견없음",
+      "diseases_checked": [
+        "암",
+        "백혈병",
+        "고혈압",
+        "협심증",
+        "심근경색",
+        "심장판막증",
+        "간경화증",
+        "뇌졸중증",
+        "당뇨병",
+        "에이즈/HIV보균",
+        "직장/항문관련질환"
+      ],
+      "acceptance_status": "간편심사 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "현대해상",
+      "product_name": "굿앤굿어린이종합Q",
+      "product_type": "태아보험/간편플랜",
+      "category": "간편플랜요건",
+      "condition": "산모45세이하, 임신주수31주이내(단태아), 산모10대질환&태아이상소견없음",
+      "diseases_checked": [
+        "암",
+        "백혈병",
+        "고혈압",
+        "협심증",
+        "심근경색",
+        "심장판막증",
+        "간경화증",
+        "뇌졸중증",
+        "당뇨병",
+        "에이즈/HIV보균"
+      ],
+      "acceptance_status": "간편심사 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "ABL생명",
+      "product_name": "우리WON케어간병(간편심사형)",
+      "product_type": "치매간병",
+      "screening_type": "간편심사",
+      "surrender_type": [
+        "무해약"
+      ],
+      "medical_activity_3mo": true,
+      "hospitalization_period": "2년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "심"
+      ],
+      "dementia_disclosure": "파킨슨병, 경도인지장애, 치매",
+      "long_term_care": "현재 수급자이거나 심의중여부",
+      "acceptance_status": "간편심사 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "교보생명",
+      "product_name": "간편치매·간병안심",
+      "product_type": "치매간병",
+      "screening_type": "간편심사",
+      "surrender_type": [
+        "무해약"
+      ],
+      "medical_activity_3mo": true,
+      "hospitalization_period": "5년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "판",
+        "신"
+      ],
+      "dementia_disclosure": "5년내 인지기능장애/치매 추가고지, 5년내 장기요양인정",
+      "long_term_care": "5년내 수급대상 인정여부",
+      "acceptance_status": "간편심사 조건부인수(7대+치매+장기요양)",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "한화손보",
+      "product_name": "치매간병/RICH간병3.0(간편고지형)",
+      "product_type": "치매간병",
+      "screening_type": "간편심사",
+      "surrender_type": [
+        "표준형",
+        "저해약",
+        "무해약"
+      ],
+      "medical_activity_3mo": true,
+      "hospitalization_period": "1년",
+      "surgery_period": "5년",
+      "diseases_checked": [
+        "암",
+        "뇌",
+        "협",
+        "심",
+        "간",
+        "신"
+      ],
+      "dementia_disclosure": "1년내 인지장애, 5년내 치매관련고지, 5년내 장기요양인정",
+      "long_term_care": "5년내 수급대상 인정여부",
+      "acceptance_status": "간편심사 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "라이나생명",
+      "product_name": "THE건강한치아/THE실속있는치아/덴탈어카운트",
+      "product_type": "치아보험",
+      "screening_type": "치아고지",
+      "disclosure_items": {
+        "현재치아상태": "자연치상실",
+        "최근1년이내": "치아우식증으로 치료(충전/보철치료)",
+        "최근5년이내": "치주질환으로 치주수술, 치주수술필요진단"
+      },
+      "acceptance_status": "치아고지 조건부인수",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "미래에셋생명",
+      "product_name": "미래에셋치아",
+      "product_type": "치아보험",
+      "screening_type": "치아고지",
+      "disclosure_items": {
+        "현재치아상태": "영구치상실, 임플란트, 가철성의치(틀니), 고정성가공의치(브릿지)",
+        "최근5년이내_치아": "치통, 치아흔들림, 치아우식증, 치은염, 치주질환, 치수염, 치근단염, 치아결손, 치아/치열교정, 치경부마모증, 임플란트, 브릿지, 틀니, 치아파절, 크라운으로 치료/투약/입원/수술/정밀검사/의료행위필요진단",
+        "최근5년이내_일반": "암(백혈병포함), 당뇨, 에이즈및HIV보균으로 진단/치료/입원/수술/투약"
+      },
+      "acceptance_status": "치아고지 조건부인수(가장 넓은 고지범위)",
+      "special_notes": "일반질병(암/당뇨/에이즈)도 고지 필요",
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "insurer": "농협생명",
+      "product_name": "건강플러스NH통합보험(무배당)_2601",
+      "product_type": "종합건강보험",
+      "screening_type": "간편심사",
+      "entry_age_simplified": {
+        "min": "20세",
+        "max": "80세"
+      },
+      "entry_age_standard": {
+        "min": "만15세",
+        "max": "80세"
+      },
+      "special_notes": "소식지상 간편심사 상세 고지항목 미기재. 일반/간편 구분 가능. 최소보험료 2만원.",
+      "acceptance_status": "간편/일반 모두 가입 가능",
+      "effective_period": "2026-01~",
+      "data_date": "2026-02"
+    },
+    {
+      "insurer": "농협생명",
+      "product_name": "핑크케어NH건강보험(무배당)",
+      "product_type": "여성암보험",
+      "screening_type": "간편심사/일반심사",
+      "entry_age_simplified": {
+        "min": "20세",
+        "max": "68세(20년납)"
+      },
+      "entry_age_standard": {
+        "min": "15세",
+        "max": "80세(15년납)"
+      },
+      "special_notes": "면책기간 없음(90일X). 감액기간 없음(1년이내X). 2종 암바로보장형 가입시 일반암 진단 납입면제(기타피부암/갑상선암/대장점막내암 제외).",
+      "acceptance_status": "간편/일반 모두 가입 가능",
+      "effective_period": "2026-01~",
+      "data_date": "2026-02"
+    },
+    {
+      "insurer": "농협생명",
+      "product_name": "스텝업700NH종신보험(해약환급금일부지급형,무배당)",
+      "product_type": "종신보험_체증강화형",
+      "screening_type": "간편심사",
+      "entry_age_simplified": {
+        "min_male": "20세",
+        "max_male": "57세",
+        "min_female": "20세",
+        "max_female": "65세"
+      },
+      "entry_age_standard": {
+        "min": "만15세",
+        "max_male": "62세",
+        "max_female": "67세"
+      },
+      "special_notes": "간편가입시 최대 나이 일반보다 5세(남)/2세(여) 낮음. 전연령 환급률 동일.",
+      "acceptance_status": "간편/일반 모두 가입 가능",
+      "effective_period": "2026-01~",
+      "data_date": "2026-02"
+    },
+    {
+      "insurer": "농협생명",
+      "product_name": "마이초이스NH종신보험(무배당)_2601",
+      "product_type": "종신보험_저해약단기납",
+      "screening_type": "간편심사",
+      "entry_age_simplified": {
+        "min": "20세",
+        "max": "70세"
+      },
+      "entry_age_standard": {
+        "min": "만15세",
+        "max": "70세"
+      },
+      "special_notes": "간편/일반 최대나이 동일(70세).",
+      "acceptance_status": "간편/일반 모두 가입 가능",
+      "effective_period": "2026-01~",
+      "data_date": "2026-02"
+    },
+    {
+      "insurer": "농협생명",
+      "product_name": "행복한NH경영인정기보험",
+      "product_type": "경영인정기보험",
+      "screening_type": "간편심사",
+      "entry_age_simplified": {
+        "min_male": "25세",
+        "min_female": "27세",
+        "max": "70세"
+      },
+      "entry_age_standard": {
+        "min_male": "24세",
+        "min_female": "30세",
+        "max": "70세"
+      },
+      "special_notes": "간편가입시 남자 최소 25세(일반24세), 여자 최소 27세(일반30세로 일반이 더 늦음).",
+      "acceptance_status": "간편/일반 모두 가입 가능",
+      "effective_period": "2026-01~",
+      "data_date": "2026-02"
+    },
+    {
+      "id": "SHL-UW-001",
+      "보험사명": "신한라이프",
+      "구분": "AI 언더라이팅 시스템",
+      "시스템명": "WAU-UW (Wise AI Underwriting)",
+      "적용기간": {
+        "시작일": "2026-01-12",
+        "종료일": null
+      },
+      "주요기능": [
+        {
+          "기능명": "AI 모델링 질병고지 효율화",
+          "설명": "질병 예측 손해율 분석을 통한 필수심사질병 효율화, WisePath 탑재"
+        },
+        {
+          "기능명": "UW in Flow",
+          "설명": "가입설계 단계에서 언더라이팅을 제공하는 시스템"
+        },
+        {
+          "기능명": "Easy UW",
+          "설명": "질병 시뮬레이션 기능 제공, 지급력 기반 자동고지 세팅, 인심사 즉시 심사 가능"
+        }
+      ],
+      "WISE_PATH_필수고지구분": {
+        "대상질환": [
+          "대장용종",
+          "위용종",
+          "유방 양성종양",
+          "자궁 양성종양"
+        ],
+        "판정기준": "질병위험도 + AI기반 미래 손해율 예측",
+        "규칙": {
+          "24개월_이내": "필수 고지 대상 → N년 경과 후 가입 가능",
+          "24개월_초과": "필수고지대상 제외"
+        },
+        "예외": "장기입원 또는 합병증 등 정상 상태에서 벗어난 경우 심사 진행"
+      },
+      "변경사항": "기존 S-PRO 시스템 → WAU-UW로 대체"
+    },
+    {
+      "id": "SHL-UW-002",
+      "보험사명": "신한라이프",
+      "구분": "암·순환기 분리심사",
+      "적용기간": {
+        "시작일": "2026-02-02",
+        "종료일": "2026-03-31"
+      },
+      "관련고지": "계약전 알릴 의무 3번",
+      "고지내용": "최근 5년 이내에 의사로부터 진찰 또는 검사를 통하여 아래 질병으로 진단받거나 입원 또는 수술을 받은 사실",
+      "대상질병": [
+        {
+          "번호": 1,
+          "질병명": "암"
+        },
+        {
+          "번호": 2,
+          "질병명": "협심증"
+        },
+        {
+          "번호": 3,
+          "질병명": "심근경색"
+        },
+        {
+          "번호": 4,
+          "질병명": "간경화증"
+        },
+        {
+          "번호": 5,
+          "질병명": "심장판막증"
+        },
+        {
+          "번호": 6,
+          "질병명": "투석중인 만성신장질환"
+        },
+        {
+          "번호": 7,
+          "질병명": "특정뇌혈관질환"
+        }
+      ],
+      "분리심사_내용": {
+        "변경전": "해당 질병 기왕력 시 보험상품 전체 가입 불가",
+        "변경후": "기왕력이 있어도 겪지 않은 질병 영역은 가입 가능 (암 제외 후 뇌/심장 가입 가능 등)"
+      },
+      "인수가능여부": "조건부인수",
+      "인수조건상세": "암/뇌/심장 영역을 분리하여 해당 질환 영역만 제외 후 나머지 영역 가입 가능",
+      "예시": "3년 전 위암 수술 후 완치된 K군 → 분리심사 전: 전체 가입 불가 → 분리심사 후: 암 제외, 뇌/심장 가입 가능",
+      "비고": "계약전 알릴 의무 3번 질문에만 해당, 2번 질문은 해당되지 않음. 급부에 연관된 일부 병력은 가입 제한 가능"
+    },
+    {
+      "id": "SHL-UW-003",
+      "보험사명": "신한라이프",
+      "구분": "라이트ONE 3.10.5 최소가입금액 인하",
+      "적용기간": {
+        "시작일": "2026-02-09",
+        "종료일": null
+      },
+      "변경내용": {
+        "변경전": "주계약 최소가입금액 200만원",
+        "변경후": "주계약 최소가입금액 100만원"
+      },
+      "인수가능여부": "정상인수",
+      "특이사항": "최소가입금액 인하로 가입 문턱 낮아짐"
+    },
+    {
+      "id": "SHL-UW-004",
+      "보험사명": "신한라이프",
+      "구분": "라이트ONE 특별 붐업 이벤트",
+      "적용기간": {
+        "시작일": "2026-02-09",
+        "종료일": "2026-02-28",
+        "비고": "2026년 2월까지만"
+      },
+      "대상질병": "양성종양, 근골격계질환 등 약 180여개 질병",
+      "변경내용": {
+        "변경전": "10년 대기",
+        "변경후": "5년 대기 → 5년 경과 시 즉시 인수"
+      },
+      "인수가능여부": "조건부인수",
+      "인수조건상세": "5년 경과 시 즉시인수 (기존 10년 대기에서 완화)",
+      "특이사항": "한시적 이벤트 (2026년 2월까지)"
+    },
+    {
+      "id": "SHL-UW-005",
+      "보험사명": "신한라이프",
+      "구분": "라이트ONE 간편심사 예외질환 확대",
+      "적용기간": {
+        "시작일": "2026-02-09",
+        "종료일": null
+      },
+      "변경내용": {
+        "예외질환수": "약 1만여개",
+        "추가질환예시": [
+          "폐렴",
+          "위염",
+          "결석",
+          "염좌"
+        ],
+        "변경전": "3개월 대기",
+        "변경후": "즉시 가입"
+      },
+      "인수가능여부": "정상인수",
+      "인수조건상세": "다빈도 질환 대거 추가, 예외질환 해당 시 3개월 대기 없이 즉시 가입 가능",
+      "특이사항": "전 간편상품 예외질환 및 라이트원 예외질환 확대"
+    },
+    {
+      "id": "SHL-UW-006",
+      "보험사명": "신한라이프",
+      "구분": "우수GFC 인증제도 멤버쉽",
+      "적용기간": {
+        "시작일": "2026-02-09",
+        "종료일": null
+      },
+      "멤버쉽등급": [
+        {
+          "등급": "실버",
+          "조건": "건강상품 직전 3개월 연속 CMIP",
+          "혜택": [
+            "현금성 혜택"
+          ]
+        },
+        {
+          "등급": "골드",
+          "조건": "건강 연속 CMIP 20만 이상 & 불완전판매 Zero",
+          "혜택": [
+            "실버 혜택 포함",
+            "상품설명서 디자인",
+            "본사 핫라인",
+            "UW 전담선심사"
+          ]
+        },
+        {
+          "등급": "플래티넘",
+          "조건": "골드조건 달성 & 조정손해율(조정사고보험금/조정위험보험료) 80% 이하",
+          "혜택": [
+            "골드 혜택 포함",
+            "연계조건 우대",
+            "신속보험금 지급"
+          ]
+        }
+      ],
+      "타사우수GFC_초대": {
+        "기간": "2026-02-01 ~ 2026-03-09",
+        "우대등급": "골드 멤버쉽",
+        "신청방법": "인정가능 증빙 문서 → 팩스 접수 (02-3455-4059) → 익 영업일 즉시 반영",
+        "증빙서류": [
+          "타사 우수 FC 인증서",
+          "우수 FC를 증빙할 수 있는 서류",
+          "포털화면/시스템 캡쳐 화면"
+        ]
+      }
+    },
+    {
+      "product_name": "THE퍼스트건강보험",
+      "underwriting_type": "통합형",
+      "simplified_issue_codes": [
+        "3.1.5",
+        "3.2.5",
+        "3.5.5",
+        "3.10.5"
+      ],
+      "preferred_body_codes": [
+        "5.5.5",
+        "5.7.5",
+        "5.10.5"
+      ],
+      "max_entry_age": 75,
+      "max_entry_age_note": "주보험 기준",
+      "premium_waiver_conditions": [
+        "합산 재해장해 50% 이상",
+        "암 진단",
+        "뇌졸중 진단",
+        "급성심근경색 진단"
+      ],
+      "special_features": [
+        "업계최초 유병자→건강체 종전환 적용 (무사고 시 보험료 할인)",
+        "가족 2명 이상 가입 시 납입보험료 5% 할인 (건당P 4만원 이상)"
+      ],
+      "revision_date": "2026-02-02",
+      "new_riders_count": 10,
+      "new_riders": [
+        "암통합치료비",
+        "비급여통합치료비",
+        "순환계통합치료비"
+      ]
+    },
+    {
+      "product_name": "The라이트간편 (비갱신형)",
+      "underwriting_type": "유병자 중심",
+      "simplified_issue_codes": [
+        "3.10.5",
+        "3.5.5"
+      ],
+      "max_entry_age": 75,
+      "max_entry_age_note": "주보험 기준",
+      "premium_waiver_conditions": [
+        "합산 재해장해 50% 이상"
+      ],
+      "special_features": [
+        "주보험 + 특약 모두 비갱신형",
+        "암진단 보험료 납입지원 특약 탑재",
+        "The라이트건강 일시 판매중지('26.1.2~)에 의한 2종 일반고지형: 표준체 심사기준 적용 일시운영"
+      ],
+      "note": "일반고지형(2종)은 라이트건강 대체로 표준체 심사기준 적용"
+    },
+    {
+      "product_name": "The라이트간편 (갱신형)",
+      "underwriting_type": "유병자 중심",
+      "simplified_issue_codes": [
+        "3.10.5",
+        "3.5.5"
+      ],
+      "max_entry_age": 80,
+      "max_entry_age_note": "20년납 기준, 30년납은 ~70세",
+      "premium_waiver_conditions": [
+        "합산 재해장해 50% 이상"
+      ],
+      "special_features": [
+        "암진단 보험료 납입지원 특약 탑재"
+      ]
+    },
+    {
+      "product_name": "New플러스원건강",
+      "underwriting_type": "통합형",
+      "simplified_issue_codes": [
+        "3.1.5",
+        "3.2.5",
+        "3.5.5",
+        "3.10.5"
+      ],
+      "preferred_body_codes": [
+        "5.5.5",
+        "5.7.5",
+        "5.10.5"
+      ],
+      "max_entry_age": 70,
+      "max_entry_age_note": "주보험 기준",
+      "premium_waiver_conditions": [
+        "합산 장해 50% 이상",
+        "암진단 시 납입면제"
+      ],
+      "special_features": [
+        "가족결합할인제도 (The퍼스트와 연계)"
+      ],
+      "revision_date": "2026-01-13"
+    },
+    {
+      "product_name": "The간편한다모은 (갱신형)",
+      "underwriting_type": "유병자 대상",
+      "simplified_issue_codes": [
+        "3.1.5",
+        "3.2.5",
+        "3.5.5",
+        "3.10.5"
+      ],
+      "max_entry_age": 80,
+      "max_entry_age_note": "주보험 기준",
+      "premium_waiver_conditions": [
+        "합산 재해장해 50% 이상",
+        "암진단 시 납입면제"
+      ],
+      "special_features": [
+        "종전환 (일정기간 무사고 시 차상위 상품P로 할인)"
+      ]
+    },
+    {
+      "product_name": "(간편)더블보장",
+      "underwriting_type": "간편심사",
+      "max_entry_age": 75,
+      "max_entry_age_note": "주보험 기준, 5년납 가입 시",
+      "premium_waiver_conditions": [
+        "진단 시 납입면제"
+      ]
+    },
+    {
+      "product_name": "The(더)Dream",
+      "underwriting_type": "일반형 + 경증간편형",
+      "max_entry_age": 39,
+      "max_entry_age_note": "경증 간편 5~39세",
+      "simplified_issue_codes_note": "경증간편형 3.5.5",
+      "special_features": [
+        "만기 시 기납입P의 100% 환급"
+      ]
+    },
+    {
+      "product_name": "GOLDEN종신보험",
+      "underwriting_type": "일반심사",
+      "entry_age_by_payment": {
+        "7년납": {
+          "male": "만15세~65세",
+          "female": "만15세~65세"
+        },
+        "10년납": {
+          "male": "만15세~65세",
+          "female": "만15세~65세"
+        },
+        "15년납": {
+          "male": "만15세~65세",
+          "female": "19세~65세"
+        },
+        "20년납": {
+          "male": "만15세~59세",
+          "female": "19세~64세"
+        }
+      },
+      "special_features": [
+        "할증체도 인수 가능",
+        "할증P 전액 인출 가능",
+        "65세까지 가입나이 확대 (1종 기본형)"
+      ]
+    },
+    {
+      "product_name": "더행복종신",
+      "underwriting_type": "일반심사",
+      "premium_waiver_conditions": [
+        "50% 이상 장해"
+      ]
+    },
+    {
+      "product_name": "간편더사랑종신",
+      "underwriting_type": "간편심사",
+      "premium_waiver_conditions": [
+        "50% 이상 재해장해"
+      ]
+    },
+    {
+      "product_name": "VVIP상속종신(더착한종신)",
+      "underwriting_type": "일반심사",
+      "special_features": [
+        "고액할인 반영 (VVIP 6%, 더착한 2%)"
+      ]
+    },
+    {
+      "product_name": "기업재해보장보험",
+      "underwriting_type": "단체보험",
+      "special_features": [
+        "업무, 나이 관계없이 동일한 보험료",
+        "보험금 수령 후에도 할증 없는 보험료",
+        "과실여부 관계없이 보험금 지급"
+      ]
+    },
+    {
+      "insurer": "미래에셋생명",
+      "product": "M-케어 건강보험Ⅳ / M-케어 0세부터 건강보험Ⅳ",
+      "rider_group": "특정순환계질환 관련 특약",
+      "total_disease_codes": 61,
+      "riders": [
+        {
+          "rider_name": "특정순환계질환 통합치료비특약J",
+          "coverage_type": "통합치료비",
+          "max_amount": "연간 2천만원/3천만원/5천만원 한도"
+        },
+        {
+          "rider_name": "특정순환계질환진단특약J",
+          "coverage_type": "진단비",
+          "max_amount": "최대 1천만원 (최초 1회한)"
+        },
+        {
+          "rider_name": "특정순환계질환(뇌혈관질환 및 허혈성심장질환 제외)진단특약J",
+          "coverage_type": "진단비",
+          "max_amount": "최대 5백만원"
+        }
+      ],
+      "covered_diseases": [
+        {
+          "code": "I00~I02",
+          "name": "급성류마티스열",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약",
+            "진단특약(뇌허제외)"
+          ]
+        },
+        {
+          "code": "I05~I09",
+          "name": "만성류마티스열",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약",
+            "진단특약(뇌허제외)"
+          ]
+        },
+        {
+          "code": "I20",
+          "name": "협심증",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약"
+          ]
+        },
+        {
+          "code": "I21~I23",
+          "name": "급성심근경색증",
+          "sub_diseases": [
+            {
+              "name": "급성심근경색증",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약"
+              ]
+            },
+            {
+              "name": "후속심근경색증",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약"
+              ]
+            },
+            {
+              "name": "급성 심근경색 후 특정 현존 합병증",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I24~I25",
+          "name": "기타 허혈성 심장질환",
+          "sub_diseases": [
+            {
+              "name": "기타 급성 허혈심장질환",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약"
+              ]
+            },
+            {
+              "name": "만성 허혈심장병",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I26~I28",
+          "name": "폐성심장질환",
+          "sub_diseases": [
+            {
+              "name": "폐색전증",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "기타 폐성 심장질환",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "폐혈관의 기타 질환",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I30~I32",
+          "name": "심장막염",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약",
+            "진단특약(뇌허제외)"
+          ]
+        },
+        {
+          "code": "I33,I38",
+          "name": "심장염증질환",
+          "sub_diseases": [
+            {
+              "name": "심내막염",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "심근염",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I40~I41",
+          "name": "심근염",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약",
+            "진단특약(뇌허제외)"
+          ]
+        },
+        {
+          "code": "I34~I37,I39",
+          "name": "심장판막질환",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약",
+            "진단특약(뇌허제외)"
+          ]
+        },
+        {
+          "code": "I42~I43",
+          "name": "심근병증",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약",
+            "진단특약(뇌허제외)"
+          ]
+        },
+        {
+          "code": "I44.1~I44.3",
+          "name": "방실차단",
+          "sub_diseases": [
+            {
+              "name": "방실차단, 2도",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "완전방실차단",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "기타 및 상세불명의 심방실차단",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I45.2~I45.3",
+          "name": "기타 전도장애",
+          "sub_diseases": [
+            {
+              "name": "이중성유속차단",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "삼중성유속차단",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I46.0",
+          "name": "심장정지",
+          "sub_diseases": [
+            {
+              "name": "인공소생에 성공한 심장정지",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I47~I49",
+          "name": "부정맥",
+          "sub_diseases": [
+            {
+              "name": "발작성 빈맥",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "심방세동 및 조동",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "기타 심장부정맥",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I50",
+          "name": "심부전",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약",
+            "진단특약(뇌허제외)"
+          ]
+        },
+        {
+          "code": "I60~I62",
+          "name": "뇌출혈",
+          "sub_diseases": [
+            {
+              "name": "거미막하출혈",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약"
+              ]
+            },
+            {
+              "name": "뇌내출혈",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약"
+              ]
+            },
+            {
+              "name": "기타 비외상성 두개내출혈",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I63",
+          "name": "뇌경색",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약"
+          ]
+        },
+        {
+          "code": "I65~I66",
+          "name": "뇌혈관의 폐쇄 및 협착",
+          "sub_diseases": [
+            {
+              "name": "뇌경색증을 유발하지 않은 뇌전동맥의 폐쇄 및 협착",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "뇌경색증을 유발하지 않은 대뇌동맥의 폐쇄 및 협착",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약(뇌허제외)"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I64",
+          "name": "기타 뇌혈관질환",
+          "sub_diseases": [
+            {
+              "name": "출혈 또는 경색증으로 명시되지 않은 뇌졸중",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약(뇌허제외)"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I67~I69",
+          "name": "기타 뇌혈관질환",
+          "sub_diseases": [
+            {
+              "name": "기타 뇌혈관질환",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "달리 분류된 질환에서의 뇌혈관장애",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "뇌혈관질환의 후유증",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약(뇌허제외)"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I70.0~I71",
+          "name": "대동맥 질환",
+          "sub_diseases": [
+            {
+              "name": "대동맥의 죽상경화증",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "대동맥동맥류 및 박리",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I72,I74,I77",
+          "name": "기타 동맥혈관질환",
+          "sub_diseases": [
+            {
+              "name": "기타 동맥류 및 박리",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "동맥색전증 및 혈전증",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            },
+            {
+              "name": "동맥 및 세동맥의 기타 장애",
+              "riders_covered": [
+                "통합치료비특약",
+                "진단특약",
+                "진단특약(뇌허제외)"
+              ]
+            }
+          ]
+        },
+        {
+          "code": "I81",
+          "name": "문맥혈전증",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약",
+            "진단특약(뇌허제외)"
+          ]
+        },
+        {
+          "code": "I85,I98.2~I98.3",
+          "name": "식도정맥류",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약",
+            "진단특약(뇌허제외)"
+          ]
+        },
+        {
+          "code": "I86.4",
+          "name": "위정맥류",
+          "riders_covered": [
+            "통합치료비특약",
+            "진단특약"
+          ]
+        }
+      ]
+    },
+    {
+      "insurer": "미래에셋생명",
+      "product": "M-케어 건강보험Ⅳ",
+      "rider_group": "4대기관질병수술특약Ⅱ",
+      "total_disease_codes": 89,
+      "categories": [
+        {
+          "organ": "뇌질환",
+          "disease_codes_count": 16
+        },
+        {
+          "organ": "심질환",
+          "disease_codes_count": 43
+        },
+        {
+          "organ": "폐질환",
+          "disease_codes_count": 14
+        },
+        {
+          "organ": "간/췌장질환",
+          "disease_codes_count": 16
+        }
+      ],
+      "coverage_note": "재발과 다발까지 보장, 면책/감액 없이 보장, 경증부터 중증까지 혈관질환 보장"
+    },
+    {
+      "insurer": "미래에셋생명",
+      "product": "M-케어 건강보험Ⅳ",
+      "rider_group": "심장질환 산정특례대상보장특약",
+      "coverage_scope": [
+        {
+          "category": "심장의 양성신생물",
+          "code": "D15.1"
+        },
+        {
+          "category": "심장 침범 있는 류마티스열",
+          "code": "I01"
+        },
+        {
+          "category": "만성 류마티스 심장질환",
+          "code": "I05~09"
+        },
+        {
+          "category": "허혈성심장질환",
+          "code": "I20~25"
+        },
+        {
+          "category": "폐성 심장병, 폐순환의 질환",
+          "code": "I26, 28"
+        },
+        {
+          "category": "기타 형태의 심장병",
+          "code": "I30~51"
+        },
+        {
+          "category": "대동맥의 죽상경화증",
+          "code": "I70.0"
+        },
+        {
+          "category": "대동맥동맥류 및 박리",
+          "code": "I71"
+        },
+        {
+          "category": "달리 분류된 질환에서 동맥, 세동맥, 모세혈관 장애",
+          "code": "I79.0, 79.1"
+        },
+        {
+          "category": "대동맥궁증후군[다까야수]",
+          "code": "M31.4"
+        },
+        {
+          "category": "순환제통의 선천기형",
+          "code": "Q20~25"
+        },
+        {
+          "category": "대정맥혈관의 선천기형",
+          "code": "Q26.0~26.4, 26.8, 26.9"
+        },
+        {
+          "category": "흉부혈관 및 심장의 손상",
+          "code": "S25~26"
+        }
+      ]
+    },
+    {
+      "insurer": "미래에셋생명",
+      "product": "M-케어 건강보험Ⅳ / M-케어 0세부터 건강보험Ⅳ",
+      "rider_group": "특정순환계질환 관련 특약",
+      "total_disease_codes": 61,
+      "riders": [
+        {
+          "rider_name": "특정순환계질환 통합치료비특약J",
+          "max_amount": "연간 2천만원/3천만원/5천만원 한도"
+        },
+        {
+          "rider_name": "특정순환계질환진단특약J",
+          "max_amount": "최대 1천만원 (최초 1회한)"
+        },
+        {
+          "rider_name": "특정순환계질환(뇌혈관질환 및 허혈성심장질환 제외)진단특약J",
+          "max_amount": "최대 5백만원"
+        }
+      ],
+      "covered_diseases": [
+        {
+          "code": "I00~I02",
+          "name": "급성류마티스열"
+        },
+        {
+          "code": "I05~I09",
+          "name": "만성류마티스열"
+        },
+        {
+          "code": "I20",
+          "name": "협심증"
+        },
+        {
+          "code": "I21~I23",
+          "name": "급성심근경색증"
+        },
+        {
+          "code": "I24~I25",
+          "name": "기타 허혈성 심장질환"
+        },
+        {
+          "code": "I26~I28",
+          "name": "폐성심장질환"
+        },
+        {
+          "code": "I30~I32",
+          "name": "심장막염"
+        },
+        {
+          "code": "I33,I38",
+          "name": "심장염증질환"
+        },
+        {
+          "code": "I40~I41",
+          "name": "심근염"
+        },
+        {
+          "code": "I34~I37,I39",
+          "name": "심장판막질환"
+        },
+        {
+          "code": "I42~I43",
+          "name": "심근병증"
+        },
+        {
+          "code": "I44.1~I44.3",
+          "name": "방실차단"
+        },
+        {
+          "code": "I45.2~I45.3",
+          "name": "기타 전도장애"
+        },
+        {
+          "code": "I46.0",
+          "name": "심장정지"
+        },
+        {
+          "code": "I47~I49",
+          "name": "부정맥"
+        },
+        {
+          "code": "I50",
+          "name": "심부전"
+        },
+        {
+          "code": "I60~I62",
+          "name": "뇌출혈"
+        },
+        {
+          "code": "I63",
+          "name": "뇌경색"
+        },
+        {
+          "code": "I65~I66",
+          "name": "뇌혈관의 폐쇄 및 협착"
+        },
+        {
+          "code": "I67~I69",
+          "name": "기타 뇌혈관질환"
+        },
+        {
+          "code": "I70.0~I71",
+          "name": "대동맥 질환"
+        },
+        {
+          "code": "I72,I74,I77",
+          "name": "기타 동맥혈관질환"
+        },
+        {
+          "code": "I81",
+          "name": "문맥혈전증"
+        },
+        {
+          "code": "I85,I98.2~I98.3",
+          "name": "식도정맥류"
+        },
+        {
+          "code": "I86.4",
+          "name": "위정맥류"
+        }
+      ]
+    },
+    {
+      "insurer": "미래에셋생명",
+      "product": "M-케어 건강보험Ⅳ",
+      "rider_group": "4대기관질병수술특약Ⅱ",
+      "total_disease_codes": 89,
+      "categories": [
+        {
+          "organ": "뇌질환",
+          "count": 16
+        },
+        {
+          "organ": "심질환",
+          "count": 43
+        },
+        {
+          "organ": "폐질환",
+          "count": 14
+        },
+        {
+          "organ": "간/췌장질환",
+          "count": 16
+        }
+      ]
+    },
+    {
+      "insurer": "흥국생명",
+      "product": "전상품 (다사랑통합/오튼튼/다재다능 등)",
+      "rider_group": "130대질병수술비 (NEW - 2026.02.09 출시)",
+      "total_disease_categories": 130,
+      "description": "손보형 N대수술비 탑재, 다빈도 질병코드로 수술 보장",
+      "disease_tiers": [
+        {
+          "tier": "2대질병",
+          "amount": "1천만원",
+          "diseases": [
+            "뇌혈관질환",
+            "허혈심장질환"
+          ]
+        },
+        {
+          "tier": "특정 29대질병",
+          "amount": "1천만원",
+          "diseases": [
+            "크로이츠펠트-야콥병",
+            "뇌의 특정염증성질환",
+            "간질환",
+            "고혈압질환",
+            "기타 명시된 내분비장애",
+            "만성하부호흡기질환",
+            "위궤양및십이지장궤양",
+            "결핵",
+            "패혈증",
+            "중추신경계통의 염증성 질환",
+            "파킨슨병",
+            "다발경화증",
+            "뇌전증",
+            "중증근무력증",
+            "뇌성마비",
+            "마비",
+            "자율신경계통의 장애",
+            "수두증",
+            "동맥경화증",
+            "대동맥류",
+            "기타동맥류 및 박리",
+            "폐렴",
+            "폐질환",
+            "외부요인에의한폐질환",
+            "폐부종",
+            "특정호흡기질환",
+            "급성췌장염",
+            "췌장질환",
+            "신부전"
+          ]
+        },
+        {
+          "tier": "다빈도 64대질병",
+          "amount": "2백만원",
+          "sub_categories": [
+            "12대 양성종양",
+            "특정혈액 및 조혈기관의 질환",
+            "당뇨병",
+            "내분비계질환",
+            "호흡기 및 이비인후과 질환",
+            "시각질환",
+            "비뇨기 및 신장질환",
+            "소화기질환",
+            "관절 및 척추질환",
+            "신경관련질환",
+            "관절염",
+            "생식기질환"
+          ]
+        },
+        {
+          "tier": "특정다빈도 29대질병",
+          "amount": "20만원",
+          "diseases": [
+            "혀의 질환",
+            "유방의 양성 신생물",
+            "다낭성 난소증후군",
+            "수면무호흡",
+            "특정질환의 신경근 및 신경총 압박",
+            "안와장애",
+            "결막장애",
+            "정맥염 및 혈전정맥염",
+            "기타 정맥의 색전증 및 혈전증",
+            "식도정맥류",
+            "음낭정맥류",
+            "급성 기관지염",
+            "급성 세기관지염",
+            "위및 십이지장의기타질환",
+            "특정 장질환",
+            "치열및 치루",
+            "특정소화계통의기타질환",
+            "특정 전신결합조직장애",
+            "달리분류된 질환에서의 척추병증",
+            "특정 기타등병증",
+            "근육 장애",
+            "기타 연조직장애",
+            "골수염",
+            "골괴사증",
+            "뼈의 파젯병",
+            "뼈의 기타장애",
+            "연골병증",
+            "상세불명의 신장급통증",
+            "다한증"
+          ]
+        },
+        {
+          "tier": "편도염",
+          "amount": "1백만원"
+        },
+        {
+          "tier": "특정후각질환",
+          "amount": "1백만원"
+        },
+        {
+          "tier": "유방의 장애",
+          "amount": "30만원"
+        },
+        {
+          "tier": "특정백내장",
+          "amount": "30만원"
+        },
+        {
+          "tier": "녹내장",
+          "amount": "별도"
+        }
+      ],
+      "applicable_products": [
+        "다사랑통합",
+        "오튼튼(무)",
+        "다재다능(1540)",
+        "간편(3N5~3.10.5.5)"
+      ]
+    },
+    {
+      "product_name": "(무)하나로 100UP 종신보험",
+      "product_type": "종신",
+      "underwriting_types": [
+        {
+          "type": "일반고지",
+          "category": "일반",
+          "entry_age": "만15세~65세"
+        },
+        {
+          "type": "간편고지(3.2.5)",
+          "category": "간편",
+          "entry_age": "30세~60세"
+        }
+      ],
+      "payment_period": [
+        "20년"
+      ],
+      "refund_type": "해약환급금일부지급형",
+      "special_notes": [
+        "성별, 건강체, 유병자, 연령 관계없이 7년·10년 시점 동일한 환급률 적용"
+      ]
+    },
+    {
+      "product_name": "(무)하나로 THE 연결된 종신보험",
+      "product_type": "종신",
+      "underwriting_types": [
+        {
+          "type": "일반고지",
+          "category": "일반",
+          "entry_age": "만15세~69세"
+        },
+        {
+          "type": "간편고지(3.2.5)",
+          "category": "간편",
+          "entry_age": "30세~65세"
+        }
+      ],
+      "payment_period": [
+        "5년",
+        "7년",
+        "10년",
+        "15년",
+        "20년"
+      ],
+      "refund_type": "해약환급금일부지급형",
+      "special_notes": [
+        "성별, 건강체, 유병자, 연령 관계없이 7년·10년 시점 동일한 환급률 적용 (5년납, 7년납 가입 시)"
+      ]
+    },
+    {
+      "product_name": "(무)하나로 누리는 건강보험",
+      "product_type": "건강",
+      "underwriting_types": [
+        {
+          "type": "일반고지",
+          "category": "일반",
+          "entry_age": "만15세~70세"
+        },
+        {
+          "type": "간편고지(3.0.5)",
+          "category": "간편",
+          "entry_age": "30세~75세"
+        },
+        {
+          "type": "간편고지(3.3.5)",
+          "category": "간편",
+          "entry_age": "30세~75세"
+        },
+        {
+          "type": "간편고지(3.5.5)",
+          "category": "간편",
+          "entry_age": "30세~75세"
+        }
+      ],
+      "payment_period": [
+        "10년",
+        "20년",
+        "30년"
+      ],
+      "insurance_term": [
+        "90세",
+        "100세",
+        "종신"
+      ],
+      "refund_type_options": [
+        "미지급형",
+        "일반형"
+      ],
+      "minimum_premium": "4만원",
+      "special_notes": [
+        "3.0.5, 3.3.5, 3.5.5 다양한 간편심사 유형",
+        "가입 후 90일 면책기간 및 1년간 50% 감액기간"
+      ]
+    },
+    {
+      "product_name": "(무)하나로 라이트 3.10.5 간편건강보험",
+      "product_type": "건강(간편)",
+      "underwriting_types": [
+        {
+          "type": "간편고지(3.10.5)",
+          "category": "간편",
+          "entry_age": "30세~77세"
+        }
+      ],
+      "payment_period": [
+        "10년",
+        "20년",
+        "30년"
+      ],
+      "insurance_term": [
+        "90세",
+        "100세",
+        "종신"
+      ],
+      "refund_type_options": [
+        "미지급형",
+        "일반형"
+      ],
+      "minimum_premium": "3만원",
+      "special_notes": [
+        "3.10.5 전용 간편건강보험",
+        "77세까지 가입 가능",
+        "가입 후 90일 면책기간 및 1년간 50% 감액기간"
+      ]
+    },
+    {
+      "product_name": "(무)하나뿐인 변액연금보험",
+      "product_type": "변액연금",
+      "underwriting_types": [
+        {
+          "type": "일반고지",
+          "category": "적립형",
+          "entry_age": "0세~71세"
+        }
+      ],
+      "payment_period": [
+        "5년",
+        "7년",
+        "10년",
+        "12년",
+        "15년",
+        "20년"
+      ],
+      "special_notes": [
+        "원금손실 발생 가능 상품",
+        "최저연금지급액 보증비용: 연 2.90%",
+        "최저사망적립액 보증비용: 연 0.10%"
+      ]
+    },
+    {
+      "product_name": "(무)THE 든든한 연금보험",
+      "product_type": "연금",
+      "underwriting_types": [
+        {
+          "type": "일반고지",
+          "category": "일반",
+          "entry_age": "만15세~66세"
+        },
+        {
+          "type": "간편고지(3.2.5)",
+          "category": "간편",
+          "entry_age": "30세~70세",
+          "note": "간편심사형은 100세 확정연금형만 선택 가능"
+        }
+      ],
+      "payment_period": [
+        "전기납"
+      ],
+      "special_notes": [
+        "보험료 정상 납입 시 연금지급액 확정",
+        "연금개시 전 사망 시 사망보험금 지급"
+      ]
+    },
+    {
+      "보험사명": "한화생명",
+      "카테고리": "경미질환 인수우대",
+      "질병_상해_분류": "경미질환 전반",
+      "질병코드": null,
+      "인수_가능여부": "조건부인수 (인수우대)",
+      "할증률": null,
+      "인수_조건_상세": "2월에도 경미질환 인수우대 지속 시행. 경미질환자 대상 완화된 인수기준 적용.",
+      "특이사항_변경사항": "경미질환 인수우대 캠페인 계속 진행 중 ('쭉-!' 캠페인)",
+      "적용기간": "2026년 2월~",
+      "소스_페이지": "p.02 (2월 언더라이팅)"
+    },
+    {
+      "보험사명": "한화생명",
+      "카테고리": "최저보험료 기준",
+      "질병_상해_분류": "전 상품 공통",
+      "질병코드": null,
+      "인수_가능여부": "정상인수",
+      "할증률": null,
+      "인수_조건_상세": "최저보험료 1만원으로 가입 가능",
+      "특이사항_변경사항": "최저보험료 인하 (1만원), 한도 상향 조정",
+      "적용기간": "2026년 2월~",
+      "소스_페이지": "p.02 (2월 언더라이팅)"
+    },
+    {
+      "보험사명": "한화생명",
+      "카테고리": "건강보험 인수기준",
+      "질병_상해_분류": "비급여 치료비 관련",
+      "질병코드": null,
+      "인수_가능여부": "정상인수",
+      "할증률": null,
+      "인수_조건_상세": "비급여 환급형 치료비 완벽보장 상품 출시. 선지급 기능 탑재로 선지급 받아도 환급금 유지.",
+      "특이사항_변경사항": "플러스상품 최초 선지급 탑재",
+      "적용기간": "2026년 2월~",
+      "소스_페이지": "p.10 (H건강플러스보험)"
+    },
+    {
+      "보험사명": "한화생명",
+      "카테고리": "간편가입 기준",
+      "질병_상해_분류": "간편가입 대상 전반",
+      "질병코드": null,
+      "인수_가능여부": "조건부인수 (간편심사)",
+      "할증률": null,
+      "인수_조건_상세": "간편가입 상품군 운영 중. 간편가입 The H 건강(Basic/Premium) 등 다수 간편가입 상품 라인업 보유.",
+      "특이사항_변경사항": "간편시그니처암3.0(갱신형) 등 간편가입 갱신형 상품 운영",
+      "적용기간": "2026년 2월 기준 운영 중",
+      "소스_페이지": "p.15 (보험금 지급사례)"
+    },
+    {
+      "보험사명": "한화생명",
+      "카테고리": "H통합건강보험 80세 특약",
+      "질병_상해_분류": "80세 이상 특약 납입면제",
+      "질병코드": null,
+      "인수_가능여부": "정상인수",
+      "할증률": null,
+      "인수_조건_상세": "비납면형 인기에 힘입어 80+특약 납입면제형 출시. 80세까지 동일한도 유지.",
+      "특이사항_변경사항": "비납면형 신규 출시, 딸 보험료보다 저렴한 가입 방법 제공",
+      "적용기간": "2026년 2월~",
+      "소스_페이지": "p.05 (시그니처 H통합건강보험)"
+    },
+    {
+      "보험사명": "한화생명",
+      "카테고리": "간병보험 인수기준",
+      "질병_상해_분류": "치매 관련",
+      "질병코드": null,
+      "인수_가능여부": "정상인수",
+      "할증률": null,
+      "인수_조건_상세": "80세까지 동일한도 유지, 최저보험료 1만원. 레켐비(표적치매약물) 허가치료비 보장. 갱신형 신설.",
+      "특이사항_변경사항": "2026년 02월부터 갱신형 신설. 레켐비 2,080만원 보장. 고령자 및 어린이 모두 추천.",
+      "적용기간": "2026년 2월~",
+      "소스_페이지": "p.11 (H간병보험)"
+    },
+    {
+      "보험사명": "한화생명",
+      "카테고리": "카티라이프 보장",
+      "질병_상해_분류": "카티라이프(CAR-T Life) 관련 질환",
+      "질병코드": null,
+      "인수_가능여부": "정상인수",
+      "할증률": null,
+      "인수_조건_상세": "업계최초, 업계유일 카티라이프 보장. 시그니처 H통합건강보험에 탑재.",
+      "특이사항_변경사항": "업계최초/유일 카티라이프 보장 특약 신설 (New 표시)",
+      "적용기간": "2026년 2월~",
+      "소스_페이지": "p.08 (시그니처 H통합건강보험)"
+    },
+    {
+      "company": "푸본현대생명",
+      "product_name": "푸본현대 건강보험 마이픽",
+      "product_code": "2601",
+      "enrollment_type": [
+        {
+          "type": "1종 (일반가입)",
+          "description": "표준체 일반 심사",
+          "age_limits": {
+            "20년납": {
+              "남": "만 15세~70세",
+              "여": "만 15세~70세"
+            },
+            "30년납": {
+              "남": "만 15세~70세",
+              "여": "만 15세~70세"
+            }
+          },
+          "90세만기형_제한": "30년납 60세까지"
+        },
+        {
+          "type": "2종 (간편가입)",
+          "description": "간편심사 (유병자 등)",
+          "age_limits": {
+            "20년납": {
+              "남": "만 30세~80세",
+              "여": "만 30세~80세"
+            },
+            "30년납": {
+              "남": "만 30세~80세",
+              "여": "만 30세~80세"
+            }
+          },
+          "90세만기형_제한": "20년납 70세, 30년납 60세까지"
+        }
+      ]
+    },
+    {
+      "company": "푸본현대생명",
+      "product_name": "MAX 종신보험 세븐 하이픽",
+      "product_code": "2601",
+      "enrollment_type": [
+        {
+          "type": "1종 (일반가입)",
+          "description": "표준체 일반 심사",
+          "age_limits": {
+            "20년납": {
+              "남": "만 15세~61세",
+              "여": "만 15세~62세"
+            }
+          }
+        },
+        {
+          "type": "2종 (간편가입)",
+          "description": "간편심사 (유병자 등)",
+          "age_limits": {
+            "20년납": {
+              "남": "만 30세~66세",
+              "여": "만 30세~65세"
+            }
+          }
+        }
+      ],
+      "special_notes": [
+        "일반가입/간편가입 해약환급률 동일",
+        "체증형 종신보험은 표준형 대비 보험료가 비쌀 수 있음"
+      ]
+    },
+    {
+      "company": "푸본현대생명",
+      "product_name": "MAX 종신보험 원픽",
+      "product_code": "2601",
+      "enrollment_type": [
+        {
+          "type": "1종 (일반가입)",
+          "age_limits": {
+            "5년납": {
+              "남": "만 15세~55세",
+              "여": "만 15세~60세"
+            },
+            "7년납": {
+              "남": "만 15세~62세",
+              "여": "만 15세~66세"
+            }
+          }
+        },
+        {
+          "type": "2종 (간편가입)",
+          "age_limits": {
+            "5년납": {
+              "남": "만 30세~53세",
+              "여": "만 30세~56세"
+            },
+            "7년납": {
+              "남": "만 30세~60세",
+              "여": "만 30세~65세"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "company": "푸본현대생명",
+      "product_name": "MAX 경영인 정기보험 탑픽II",
+      "product_code": "2601",
+      "enrollment_type": [
+        {
+          "type": "1종 (일반가입)",
+          "age_limits": {
+            "전기납_90세만기": {
+              "남": "만 25세~70세",
+              "여": "만 22세~70세"
+            }
+          },
+          "max_coverage": "최소 5천만원 ~ 40억 (60세 초과 20억)"
+        },
+        {
+          "type": "2종 (간편가입)",
+          "age_limits": {
+            "전기납_90세만기": {
+              "남": "만 31세~70세",
+              "여": "만 31세~70세"
+            }
+          },
+          "max_coverage": "최소 5천만원 ~ 30억 (60세 초과 15억)"
+        }
+      ]
+    },
+    {
+      "company": "푸본현대생명",
+      "product_name": "MAX 펀 트리플 양로저축보험",
+      "product_code": null,
+      "enrollment_type": [
+        {
+          "type": "일반가입",
+          "age_limits": {
+            "10년납": {
+              "남": "만 15세~56세",
+              "여": "만 15세~60세"
+            },
+            "20년납": {
+              "남": "만 15세~59세",
+              "여": "만 15세~60세"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "UW-MET-001",
+      "insurer": "메트라이프생명",
+      "product_name": "(무)변액연금보험동행Plus",
+      "product_type": "변액연금",
+      "disease_injury_category": "전체 (일반 인수기준)",
+      "disease_code": null,
+      "underwriting_result": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "무진단, 무심사 가입 가능. 보험가입금액의 10%만 심사.",
+      "details": "3억 가입 시 3천만원만 심사. 65세까지 무진단 가입 가능.",
+      "exceptions": "사망보장형의 경우 유심사 적용",
+      "effective_period": "2026-01-28 ~ 2027-01-27",
+      "compliance_code": "준법감시확인필-3001_2601_002167"
+    },
+    {
+      "id": "UW-MET-002",
+      "insurer": "메트라이프생명",
+      "product_name": "(무)변액연금보험동행Plus 사망보장형",
+      "product_type": "변액연금(사망보장형)",
+      "disease_injury_category": "전체 (사망보장형 인수기준)",
+      "disease_code": null,
+      "underwriting_result": "조건부인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "사망보장형은 유심사 적용. 보험가입금액의 10%만 심사 기준 적용.",
+      "details": "무진단 심사기준: 보험가입금액의 10%만 심사. 3억 가입해도 3천만원만 심사하기에 65세까지 무진단.",
+      "exceptions": "일반 변액연금보험동행Plus(고도재해보장형)와 달리 유심사",
+      "effective_period": "2026-01-28 ~ 2027-01-27",
+      "compliance_code": "준법감시확인필-3001_2601_002167"
+    },
+    {
+      "_comment": "이 파일(메트라이프 GA소식지 2602 3편 p21-29)에는 인수지침 관련 데이터가 포함되어 있지 않습니다. 생보소식지/손보소식지의 인수지침 페이지가 업로드되면 아래 형식으로 추가됩니다.",
+      "_template": {
+        "보험사명": "",
+        "질병_상해_분류": "",
+        "질병코드": "",
+        "인수_가능여부": "정상인수/조건부인수/할증/거절",
+        "할증률": "",
+        "인수_조건_상세": "",
+        "특이사항_변경사항": "",
+        "적용기간": "",
+        "출처": ""
+      }
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH건강할때 굿플러스건강보험",
+      "underwriting_type": "건강체",
+      "告知기준": "5.10.10",
+      "가입연령": {
+        "1_2종": "10세~40세",
+        "3_4종": "41세~60세"
+      },
+      "종류": [
+        {
+          "종": "1종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "세만기 표준형(납면O)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지 시니어(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 표준형 시니어(납면O)"
+        }
+      ],
+      "납입면제조건_1_2종": [
+        "암(유사암제외)",
+        "뇌혈관질환",
+        "허혈성심장질환",
+        "상해후유장해50%↑"
+      ],
+      "납입면제조건_3_4종_시니어": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "말기폐질환",
+        "말기간경화",
+        "말기신부전증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "할인": {
+        "고향기부제": "5%"
+      },
+      "적용기간": "2026.01~",
+      "특이사항": "무해지도, 해약환급금 있는 표준형도 가격장벽 타파"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH헤아림 3.10.10 건강보험",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.10.10",
+      "가입연령": "20세~90세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "갱신형(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "갱신형(납면X)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 무해지(납면X)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "할인": {
+        "고향기부제": "5%"
+      },
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH헤아림355 건강보험",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.5.5",
+      "가입연령": "20세~90세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "갱신형(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "갱신형(납면X)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 무해지(납면X)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH올원더풀 백년동행 간병보험",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.5.5",
+      "가입연령": "40세~80세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "표준형"
+        },
+        {
+          "종": "2종",
+          "type": "저해지형(납입중50, 납입후100%)"
+        },
+        {
+          "종": "3종",
+          "type": "무해지형(납입중0, 납입후50%)"
+        }
+      ],
+      "납입면제조건": {
+        "1종_표준형": "장기요양진단(1~2등급)",
+        "2종_저해지형": "장기요양진단(1~4등급)",
+        "3종_무해지형": "장기요양진단(1~2등급)"
+      },
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH가성비굿 건강보험",
+      "underwriting_type": "건강체/세만기형",
+      "告知기준": {
+        "갱신형": "5.10.10",
+        "세만기형": "5.10.10"
+      },
+      "가입연령": {
+        "갱신형": "15세~90세",
+        "세만기형": "15세~70세"
+      },
+      "종류": [
+        {
+          "종": "1종",
+          "type": "갱신형 표준형(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "갱신형 표준형(납면X)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 무해지(납면X)"
+        },
+        {
+          "종": "5종",
+          "type": "세만기 표준형(납면O)"
+        },
+        {
+          "종": "6종",
+          "type": "세만기 표준형(납면X)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "말기폐질환",
+        "말기간경화",
+        "말기신부전증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH굿스타트 건강보험",
+      "underwriting_type": "건강체",
+      "가입연령": "태아~40세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "세만기 표준형(납면O)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌혈관질환",
+        "허혈성심장질환",
+        "상해후유장해50%↑",
+        "질병후유장해50%↑",
+        "중증갑상선암",
+        "만성당뇨합병증"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH아이맘헤아림 어린이보험",
+      "underwriting_type": "건강체",
+      "가입연령": {
+        "1_2종": "태아~15세",
+        "3종": "20세~30세"
+      },
+      "종류": [
+        {
+          "종": "1종",
+          "type": "해약환급금미지급형"
+        },
+        {
+          "종": "2종",
+          "type": "표준형"
+        },
+        {
+          "종": "3종",
+          "type": "계약전환형"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌혈관질환",
+        "허혈성심장질환",
+        "만성당뇨합병증",
+        "부정맥질환(I49)",
+        "양성뇌종양Ⅱ",
+        "상해후유장해50%↑",
+        "질병후유장해50%↑"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "간편가입 헤아림실손의료비",
+      "underwriting_type": "간편고지",
+      "告知기준": "3.2.5",
+      "간편고지_특이사항": "고혈압, 당뇨, 고지혈증 등의 단순 투약을 목적으로 하는 검진은 고지에서 제외",
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "My 리치하우스 가정종합보험2601",
+      "underwriting_type": "재물보험",
+      "인수_특이사항": [
+        "목조주택 인수가능 (단, 특약 및 가입금액은 건물 급수에 따라 상이)",
+        "동일 건물내 다수 가구 가능 (임대인 배상책임Ⅱ)"
+      ],
+      "적용기간": "2026.01~",
+      "신규사항": "26년 NEW - 임대인 배상책임Ⅱ 3억 신설"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH건강할때 굿플러스건강보험",
+      "underwriting_type": "건강체",
+      "告知기준": "5.10.10",
+      "가입연령": {
+        "1_2종": "10세~40세",
+        "3_4종": "41세~60세"
+      },
+      "종류": [
+        {
+          "종": "1종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "세만기 표준형(납면O)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지 시니어(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 표준형 시니어(납면O)"
+        }
+      ],
+      "납입면제조건_1_2종": [
+        "암(유사암제외)",
+        "뇌혈관질환",
+        "허혈성심장질환",
+        "상해후유장해50%↑"
+      ],
+      "납입면제조건_3_4종_시니어": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "말기폐질환",
+        "말기간경화",
+        "말기신부전증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "할인": {
+        "고향기부제": "5%"
+      },
+      "적용기간": "2026.01~",
+      "특이사항": "무해지도, 해약환급금 있는 표준형도 가격장벽 타파"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH헤아림 3.10.10 건강보험",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.10.10",
+      "가입연령": "20세~90세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "갱신형(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "갱신형(납면X)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 무해지(납면X)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "할인": {
+        "고향기부제": "5%"
+      },
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH헤아림355 건강보험",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.5.5",
+      "가입연령": "20세~90세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "갱신형(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "갱신형(납면X)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 무해지(납면X)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH올원더풀 백년동행 간병보험",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.5.5",
+      "가입연령": "40세~80세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "표준형"
+        },
+        {
+          "종": "2종",
+          "type": "저해지형(납입중50, 납입후100%)"
+        },
+        {
+          "종": "3종",
+          "type": "무해지형(납입중0, 납입후50%)"
+        }
+      ],
+      "납입면제조건": {
+        "1종_표준형": "장기요양진단(1~2등급)",
+        "2종_저해지형": "장기요양진단(1~4등급)",
+        "3종_무해지형": "장기요양진단(1~2등급)"
+      },
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH가성비굿 건강보험",
+      "underwriting_type": "건강체/세만기형",
+      "告知기준": {
+        "갱신형": "5.10.10",
+        "세만기형": "5.10.10"
+      },
+      "가입연령": {
+        "갱신형": "15세~90세",
+        "세만기형": "15세~70세"
+      },
+      "종류": [
+        {
+          "종": "1종",
+          "type": "갱신형 표준형(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "갱신형 표준형(납면X)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 무해지(납면X)"
+        },
+        {
+          "종": "5종",
+          "type": "세만기 표준형(납면O)"
+        },
+        {
+          "종": "6종",
+          "type": "세만기 표준형(납면X)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "말기폐질환",
+        "말기간경화",
+        "말기신부전증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH굿스타트 건강보험",
+      "underwriting_type": "건강체",
+      "가입연령": "태아~40세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "세만기 표준형(납면O)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌혈관질환",
+        "허혈성심장질환",
+        "상해후유장해50%↑",
+        "질병후유장해50%↑",
+        "중증갑상선암",
+        "만성당뇨합병증"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH아이맘헤아림 어린이보험",
+      "underwriting_type": "건강체",
+      "가입연령": {
+        "1_2종": "태아~15세",
+        "3종": "20세~30세"
+      },
+      "종류": [
+        {
+          "종": "1종",
+          "type": "해약환급금미지급형"
+        },
+        {
+          "종": "2종",
+          "type": "표준형"
+        },
+        {
+          "종": "3종",
+          "type": "계약전환형"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌혈관질환",
+        "허혈성심장질환",
+        "만성당뇨합병증",
+        "부정맥질환(I49)",
+        "양성뇌종양Ⅱ",
+        "상해후유장해50%↑",
+        "질병후유장해50%↑"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "간편가입 헤아림실손의료비",
+      "underwriting_type": "간편고지",
+      "告知기준": "3.2.5",
+      "간편고지_특이사항": "고혈압, 당뇨, 고지혈증 등의 단순 투약을 목적으로 하는 검진은 고지에서 제외",
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "My 리치하우스 가정종합보험2601",
+      "underwriting_type": "재물보험",
+      "인수_특이사항": [
+        "목조주택 인수가능 (단, 특약 및 가입금액은 건물 급수에 따라 상이)",
+        "동일 건물내 다수 가구 가능 (임대인 배상책임Ⅱ)"
+      ],
+      "적용기간": "2026.01~",
+      "신규사항": "26년 NEW - 임대인 배상책임Ⅱ 3억 신설"
+    },
+    {
+      "insurer": "라이나손해보험 (에이스아메리칸화재해상보험)",
+      "product_name": "(무)더핏 간편한 나만의종합보험(갱신형)2509",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.5.5",
+      "특별인수조건": {
+        "암_간경화_유병자": true,
+        "설명": "5년 이내 암·간경화 있어도 고지하면 승인",
+        "조건": "암·간경화 진단 또는 치료(입원/수술) 3개월 후 고지인수"
+      },
+      "가입조건": {
+        "상해등급": "1급",
+        "납입기간": "20년납",
+        "보험기간": "20년만기",
+        "갱신": "최대 100세까지 갱신",
+        "최저보험료": "2만원"
+      },
+      "면책_감액기간": {
+        "♥_표준": {
+          "면책": "없음",
+          "감액": "1년(50%)"
+        },
+        "♥_간편": {
+          "면책": "없음",
+          "감액": "90일(5%), 1년(50%)"
+        },
+        "●": {
+          "면책": "없음",
+          "감액": "1년(50%)"
+        },
+        "◆": {
+          "면책": "없음",
+          "감액": "없음"
+        }
+      },
+      "적용기간": "2026.02~",
+      "compliance_number": "F2F GA-2026-0018"
+    },
+    {
+      "insurer": "라이나손해보험 (에이스아메리칸화재해상보험)",
+      "product_name": "(무)더핏 간편한 원모어 암보험(갱신형)",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.5.5",
+      "특별인수조건": {
+        "뇌심_유병자": true,
+        "설명": "5년 이내 뇌·심혈관질환 있어도 고지하면 승인"
+      },
+      "가입조건": {
+        "상해등급": "1급",
+        "납입기간": "20년납",
+        "보험기간": "20년만기",
+        "갱신": "최대 100세까지 갱신",
+        "최저보험료": "2만원"
+      },
+      "면책_감액기간": {
+        "♥": {
+          "면책": "90일",
+          "감액": "1년(50%)"
+        },
+        "●": {
+          "면책": "90일",
+          "감액": "없음"
+        }
+      },
+      "적용기간": "2026.02~",
+      "compliance_number": "F2F GA-2026-0018"
+    },
+    {
+      "insurer": "라이나손해보험 (에이스아메리칸화재해상보험)",
+      "product_name": "더핏 THE든든한 치아보험(갱신형)",
+      "underwriting_type": "일반",
+      "가입조건": {
+        "상해등급": "1급",
+        "납입기간": "10년납",
+        "보험기간": "10년만기",
+        "갱신": "최대 80세까지 갱신"
+      },
+      "면책_감액기간": {
+        "♥": {
+          "면책": "90일(보험나이 3세미만 제외/질병사고)",
+          "감액": "270일(50%/질병사고)"
+        },
+        "◆": {
+          "면책": "90일(보험나이 3세미만 제외)",
+          "감액": "270일(50%)"
+        },
+        "●": {
+          "면책": "90일(보험나이 3세미만 제외)",
+          "감액": "없음"
+        }
+      },
+      "보존치료_감액기간": "270일",
+      "적용기간": "2026.02~",
+      "compliance_number": "F2F GA-2026-0018"
+    },
+    {
+      "insurer": "라이나손해보험 (에이스아메리칸화재해상보험)",
+      "product_name": "(무)우리집무사고할인보험2404(2종)",
+      "underwriting_type": "재물보험",
+      "가입조건": {
+        "1종": "10년납 10년만기 / 순수보장형",
+        "2종": "15년납 15년만기 / 50% 만기환급형"
+      },
+      "인수기준": {
+        "월납": true,
+        "건물면적": "34평(112㎡)",
+        "건축급수": "1급",
+        "지진건물": "1급",
+        "지진구역": "ZONE1(수도권 등)",
+        "20년이하": true
+      },
+      "특이사항": [
+        "성별/나이에 따라 보험료가 달라지지 않음",
+        "실손보상 담보 중복가입 시 비례보상",
+        "복구기간 내 임시거주 시 보험사 사전협의 필수",
+        "NEW: 2종 50% 만기환급형 출시"
+      ],
+      "적용기간": "2026.02~",
+      "compliance_number": "F2F GA-2026-0018"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH건강할때 굿플러스건강보험",
+      "underwriting_type": "건강체",
+      "告知기준": "5.10.10",
+      "가입연령": {
+        "1_2종": "10세~40세",
+        "3_4종": "41세~60세"
+      },
+      "종류": [
+        {
+          "종": "1종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "세만기 표준형(납면O)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지 시니어(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 표준형 시니어(납면O)"
+        }
+      ],
+      "납입면제조건_1_2종": [
+        "암(유사암제외)",
+        "뇌혈관질환",
+        "허혈성심장질환",
+        "상해후유장해50%↑"
+      ],
+      "납입면제조건_3_4종_시니어": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "말기폐질환",
+        "말기간경화",
+        "말기신부전증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "할인": {
+        "고향기부제": "5%"
+      },
+      "적용기간": "2026.01~",
+      "특이사항": "무해지도, 해약환급금 있는 표준형도 가격장벽 타파"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH헤아림 3.10.10 건강보험",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.10.10",
+      "가입연령": "20세~90세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "갱신형(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "갱신형(납면X)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 무해지(납면X)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "할인": {
+        "고향기부제": "5%"
+      },
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH헤아림355 건강보험",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.5.5",
+      "가입연령": "20세~90세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "갱신형(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "갱신형(납면X)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 무해지(납면X)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH올원더풀 백년동행 간병보험",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.5.5",
+      "가입연령": "40세~80세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "표준형"
+        },
+        {
+          "종": "2종",
+          "type": "저해지형(납입중50, 납입후100%)"
+        },
+        {
+          "종": "3종",
+          "type": "무해지형(납입중0, 납입후50%)"
+        }
+      ],
+      "납입면제조건": {
+        "1종_표준형": "장기요양진단(1~2등급)",
+        "2종_저해지형": "장기요양진단(1~4등급)",
+        "3종_무해지형": "장기요양진단(1~2등급)"
+      },
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH가성비굿 건강보험",
+      "underwriting_type": "건강체/세만기형",
+      "告知기준": {
+        "갱신형": "5.10.10",
+        "세만기형": "5.10.10"
+      },
+      "가입연령": {
+        "갱신형": "15세~90세",
+        "세만기형": "15세~70세"
+      },
+      "종류": [
+        {
+          "종": "1종",
+          "type": "갱신형 표준형(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "갱신형 표준형(납면X)"
+        },
+        {
+          "종": "3종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "4종",
+          "type": "세만기 무해지(납면X)"
+        },
+        {
+          "종": "5종",
+          "type": "세만기 표준형(납면O)"
+        },
+        {
+          "종": "6종",
+          "type": "세만기 표준형(납면X)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌졸중",
+        "급성심근경색증",
+        "말기폐질환",
+        "말기간경화",
+        "말기신부전증",
+        "상해후유장해80%↑",
+        "질병후유장해80%↑"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH굿스타트 건강보험",
+      "underwriting_type": "건강체",
+      "가입연령": "태아~40세",
+      "종류": [
+        {
+          "종": "1종",
+          "type": "세만기 무해지(납면O)"
+        },
+        {
+          "종": "2종",
+          "type": "세만기 표준형(납면O)"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌혈관질환",
+        "허혈성심장질환",
+        "상해후유장해50%↑",
+        "질병후유장해50%↑",
+        "중증갑상선암",
+        "만성당뇨합병증"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "NH아이맘헤아림 어린이보험",
+      "underwriting_type": "건강체",
+      "가입연령": {
+        "1_2종": "태아~15세",
+        "3종": "20세~30세"
+      },
+      "종류": [
+        {
+          "종": "1종",
+          "type": "해약환급금미지급형"
+        },
+        {
+          "종": "2종",
+          "type": "표준형"
+        },
+        {
+          "종": "3종",
+          "type": "계약전환형"
+        }
+      ],
+      "납입면제조건": [
+        "암(유사암제외)",
+        "뇌혈관질환",
+        "허혈성심장질환",
+        "만성당뇨합병증",
+        "부정맥질환(I49)",
+        "양성뇌종양Ⅱ",
+        "상해후유장해50%↑",
+        "질병후유장해50%↑"
+      ],
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "간편가입 헤아림실손의료비",
+      "underwriting_type": "간편고지",
+      "告知기준": "3.2.5",
+      "간편고지_특이사항": "고혈압, 당뇨, 고지혈증 등의 단순 투약을 목적으로 하는 검진은 고지에서 제외",
+      "적용기간": "2026.01~"
+    },
+    {
+      "insurer": "NH농협손해보험",
+      "product_name": "My 리치하우스 가정종합보험2601",
+      "underwriting_type": "재물보험",
+      "인수_특이사항": [
+        "목조주택 인수가능 (단, 특약 및 가입금액은 건물 급수에 따라 상이)",
+        "동일 건물내 다수 가구 가능 (임대인 배상책임Ⅱ)"
+      ],
+      "적용기간": "2026.01~",
+      "신규사항": "26년 NEW - 임대인 배상책임Ⅱ 3억 신설"
+    },
+    {
+      "insurer": "라이나손해보험 (에이스아메리칸화재해상보험)",
+      "product_name": "(무)더핏 간편한 나만의종합보험(갱신형)2509",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.5.5",
+      "특별인수조건": {
+        "암_간경화_유병자": true,
+        "설명": "5년 이내 암·간경화 있어도 고지하면 승인",
+        "조건": "암·간경화 진단 또는 치료(입원/수술) 3개월 후 고지인수"
+      },
+      "가입조건": {
+        "상해등급": "1급",
+        "납입기간": "20년납",
+        "보험기간": "20년만기",
+        "갱신": "최대 100세까지 갱신",
+        "최저보험료": "2만원"
+      },
+      "면책_감액기간": {
+        "♥_표준": {
+          "면책": "없음",
+          "감액": "1년(50%)"
+        },
+        "♥_간편": {
+          "면책": "없음",
+          "감액": "90일(5%), 1년(50%)"
+        },
+        "●": {
+          "면책": "없음",
+          "감액": "1년(50%)"
+        },
+        "◆": {
+          "면책": "없음",
+          "감액": "없음"
+        }
+      },
+      "적용기간": "2026.02~",
+      "compliance_number": "F2F GA-2026-0018"
+    },
+    {
+      "insurer": "라이나손해보험 (에이스아메리칸화재해상보험)",
+      "product_name": "(무)더핏 간편한 원모어 암보험(갱신형)",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.5.5",
+      "특별인수조건": {
+        "뇌심_유병자": true,
+        "설명": "5년 이내 뇌·심혈관질환 있어도 고지하면 승인"
+      },
+      "가입조건": {
+        "상해등급": "1급",
+        "납입기간": "20년납",
+        "보험기간": "20년만기",
+        "갱신": "최대 100세까지 갱신",
+        "최저보험료": "2만원"
+      },
+      "면책_감액기간": {
+        "♥": {
+          "면책": "90일",
+          "감액": "1년(50%)"
+        },
+        "●": {
+          "면책": "90일",
+          "감액": "없음"
+        }
+      },
+      "적용기간": "2026.02~",
+      "compliance_number": "F2F GA-2026-0018"
+    },
+    {
+      "insurer": "라이나손해보험 (에이스아메리칸화재해상보험)",
+      "product_name": "더핏 THE든든한 치아보험(갱신형)",
+      "underwriting_type": "일반",
+      "가입조건": {
+        "상해등급": "1급",
+        "납입기간": "10년납",
+        "보험기간": "10년만기",
+        "갱신": "최대 80세까지 갱신"
+      },
+      "면책_감액기간": {
+        "♥": {
+          "면책": "90일(보험나이 3세미만 제외/질병사고)",
+          "감액": "270일(50%/질병사고)"
+        },
+        "◆": {
+          "면책": "90일(보험나이 3세미만 제외)",
+          "감액": "270일(50%)"
+        },
+        "●": {
+          "면책": "90일(보험나이 3세미만 제외)",
+          "감액": "없음"
+        }
+      },
+      "보존치료_감액기간": "270일",
+      "적용기간": "2026.02~",
+      "compliance_number": "F2F GA-2026-0018"
+    },
+    {
+      "insurer": "라이나손해보험 (에이스아메리칸화재해상보험)",
+      "product_name": "(무)우리집무사고할인보험2404(2종)",
+      "underwriting_type": "재물보험",
+      "가입조건": {
+        "1종": "10년납 10년만기 / 순수보장형",
+        "2종": "15년납 15년만기 / 50% 만기환급형"
+      },
+      "인수기준": {
+        "월납": true,
+        "건물면적": "34평(112㎡)",
+        "건축급수": "1급",
+        "지진건물": "1급",
+        "지진구역": "ZONE1(수도권 등)",
+        "20년이하": true
+      },
+      "특이사항": [
+        "성별/나이에 따라 보험료가 달라지지 않음",
+        "실손보상 담보 중복가입 시 비례보상",
+        "복구기간 내 임시거주 시 보험사 사전협의 필수",
+        "NEW: 2종 50% 만기환급형 출시"
+      ],
+      "적용기간": "2026.02~",
+      "compliance_number": "F2F GA-2026-0018"
+    },
+    {
+      "insurer": "롯데손해보험",
+      "product_name": "let:care 생활상해종합보험 (주택플러스)",
+      "underwriting_type": "일반형 연만기",
+      "가입연령": "15세~80세",
+      "납입면제조건": [
+        "상해 50%이상 후유장해",
+        "중증상해"
+      ],
+      "누적인수": {
+        "상해통합패키지": "타사 누적 Pass (업계누적 無)",
+        "골절진단비": "1개 증권으로 70만원 보장 가능"
+      },
+      "적용기간": "2026.02~",
+      "is_new": true,
+      "compliance_number": "26-101-W-01208"
+    },
+    {
+      "insurer": "롯데손해보험",
+      "product_name": "let:smile 4060 종합보험 (10플러스)",
+      "underwriting_type": "건강체/간편",
+      "告知기준": {
+        "일반형": "비갱신/갱신 (단, 갱신은 일반형만 운영)",
+        "무해약": true
+      },
+      "가입연령": "40세~60세",
+      "할인": [
+        "국가유공자할인 3%",
+        "자궁경부암백신 접종할인 2%",
+        "보험료할인율 합산 중복적용"
+      ],
+      "납입면제조건": [
+        "일반암",
+        "뇌졸중증",
+        "급성심근경색",
+        "상해후유장해 50%",
+        "질병후유장해 50%",
+        "양성뇌종양",
+        "중대한재생불량성빈혈",
+        "말기간경화",
+        "말기신부전증"
+      ],
+      "유사암_납입지원": "특약 운영",
+      "예외질환": "53종 적용",
+      "인수사례": {
+        "사례": "36세 남성 상해2급",
+        "병력": [
+          {
+            "최종치료일": "2026-01",
+            "질병코드": "M43",
+            "병명": "척추골절, 척추탈구, 척추불안정성",
+            "입원": "O",
+            "통원": "O"
+          },
+          {
+            "최종치료일": "2025-05",
+            "질병코드": "R10",
+            "병명": "복부 및 골반 통증",
+            "입원": "X",
+            "통원": "O"
+          },
+          {
+            "최종치료일": "2023-01",
+            "질병코드": "S65",
+            "병명": "혈관손상 - 손목 및 손",
+            "입원": "O",
+            "통원": "O"
+          },
+          {
+            "최종치료일": "2023-01",
+            "질병코드": "S66",
+            "병명": "근육 및 힘줄손상 - 손목 및 손",
+            "입원": "O",
+            "통원": "O"
+          }
+        ],
+        "심사결과": "10년 고지형 부담보 승인"
+      },
+      "적용기간": "2026.02~",
+      "compliance_number": "26-101-W-01208"
+    },
+    {
+      "insurer": "롯데손해보험",
+      "product_name": "let:play 1540 종합보험 (10플러스)",
+      "underwriting_type": "건강체",
+      "告知기준": "비갱신",
+      "가입연령": "15세~40세",
+      "할인": [
+        "당사기가입자 우대할인 1%",
+        "다자녀가정 할인 (최대) 2%",
+        "국가유공자할인 3%",
+        "자궁경부암백신 접종할인 2%",
+        "보험료할인율 합산 중복적용"
+      ],
+      "납입면제조건": [
+        "일반암",
+        "뇌혈관질환",
+        "허혈성심장질환",
+        "상해후유장해 50%",
+        "질병후유장해 50%",
+        "양성뇌종양",
+        "중대한재생불량성빈혈",
+        "성빈혈",
+        "말기간경화",
+        "말기신부전증"
+      ],
+      "유사암_납입지원": "특약 운영",
+      "적용기간": "2026.02~",
+      "compliance_number": "26-101-W-01208"
+    },
+    {
+      "insurer": "롯데손해보험",
+      "product_name": "let:care 종합암보험 (88플러스원)",
+      "underwriting_type": "일반심사형 / 3.10.10간편형",
+      "告知기준": "비갱신/갱신",
+      "가입연령": "0세~80세 (간편15세~)",
+      "할인": [
+        "당사 기가입자 우대할인 1%",
+        "국가유공자할인 3%",
+        "자궁경부암 백신접종완료 할인 2%"
+      ],
+      "납입면제조건": [
+        "일반암"
+      ],
+      "유사암_납입지원": "특약 운영",
+      "간병인_특이사항": {
+        "감액": "간편심사형 간병인담보 감액 없음 (가입즉시 100% 보장)",
+        "고용시간_무관": "간병인 고용시간 관계없이 9만원 이상 사용시 100% 보장, 9만원 미만도 50% 보장",
+        "상급종합병원": "타사 간병인 20만원 기가입자도 상급종합병원 간병인 20만원 추가 가입 가능 (업계누적 1건)"
+      },
+      "적용기간": "2026.02~",
+      "compliance_number": "26-101-W-01208"
+    },
+    {
+      "insurer": "롯데손해보험",
+      "product_name": "let:simple 간편 3·N·10 건강보험",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.5.10, 3.6.10, 3.7.10, 3.8.10, 3.9.10, 3.10.10 (10년내 입원/수술)",
+      "가입연령": {
+        "세만기": "15세~89세",
+        "연만기": "15세~90세"
+      },
+      "갱신": "비갱신/갱신",
+      "종전환": "최대 5회",
+      "예외질환": "4,806개 적용",
+      "완치인수": "3개월 내 진단도 즉시 가입 가능 (질병확정진단 완치인수)",
+      "할인": [
+        "국가유공자할인 3%"
+      ],
+      "납입면제조건": [
+        "일반암",
+        "뇌졸중증",
+        "급성심근경색"
+      ],
+      "유사암_납입지원": "특약 운영",
+      "인수사례": {
+        "사례": "49세 여성 상해1급",
+        "병력": [
+          {
+            "최종치료일": "2025-04",
+            "질병코드": "D24",
+            "병명": "유방의 양성 신생물",
+            "입원": "O",
+            "수술": "O"
+          },
+          {
+            "최종치료일": "2024-11",
+            "질병코드": "D25",
+            "병명": "자궁의 평활근종",
+            "입원": "X",
+            "수술": "O"
+          },
+          {
+            "최종치료일": "2024-10",
+            "질병코드": "S06",
+            "병명": "뇌진탕",
+            "입원": "O",
+            "수술": "X"
+          },
+          {
+            "최종치료일": "2023-12",
+            "질병코드": "D12",
+            "병명": "대장용종",
+            "입원": "X",
+            "수술": "O"
+          }
+        ],
+        "심사결과": "3.10.10 승인"
+      },
+      "적용기간": "2026.02~",
+      "compliance_number": "26-101-W-01208"
+    },
+    {
+      "insurer": "롯데손해보험",
+      "product_name": "let:simple 3·N·5 간편맞춤 건강보험",
+      "underwriting_type": "유병자간편",
+      "告知기준": "3.2.5, 3.3.5, 3.4.5, 3.5.5 (N년내 입원/수술)",
+      "가입연령": "15세~90세",
+      "갱신": "비갱신/갱신",
+      "종전환": "최대 3회",
+      "납입면제조건": [
+        "일반암",
+        "뇌졸중증",
+        "급성심근경색"
+      ],
+      "유사암_납입지원": "특약 운영",
+      "적용기간": "2026.02~",
+      "compliance_number": "26-101-W-01208"
+    },
+    {
+      "insurer": "롯데손해보험",
+      "product_name": "전 상품 공통",
+      "underwriting_type": "업계정액/실손 담보 가입 가능한도",
+      "작성일자": "2026.01.27",
+      "가입한도": {
+        "사망_후유장해": {
+          "상해사망": {
+            "한도": "~65세 1,2급 15억, 3급(영) 10억, 66세~ 3억",
+            "집중가입제어": "6개월내 10억 초과시 재정심사"
+          },
+          "상해후유장해": {
+            "한도": "5억",
+            "집중가입제어": "1개월내 3억"
+          },
+          "질병사망_후유장해": {
+            "한도": "2억/7천만(손보합산)",
+            "집중가입제어": "-"
+          }
+        },
+        "3대진단비": {
+          "일반암진단비": {
+            "한도": "3억",
+            "집중가입제어": "6개월내 1.5억, 1주일내 4건↑ & 1억↑ 가입제한"
+          },
+          "유사암진단비": {
+            "한도": "~60세 5천, ~65세 4천, ~70세 2천, 71세~ 1천만",
+            "집중가입제어": "-"
+          },
+          "뇌_허혈성진단비": {
+            "한도": "6천만/6천만",
+            "집중가입제어": "1개월내 2건↑ & 3천만↑ 가입제한"
+          },
+          "뇌혈관_뇌졸중_뇌출혈": {
+            "한도": "2억",
+            "집중가입제어": "6개월내 1억, 1주일내 4건↑ & 6천↑ 가입제한"
+          },
+          "급성_허혈심장": {
+            "한도": "2억",
+            "집중가입제어": "6개월내 1억, 1주일내 4건↑ & 6천↑ 가입제한"
+          }
+        },
+        "주요치료비": {
+          "일반암주요치료비": {
+            "한도": "5천만(종합/상급종합포함)",
+            "집중가입제어": "1주일내 2건↑ & 3천↑ 가입제한"
+          },
+          "2대주요치료비": {
+            "한도": "4천만(상급종합포함)",
+            "집중가입제어": "1주일내 2건↑ & 3천↑ 가입제한"
+          }
+        },
+        "치료비": {
+          "고액항암약물치료비": {
+            "한도": "카디 가입 ~65세 2억, 66세~ 1.5억 / 미가입 ~65세 1.5억, 66세~ 1억",
+            "집중가입제어": "1주일내 표적항암 3건↑ & 1억↑ 가입제한"
+          },
+          "항암방사선약물치료비": {
+            "한도": "방사선/약물 각각 5천만",
+            "집중가입제어": "-"
+          }
+        },
+        "상해": {
+          "골절진단비": {
+            "한도": "2백만",
+            "집중가입제어": "1개월내 3건↑ & 1백만↑ 가입제한"
+          },
+          "골절수술비_화상진단비": {
+            "한도": "2백만/2백만",
+            "집중가입제어": "-"
+          },
+          "상해입원수술비": {
+            "한도": "2백만(손보합산, 경증제외포함)",
+            "집중가입제어": "6개월내 4건↑, 1주일내 3건↑ & 3백만↑ 가입제한"
+          }
+        },
+        "간병": {
+          "간병인사용일당": {
+            "한도": "~75세 20만/76세~10만(~15세 10만)",
+            "집중가입제어": "(요양제외) 1주일내 3건이상 제한"
+          }
+        },
+        "입원_통원": {
+          "암입원비": {
+            "한도": "20만",
+            "집중가입제어": "실손기가입자 14만"
+          },
+          "암통원": {
+            "한도": "30만",
+            "집중가입제어": "실손기가입자 21만"
+          },
+          "암요양병원비": {
+            "한도": "5만",
+            "집중가입제어": "실손기가입자 3만"
+          }
+        }
+      },
+      "중복가입불가": [
+        "통합상해진단비",
+        "상해재활치료비",
+        "상급/종합병원(1,2-3,4-5인실)입원비",
+        "간병인사용일당입원지급금"
+      ],
+      "참고사항": [
+        "고액항암약물: 표적+양성자+세기조절+Car-T 등",
+        "업계 손보 합산누적: 우체국, 공제 포함 / 업계 손보 합산누적 미포함",
+        "상해(1-5종/1-8종) 3개월내 3건 이상 제한",
+        "단기간 집중가입 건수제한은 증권수 기준",
+        "도담, 종합암 15세이하 요양제외 10만/요양제외+요양 15만",
+        "부정맥 3개월내 2건이상 & 1천만 초과 시 제한"
+      ],
+      "적용기간": "2026.01.27~"
+    },
+    {
+      "id": "UW-MERITZ-2602-001",
+      "insurer": "메리츠화재",
+      "product_name": "안심되는 치매통합케어보험",
+      "product_code": "안심치매(3.1.5)",
+      "disease_category": "치매/인지기능장애",
+      "disease_codes": [],
+      "underwriting_type": "간편심사",
+      "acceptance_status": "조건부인수",
+      "surcharge_rate": null,
+      "entry_age": "30~70세",
+      "disclosure_obligations": [
+        {
+          "period": "3개월 이내",
+          "items": "질병확정, 의심/입원/수술/재검사 의사소견"
+        },
+        {
+          "period": "1년 이내",
+          "items": "치매 또는 경도이상 인지기능장애 진단",
+          "highlight": true
+        },
+        {
+          "period": "1년 이내",
+          "items": "치매 또는 경도이상 인지기능장애 진찰 또는 검사"
+        },
+        {
+          "period": "5년 이내",
+          "items": "치매, 인지기능장애, 알츠하이머, 파킨슨, 외상성뇌손상, 뇌졸중, 심근경색"
+        }
+      ],
+      "special_acceptance": [
+        "암 환자도 가입 가능",
+        "미니 뇌경색 환자도 가입 가능 (I67.9 기타 뇌혈관질환)"
+      ],
+      "exclusions": [],
+      "notes": "1년 이내 치매 또는 경도이상 인지기능장애 진찰/검사 여부가 핵심 고지사항",
+      "effective_period": "2026.01.29~2027.01.28"
+    },
+    {
+      "id": "UW-MERITZ-2602-002",
+      "insurer": "메리츠화재",
+      "product_name": "골키퍼 관절보험 (관절특화)",
+      "product_code": "간편(3.10.5 / 3.5.5 / 3.1)",
+      "disease_category": "관절질환/무릎관절염",
+      "disease_codes": [],
+      "underwriting_type": "일반심사 + 간편심사 운영",
+      "acceptance_status": "조건부인수",
+      "surcharge_rate": null,
+      "entry_age": "55~70세 (보험료 예시 기준)",
+      "disclosure_obligations": [
+        {
+          "period": "3개월 이내",
+          "items": "질병확정, 의심/입원/수술/재검사 의사소견"
+        },
+        {
+          "period": "N년 이내",
+          "items": "입원/수술"
+        },
+        {
+          "period": "5년 이내",
+          "items": "6대질환 진단/입원/수술"
+        }
+      ],
+      "special_acceptance": [
+        "무릎 관절염으로 통원치료 받는 중이라면 고지 후 승인 가능",
+        "치료중에도 가입 가능 (간편심사기준)",
+        "가입 전 질병도 보장 (간편심사기준)"
+      ],
+      "exclusions": [],
+      "notes": "50세 이상 다빈도 수술 3위가 관절. 무릎관절염 환자수 430만명, 65세이상 238만명. 고령층 4명중 1명이 무릎관절염 (건강보험심사평가원 2023년)",
+      "effective_period": "2026.01.29~2027.01.28"
+    },
+    {
+      "id": "UW-MERITZ-2602-003",
+      "insurer": "메리츠화재",
+      "product_name": "통합간편 또또암 (암진단및치료비)",
+      "product_code": "통합간편(3.10.5)",
+      "disease_category": "암/유사암",
+      "disease_codes": [],
+      "underwriting_type": "간편심사(3.10.5)",
+      "acceptance_status": "간편인수",
+      "surcharge_rate": null,
+      "entry_age": "20~80세 (보험료 예시 기준)",
+      "disclosure_obligations": [
+        {
+          "period": "3개월 이내",
+          "items": "질병확정, 의심/입원/수술/재검사 의사소견"
+        },
+        {
+          "period": "10년 이내",
+          "items": "입원/수술"
+        },
+        {
+          "period": "5년 이내",
+          "items": "5대질환(암 등) 진단/입원/수술"
+        }
+      ],
+      "special_acceptance": [
+        "유병자 추천 상품 (암.치.단.비)"
+      ],
+      "exclusions": [],
+      "notes": "3.10.5 = 3개월/10년/5년 고지의무 기준",
+      "effective_period": "2026.01.29~2027.01.28"
+    },
+    {
+      "id": "UW-MERITZ-2602-004",
+      "insurer": "메리츠화재",
+      "product_name": "통합간편 5.10.5 종합설계",
+      "product_code": "통합간편(5.10.5)",
+      "disease_category": "종합(암/뇌/심장/상해)",
+      "disease_codes": [],
+      "underwriting_type": "간편심사(5.10.5)",
+      "acceptance_status": "간편인수",
+      "surcharge_rate": null,
+      "entry_age": "40세~ (보험료 예시 기준)",
+      "disclosure_obligations": [
+        {
+          "period": "5개월 이내",
+          "items": "질병확정, 의심/입원/수술/재검사 의사소견"
+        },
+        {
+          "period": "10년 이내",
+          "items": "입원/수술"
+        },
+        {
+          "period": "5년 이내",
+          "items": "5대질환 진단/입원/수술"
+        }
+      ],
+      "special_acceptance": [],
+      "exclusions": [],
+      "notes": "진단비+수술비+간병인+암.통.치 종합설계 가능",
+      "effective_period": "2026.01.29~2027.01.28"
+    },
+    {
+      "id": "UW-MERITZ-2602-005",
+      "insurer": "메리츠화재",
+      "product_name": "군장병 실손의료비 중지제도",
+      "product_code": null,
+      "disease_category": "실손의료비",
+      "disease_codes": [],
+      "underwriting_type": "제도안내",
+      "acceptance_status": "해당없음",
+      "surcharge_rate": null,
+      "entry_age": null,
+      "disclosure_obligations": [],
+      "special_acceptance": [
+        "병역법에 따른 현역병 대상 실손보험료 납입중지 가능",
+        "복무중 발생한 상해는 제대 후 보험 재개시 의료비 보장",
+        "전역예정일에 자동 재개",
+        "재개 예정일 31일 전까지 예상 납입보험료 안내"
+      ],
+      "exclusions": [],
+      "notes": "24년 7월부터 군 복무기간중 실손보험 중단 선택권 부여",
+      "effective_period": "2026.01.29~2027.01.28"
+    },
+    {
+      "id": "UW-SF-2602-001",
+      "insurer": "삼성화재",
+      "category": "계약전알릴의무",
+      "classification": "전체 상품 공통",
+      "details": {
+        "고지사항": [
+          "5년내 건강상태",
+          "직업",
+          "운전사항",
+          "위험취미 여부",
+          "약물복용"
+        ],
+        "위반시_효과": [
+          "고지의무 위반에 해당",
+          "보험사 계약해지 및 보상금 지급 거절 가능",
+          "이미 지급된 보험금 환수 가능",
+          "금소법 위반",
+          "설계사 과실 비율에 따라 구상권 청구"
+        ],
+        "설계사_주의사항": "단순 실수도 고의적 방해로 간주될 수 있음. 고지를 청약서에 반영하지 않거나 '그건 괜찮아요' 등 발언으로 고지를 방해한 경우 포함"
+      },
+      "effective_period": "2026.01.29~2027.01.28"
+    },
+    {
+      "id": "UW-SF-2602-002",
+      "insurer": "삼성화재",
+      "category": "표적치매치료비",
+      "classification": "2월 U/W 안내사항 - 신규",
+      "details": {
+        "담보명": "표적치매약물허가 치료비",
+        "운영상품": [
+          "NEW 내돈내삼",
+          "마이핏",
+          "새로고침 100세 (315~355, 365, 3655)",
+          "* 3.10.5 제외"
+        ],
+        "특징": [
+          "전상품 탑재",
+          "고객 니즈에 맞는 다양한 상품으로 표적치매 치료비 가입 가능",
+          "치매 병원동행서비스 20회 제공",
+          "치매 유전자검사 부가서비스 제공"
+        ]
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-SF-2602-003",
+      "insurer": "삼성화재",
+      "category": "급배수시설누출손해",
+      "classification": "2월 U/W 안내사항 - 신규",
+      "details": {
+        "담보명": "급배수시설누출손해",
+        "보장금액": "1천만원 (자기부담금 10%)",
+        "운영상품": [
+          "마이핏",
+          "슬기로운 가정생활"
+        ],
+        "가입조건": "건축물 경과연수 30년 이내 아파트 대상"
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-SF-2602-004",
+      "insurer": "삼성화재",
+      "category": "다빈도 생활질병",
+      "classification": "2월 U/W 안내사항",
+      "details": {
+        "담보목록": [
+          {
+            "담보명": "독감 치료비",
+            "보장금액": "20만원",
+            "적용범위": "전상품 적용",
+            "면책조건": "태아 제외, 10일 면책 및 90일 내 50% 감액"
+          },
+          {
+            "담보명": "대상포진 치료비",
+            "보장금액": "300만원",
+            "적용범위": "건강보험",
+            "면책조건": "태아 제외, 10일 면책 및 90일 내 50% 감액"
+          },
+          {
+            "담보명": "통풍 치료비",
+            "보장금액": "200만원",
+            "적용범위": "건강보험",
+            "면책조건": "30일 면책"
+          }
+        ]
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-SF-2602-005",
+      "insurer": "삼성화재",
+      "category": "치료비 선지급",
+      "classification": "인수/보장 조건",
+      "details": {
+        "대상담보": "암/뇌·심 특정치료비 및 암 통합치료비",
+        "지급시기": "주요치료 예약 후 선지급 청구시 (최대예약기간 90일)",
+        "지급금액": "치료행위별 보험금의 50% (치료행위별 500만원 한도)",
+        "이자차감": "미차감",
+        "적용범위": "업계 최대 27개 담보 선지급 적용",
+        "소급적용": "2026년 1월 이후 신계약 및 기가입고객 모두 소급 적용",
+        "경쟁비교": {
+          "삼성": "암+뇌심 50% 선지급, 이자 미차감",
+          "A사": "암 선지급만 가능, 뇌심 불가, 이자 차감",
+          "B사": "암 선지급만 가능, 뇌심 불가, 이자 미차감",
+          "C사": "암 50% 선지급만 가능, 뇌심 불가, 이자 미차감"
+        }
+      },
+      "effective_period": "2026년 1월~"
+    },
+    {
+      "id": "UW-SF-2602-006",
+      "insurer": "삼성화재",
+      "category": "고지건강 유형별 가입나이",
+      "classification": "상품별 가입연령 및 고지유형",
+      "details": {
+        "상품별_가입조건": [
+          {
+            "상품": "보장 어카운트",
+            "가입나이": "15~70세",
+            "고지유형": [
+              "건강: 6~10년 고지",
+              "간편: 315~365"
+            ]
+          },
+          {
+            "상품": "마이스타 0515",
+            "가입나이": "5~15세",
+            "고지유형": "표준체 6~10년 고지건강 선택가능"
+          },
+          {
+            "상품": "New내돈내삼 1640",
+            "가입나이": "16~40세",
+            "고지유형": "표준체 6~10년 고지건강 선택가능"
+          },
+          {
+            "상품": "New내돈내삼 4170",
+            "가입나이": "41~70세",
+            "고지유형": "표준체 6~10년 고지건강 선택가능"
+          },
+          {
+            "상품": "마이핏 1640",
+            "가입나이": "16~40세",
+            "고지유형": "표준체 6~10년 고지건강 선택가능"
+          },
+          {
+            "상품": "마이핏 4180",
+            "가입나이": "41~80세",
+            "고지유형": "표준체 6~10년 고지건강 선택가능"
+          },
+          {
+            "상품": "마이핏 1680 (간편)",
+            "가입나이": "16~80세",
+            "고지유형": "315~365 종 운영"
+          },
+          {
+            "상품": "3655 고고 새로고침 100세",
+            "가입나이": "15~70세",
+            "고지유형": "5년 내 당뇨병 추가 고지"
+          },
+          {
+            "상품": "고고 새로고침",
+            "가입나이": "15~90세",
+            "고지유형": "5년 내 당뇨병 추가 고지"
+          },
+          {
+            "상품": "새로고침",
+            "가입나이": "15~90세",
+            "고지유형": "315~355 종 운영 (5년 내 5대 질환)"
+          },
+          {
+            "상품": "새로고침 100세",
+            "가입나이": "15~70세",
+            "고지유형": "315~355 종 운영 (5년 내 5대 질환)"
+          },
+          {
+            "상품": "365 알뜰한 새로고침",
+            "가입나이": "15~90세",
+            "고지유형": "6년 내 입원수술 경증상병 예외 조건 운영"
+          },
+          {
+            "상품": "새로고침 311-5",
+            "가입나이": "5~90세",
+            "고지유형": "중증간편보험, 1년 내 5대 질환"
+          },
+          {
+            "상품": "New 마이슈퍼스타",
+            "가입나이": "태아~15세",
+            "고지유형": "자녀 세만기 상품"
+          }
+        ]
+      },
+      "effective_period": "2026년 2월 2일 기준"
+    },
+    {
+      "id": "UW-HANA-2602-001",
+      "insurer": "하나손해보험",
+      "category": "하트플랜 - 뇌/심 진단비",
+      "classification": "심사완화/업계누적 면제",
+      "underwriting_type": "조건부인수",
+      "details": {
+        "업계누적_정책": "타사 뇌혈관/허혈심장 진단비 있어도 1천만 업계누적 제외 (Pass)",
+        "대상담보": [
+          "뇌혈관질환진단비 1천만",
+          "통합뇌질환진단비 1천만",
+          "허혈성심장질환진단비 1천만",
+          "통합심질환진단비 1천만 (단, 기타심장부정맥 100만 한도)",
+          "뇌혈관질환수술비 1천만",
+          "허혈성심장질환수술비 1천만"
+        ],
+        "심사기준": {
+          "간편고지": "N년 이내 2대질환(뇌/심) 입원/수술 여부만 심사",
+          "표준고지": "2대질환(뇌/심) 여부만 심사"
+        },
+        "특이사항": [
+          "보험업종사자(당사 사용인) 인수 가능",
+          "플랜운영 65세까지"
+        ],
+        "적용상품": [
+          "더건강",
+          "더건강간편",
+          "5.N.5",
+          "3.N.5"
+        ]
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-HANA-2602-002",
+      "insurer": "하나손해보험",
+      "category": "하이클래스암주요치료비",
+      "classification": "인수조건",
+      "underwriting_type": "조건부인수",
+      "details": {
+        "대상담보": "종합병원 하이클래스 암 주요치료비 (만기보장형)",
+        "가입조건": "60세 미만 가능",
+        "적용상품": [
+          "더건강",
+          "더건강간편",
+          "5N5",
+          "3N5"
+        ],
+        "보장내용": {
+          "일반암": "수술 매회, 항암 방사선/약물 각 연1회 - 각 2천만",
+          "갑상선암_기타피부암": "수술 매회, 항암 방사선/약물 각 연1회 - 각 6백만"
+        }
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-HANA-2602-003",
+      "insurer": "하나손해보험",
+      "category": "상해통합치료비 (NEW)",
+      "classification": "인수기준 - 직업/연령별",
+      "underwriting_type": "조건부인수",
+      "details": {
+        "간편고지": "운전자 3개월 간편고지로 가입가능",
+        "플랜별_인수기준": {
+          "고급형": {
+            "연령": "60세 이하",
+            "상해급수": "1,2급"
+          },
+          "표준형": {
+            "연령": "70세 이하",
+            "상해급수": "1,2급"
+          },
+          "실속형": {
+            "연령": "80세 이하",
+            "상해급수": "1,2,3급"
+          }
+        },
+        "특이사항": [
+          "업계누적 걱정 없이 상통치 하나로 가입",
+          "상해 1-5종수술비, 깁스치료비 등 추가가입 가능",
+          "업계최대 33개 상해통합보장"
+        ]
+      },
+      "effective_period": "2026년 2월~ (신규출시)"
+    },
+    {
+      "id": "UW-HANA-2602-004",
+      "insurer": "하나손해보험",
+      "category": "치매조기치료플랜",
+      "classification": "심사완화",
+      "underwriting_type": "조건부인수",
+      "details": {
+        "심사완화": "치매 담보 가입시 완화된 심사기준 적용",
+        "최저보험료": "2만원 → 1만원 인하 (2월 종료 예정)",
+        "특이사항": [
+          "업계유일 경도인지장애 진단시 방문인지교육 월4회 제공",
+          "치매 특화 헬스케어서비스 운영 (3만이상시)",
+          "경도인지장애시 MRI/MRA(15만원상당) 보장"
+        ]
+      },
+      "effective_period": "2026년 2월 종료 예정"
+    },
+    {
+      "id": "UW-HANA-2602-005",
+      "insurer": "하나손해보험",
+      "category": "상품별 가입연령 및 납입면제",
+      "classification": "전체 라인업 인수기준",
+      "details": {
+        "상품별_인수기준": [
+          {
+            "구분": "건강할인",
+            "상품": "하나더퍼스트 5N5건강보험(1640)",
+            "가입나이": "16~40세",
+            "납입면제": "암(유사암제외), 뇌혈관질환, 허혈성심장질환, 상해/질병 50%이상후유장해",
+            "최저보험료": "2만원",
+            "운영형태": [
+              "1종 세만기",
+              "2종 무해지(세만기)",
+              "3종 연만기"
+            ]
+          },
+          {
+            "구분": "건강할인",
+            "상품": "하나더퍼스트 5N5건강보험(4165)",
+            "가입나이": "41~65세",
+            "납입면제": "암(유사암제외), 뇌졸중, 급성심근경색, 상해/질병 80%이상후유장해",
+            "최저보험료": "2만원",
+            "운영형태": [
+              "1종 세만기",
+              "2종 무해지(세만기)",
+              "3종 연만기"
+            ]
+          },
+          {
+            "구분": "건강할인",
+            "상품": "하나더퍼스트 더건강보험",
+            "가입나이": "20~90세",
+            "납입면제": "암(유사암제외), 뇌졸중, 급성심근경색, 상해/질병80%이상후유장해",
+            "최저보험료": "2만원",
+            "운영형태": [
+              "1종 세만기",
+              "2종 무해지(세만기)",
+              "3종 연만기"
+            ]
+          },
+          {
+            "구분": "건강할인",
+            "상품": "하나더퍼스트 더건강간편보험",
+            "가입나이": "20~90세",
+            "납입면제": "암(유사암제외), 뇌졸중, 급성심근경색, 상해/질병80%이상후유장해",
+            "최저보험료": "2만원",
+            "운영형태": [
+              "1종 세만기",
+              "2종 무해지(세만기)",
+              "3종 연만기"
+            ]
+          },
+          {
+            "구분": "간편",
+            "상품": "하나더퍼스트 3N5 간편건강보험",
+            "가입나이": "20~90세",
+            "납입면제": "암(유사암제외), 뇌졸중, 급성심근경색, 상해/질병80%이상후유장해",
+            "최저보험료": "2만원",
+            "운영형태": [
+              "1종 세만기",
+              "2종 무해지(세만기)",
+              "3종 연만기"
+            ]
+          },
+          {
+            "구분": "시니어",
+            "상품": "하나더넥스트 치매간병보험",
+            "가입나이": "30~75세",
+            "납입면제": "장기요양등급(1~3급) 또는 장기요양등급(1~4급)",
+            "최저보험료": "2만원",
+            "운영형태": [
+              "1종 세만기",
+              "2종 저해지(세만기)",
+              "3종 무해지(세만기)"
+            ]
+          },
+          {
+            "구분": "암",
+            "상품": "하나더퍼스트 암보험",
+            "가입나이": "0~75세",
+            "납입면제": "암(유사암제외), 뇌졸중, 급성심근경색, 상해/질병80%이상후유장해",
+            "최저보험료": "2만원",
+            "운영형태": [
+              "1종 세만기",
+              "2종 연만기",
+              "3종 무해지(세만기)"
+            ]
+          },
+          {
+            "구분": "자녀",
+            "상품": "하나더스타트 건강보험",
+            "가입나이": "0~35세",
+            "납입면제": "암(유사암제외), 뇌혈관질환, 허혈심장질환, 양성뇌종양, 중대한재생불량성빈혈, 중대한특정상해수술, 상해/질병50%이상후유장해",
+            "최저보험료": "2만원",
+            "운영형태": [
+              "무해지(세만기)"
+            ]
+          },
+          {
+            "구분": "운전자",
+            "상품": "하나더베스트 운전자 상해종합보험",
+            "가입나이": "18~80세",
+            "납입면제": "교통상해50%이상후유장해, 자동차사고부상1-7급",
+            "최저보험료": "1.5만원",
+            "운영형태": [
+              "연만기"
+            ]
+          },
+          {
+            "구분": "교직원",
+            "상품": "하나더퍼스트 교직원안심보험",
+            "가입나이": "20~70세",
+            "납입면제": "-",
+            "최저보험료": "1만원",
+            "운영형태": [
+              "연만기/세만기"
+            ]
+          }
+        ]
+      },
+      "effective_period": "2026년 2월 기준"
+    },
+    {
+      "id": "UW-HANA-2602-006",
+      "insurer": "하나손해보험",
+      "category": "운전자보험 비용담보 개정",
+      "classification": "2026년 1월~ 개정사항",
+      "details": {
+        "교통사고처리지원금": {
+          "최대가입금액": "2.5억",
+          "피해자사망": "2.5억",
+          "일반중상해사고": "2억",
+          "일반중상해사고_1~3급외_불송치불기소": "7천만 (신설)",
+          "중대법규위반_20주이상": "1.5억",
+          "중대법규위반_10~20주": "8천만",
+          "중대법규위반_6~10주": "2천만",
+          "6주미만_스쿨존": "5백만",
+          "6주미만_4주이상": "1천만 (신설)",
+          "4주미만": "5백만 (신설)",
+          "비탑승중보상": "O",
+          "지급방식": "선지급 (공탁금 100% 선지급, 단 가입금액 70% 한도내)"
+        },
+        "변호사선임비": {
+          "최대가입금액": "5천만",
+          "심급별": "각 5백만(자부담50%) 또는 5백만(자부담無) 중 택1",
+          "경찰조사단계": "O (일반중상해사고 포함)",
+          "비탑승중보상": "O",
+          "지급방식": "70%선지급"
+        },
+        "벌금": {
+          "대인": "2천만 (스쿨존 3천만)",
+          "대물": "5백만",
+          "비탑승중보상": "O",
+          "지급방식": "선지급"
+        }
+      },
+      "effective_period": "2026년 1월~"
+    },
+    {
+      "id": "UW-HW-2602-001",
+      "insurer": "한화손해보험",
+      "category": "시그니처 여성건강보험4.0 - 건강고지 유형",
+      "classification": "고지유형별 인수기준",
+      "details": {
+        "건강체": {
+          "고지유형": "건강고지6형",
+          "무사고_계약전환_할인": "입원수술 없으면 1년마다 할인, 암/심근경색/뇌졸중증(뇌출혈,뇌경색) 진단 없을 시",
+          "할인율": "최대 32%"
+        },
+        "간편": {
+          "고지유형": "3N5 간편고지형",
+          "계약전환_할인": "3.0.5 → 3.10.5 2년마다 전환 시 할인",
+          "할인율": "최대 44%"
+        },
+        "가입나이": "15세~89세까지 가입가능"
+      },
+      "effective_period": "2026.01.27~2027.01.26"
+    },
+    {
+      "id": "UW-HW-2602-002",
+      "insurer": "한화손해보험",
+      "category": "시그니처 여성건강보험 - 할인제도",
+      "classification": "할인 인수조건",
+      "details": {
+        "할인유형": [
+          {
+            "유형": "건강체 무사고 계약전환",
+            "할인율": "32%",
+            "조건": "입원수술 없으면 1년마다 할인, 암/심근경색/뇌졸중증 진단 없을 시"
+          },
+          {
+            "유형": "간편 계약전환",
+            "할인율": "44%",
+            "조건": "3.0.5 → 3.10.5 2년마다 전환 시"
+          },
+          {
+            "유형": "배우자 할인",
+            "할인율": "5%",
+            "조건": "시그니처 기가입자의 배우자가 1040 가입 시, 전기간 할인"
+          },
+          {
+            "유형": "자녀 할인",
+            "할인율": "5%",
+            "조건": "시그니처 기가입자의 자녀가 건강쑥쑥 가입 시, 전기간 할인 (자녀 수 제한 없음)"
+          },
+          {
+            "유형": "모녀 할인",
+            "할인율": "10%",
+            "조건": "엄마, 딸 가입 시 1년간 할인"
+          }
+        ]
+      },
+      "effective_period": "2026.01.27~2027.01.26"
+    },
+    {
+      "id": "UW-HW-2602-003",
+      "insurer": "한화손해보험",
+      "category": "시그니처 여성건강보험 - 납입면제",
+      "classification": "특별 납입면제 조건",
+      "details": {
+        "출산_납입면제": "쌍둥이 출산 후 1년 납입면제 (1,2종 限)",
+        "갑상선암_납입면제": "갑상선암 수술 시 납입면제 (1,2종 限)",
+        "납입면제_형태": [
+          "납입면제형",
+          "납입면제강화형(8대사유Ⅱ)"
+        ]
+      },
+      "effective_period": "2026.01.27~2027.01.26"
+    },
+    {
+      "id": "UW-HW-2602-004",
+      "insurer": "한화손해보험",
+      "category": "치매간병보험 2601 - 인수기준",
+      "classification": "가입한도 및 조건",
+      "details": {
+        "간병인사용입원생활비_조건": {
+          "요양병원제외": "10만원 초과 시 최저 보장P 5만원",
+          "요양병원": "3만원 초과 시 요양병원제외/간호간병통합서비스 요양병원 가입금액 이상 가입 필요"
+        },
+        "경증이상치매진단비": {
+          "가입기준": "50세 이하 가입금액 기준",
+          "중증치매진단비": "가입금액 100% 이내 가능"
+        },
+        "장기요양급여금_복지용구": "60세 이하 가입금액 20만",
+        "면책감액": "없음"
+      },
+      "effective_period": "2026년 1월~"
+    },
+    {
+      "id": "UW-HW-2602-005",
+      "insurer": "한화손해보험",
+      "category": "가정생활종합보험 - 급배수",
+      "classification": "인수기준",
+      "details": {
+        "담보명": "급배수시설누출손해(실손)",
+        "보장금액": "최대 500만원 (아파트 기준)",
+        "자기부담금": "100만원까지 자기부담금 0원",
+        "면책": "90일 면책",
+        "특징": "기후 및 온도조건 변화로 인한 동파사고 보장",
+        "인수기준": "업종 및 건축연한 별 인수기준 적용"
+      },
+      "effective_period": "2026년 1월~"
+    },
+    {
+      "id": "UW-HW-2602-006",
+      "insurer": "한화손해보험",
+      "category": "암특정치료비 선지급",
+      "classification": "선지급 인수조건",
+      "details": {
+        "선지급_대상": [
+          "수술",
+          "방사선",
+          "약물"
+        ],
+        "선지급_비율": "치료 예약 시 50% 선지급",
+        "선지급_한도": {
+          "종합병원": "1,500만원",
+          "상급종합": "1,500만원",
+          "전이암": "1,500만원",
+          "비급여": "1,500만원",
+          "합계": "매년 최대 6천만원 선지급"
+        },
+        "치료별_선지급": "항암약물, 방사선, 수술 치료별 각 500만원 선지급"
+      },
+      "effective_period": "2026.01.27~2027.01.26"
+    },
+    {
+      "id": "UW-HW-2602-007",
+      "insurer": "한화손해보험",
+      "category": "난임보장 - 미혼자/기혼자 구분",
+      "classification": "가입조건",
+      "details": {
+        "미혼자용": {
+          "난임진단비": "100만 (갱신형) - 예약가입",
+          "난임치료비Ⅱ": "예약가입",
+          "착상확률개선검사비(PGT-A)": "예약가입",
+          "난임치료후산후관리지원금": "예약가입"
+        },
+        "기혼자용": {
+          "난임진단비": "20만 (갱신형)",
+          "난임치료비Ⅱ": "급여인공수정 3회한 50만, 급여체외수정 5회한 100만 (갱신형)",
+          "착상확률개선검사비(PGT-A)": "200만 (갱신형)",
+          "난임치료후산후관리지원금": "400만 (1회한, 갱신형)"
+        }
+      },
+      "effective_period": "2026.01.27~2027.01.26"
+    },
+    {
+      "id": "UW-HD-2602-001",
+      "insurer": "현대해상",
+      "category": "2Q-PASS 간편고지 제도",
+      "classification": "심사완화/고지위반 해소",
+      "underwriting_type": "조건부인수",
+      "details": {
+        "정의": "2가지 고지만으로 가입할 수 있는 현대해상만의 간편고지 제도",
+        "고지항목": "2개만 운영 (입원, 수술 고지 패스!)",
+        "초경증_적용": {
+          "타사_345": "4년 전 복부통증(R10.4) 8일 입원 → 타사 3.4.5 대상",
+          "현대_31010": "동일 조건 현대 3.10.10 가능",
+          "간편_2Q_PASS_확장": "3.5.5 / 3.9.9 / 3.10.10 모두 가입 가능"
+        },
+        "대상자_확인": "설계동의된 주민번호만 있으면 조회 가능",
+        "특이사항": "초경증 적용 가능으로 타사 대비 간편고지 범위 확대"
+      },
+      "effective_period": "2026.1.26~2027.1.25"
+    },
+    {
+      "id": "UW-HD-2602-002",
+      "insurer": "현대해상",
+      "category": "간병인사용일당 - 2Q-PASS 적용",
+      "classification": "인수조건/보장한도",
+      "underwriting_type": "조건부인수",
+      "details": {
+        "2Q_PASS_적용시": {
+          "사용일당_1_180일": "20만",
+          "사용일당_181_365일": "20만 (1년 내내 감액 없이 20만)",
+          "지급기준": "금액 기준 (8만원 이상) - 타사는 시간 기준(8시간 이상)",
+          "감액기간": "가입즉시 100% 보장"
+        },
+        "2Q_PASS_미적용시": "15만",
+        "타사비교": {
+          "A사": {
+            "1_180일": "20만(연계조건)",
+            "181_365일": "15만",
+            "지급기준": "시간(8시간이상)",
+            "감액": "100%"
+          },
+          "B사": {
+            "1_180일": "10만",
+            "181_365일": "15만",
+            "지급기준": "시간(8시간이상)",
+            "감액": "50%(감액있음)"
+          },
+          "C사": {
+            "1_180일": "10만",
+            "181_365일": "15만",
+            "지급기준": "시간(8시간이상)",
+            "감액": "100%"
+          }
+        },
+        "보험료_비교": {
+          "현대해상": "50,090원 (최저P 5만, 초경증 간편 70세 남)",
+          "A사": "63,685원 (최저P 10만)"
+        }
+      },
+      "effective_period": "2026.1.26~2027.1.25"
+    },
+    {
+      "id": "UW-HD-2602-003",
+      "insurer": "현대해상",
+      "category": "주요치료비 선지급 제도",
+      "classification": "선지급 적용 담보",
+      "details": {
+        "선지급률": "70% (예약만 해도)",
+        "지급사유별_한도": "5백만 한도",
+        "기준일": "2026년 1월 기준",
+        "적용담보_목록": {
+          "암주요치료비_급여비급여": [
+            "암주요치료비ⅢⅢ (연간1회한, 진단후10년)",
+            "초기집중형 암주요치료비 (연간회한, 진단후10년)",
+            "암주요치료비ⅢⅢⅢ (연간회한)",
+            "유사암주요치료비ⅢⅢⅢ (연간회한)"
+          ],
+          "암주요치료비_비급여": [
+            "하이클래스암주요치료비 (연간회한, 진단후10년)",
+            "초기집중형 하이클래스암주요치료비 (연간회한, 진단후10년)",
+            "하이클래스암주요치료비Ⅲ",
+            "하이클래스암특정치료비"
+          ],
+          "암주요치료비_상급종합": [
+            "암주요치료비ⅢⅢ (연간회한, 진단후10년)",
+            "초기집중형 암주요치료비 (연간회한, 진단후10년)",
+            "암주요치료비ⅢⅢⅢ (연간회한)",
+            "유사암주요치료비ⅢⅢⅢ (연간회한)",
+            "하이클래스암주요치료비 (연간회한, 진단후10년)",
+            "초기집중형 하이클래스암주요치료비 (연간회한, 진단후10년)",
+            "하이클래스암주요치료비Ⅲ",
+            "하이클래스암특정치료비"
+          ],
+          "심뇌혈관질환_주요치료비": [
+            "심뇌혈관질환주요치료비 (연간회한)",
+            "심뇌혈관질환주요치료비Ⅲ (연간회한)",
+            "상급종합병원심뇌혈관질환주요치료비 (연간회한)",
+            "상급종합병원심뇌혈관질환주요치료비Ⅲ (연간회한)"
+          ],
+          "혈전치료비": [
+            "혈전용해치료비Ⅲ (최초1회한/연간회한)",
+            "혈전용해치료비ⅢⅢ (최초1회한/연간회한) [특정순환계질환]",
+            "혈전제거치료Ⅱ (연간회한, 급여)",
+            "혈전주요치료비 (연간회한)"
+          ]
+        }
+      },
+      "effective_period": "2026년 1월 기준"
+    },
+    {
+      "id": "UW-HD-2602-004",
+      "insurer": "현대해상",
+      "category": "질병수술 1-5종 - 5세대 실손 대비 정액담보",
+      "classification": "보장기준 비교",
+      "details": {
+        "현대해상_강점": {
+          "지급기준": "매회지급 (A사: 연간1회)",
+          "대장용종": "2종 (B사/C사: 1종)",
+          "수술금액": "1종20만/2종50만/3종1백만/4종5백만/5종1천만"
+        },
+        "로봇수술_보장": {
+          "현대해상": {
+            "로봇종류": "다빈치 + 레보아이",
+            "적용범위": "로봇암수술 + 특정질환수술"
+          },
+          "타사": {
+            "로봇종류": "다빈치만",
+            "적용범위": "로봇암수술만"
+          },
+          "특정질환수술_범위": {
+            "전립선_방광질환": {
+              "가입금액": "2백만",
+              "질환수": "18개",
+              "예시": "전립선 증식증, 요도협착 등"
+            },
+            "내분비_소화계": {
+              "가입금액": "2백만",
+              "질환수": "11개",
+              "예시": "담석증, 담낭염, 사타구니탈장 등"
+            },
+            "자궁_난소질환": {
+              "가입금액": "2백만(여성)",
+              "질환수": "11개",
+              "예시": "자궁평활근종, 자궁내막증 등"
+            }
+          }
+        },
+        "갑상선_전립선암_로봇수술": "1천만"
+      },
+      "effective_period": "2026.1.26~2027.1.25"
+    },
+    {
+      "id": "UW-HD-2602-005",
+      "insurer": "현대해상",
+      "category": "심뇌혈관질환 주요치료비 - 심/뇌 분리보장",
+      "classification": "보장범위/인수조건",
+      "details": {
+        "보장범위": "심뇌혈관 (타사: 순환계)",
+        "환자수_커버리지": "346만명(76.4%) vs 타사 순환계 341만명(75.3%)",
+        "심뇌분리보장": "심/뇌 분리 O (타사: 분리 X)",
+        "특정중증치료_여부": "O (타사 A사/B사/D사: X)",
+        "선지급": "70%, 5백만 (타사: A사 없음, B사/C사 50% 5백만, D사 없음)",
+        "혈전주요치료비": {
+          "금액": "3천만",
+          "보장범위": "뇌졸중 / 특정심장질환 / 특정순환계",
+          "치료내용": "혈전용해 / 혈전제거 치료",
+          "지급": "각각 연 1회"
+        }
+      },
+      "effective_period": "2026.1.26~2027.1.25"
+    },
+    {
+      "id": "UW-HK-2602-001",
+      "insurer": "흥국화재",
+      "category": "간편고지 유형별 인수기준",
+      "classification": "고지유형 라인업",
+      "details": {
+        "초경증간편": [
+          "3.10.5",
+          "3.6.5"
+        ],
+        "간편": [
+          "3.0.5",
+          "3.1.5",
+          "3.2.5",
+          "3.3.5",
+          "3.4.5",
+          "3.5.5"
+        ],
+        "어른이_5_10_10": "업계최고 조건 - 더건강한0550(오건강) 전용",
+        "10년고지형": "건강고지형(6~10년내) - 무사고 계약전환 가능",
+        "일반고지형": "5년내"
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-HK-2602-002",
+      "insurer": "흥국화재",
+      "category": "간병인사용일당 인수조건",
+      "classification": "업계최대 한도",
+      "underwriting_type": "정상인수",
+      "details": {
+        "1_180일_질병상해": {
+          "요양병원제외": "각 20만 (업계최대, 타사 A사/B사 15만, C사 10만)",
+          "요양병원": "각 5만",
+          "간호간병통합서비스": "각 7만"
+        },
+        "181일_질병상해": {
+          "요양정신한방병원제외": "질병 15만 / 상해 15만",
+          "간호간병통합서비스_요양정신한방제외": "각 7만"
+        },
+        "긴급안내": "2월까지만 20만원 한도!"
+      },
+      "effective_period": "~2026년 2월 (종료 예정)"
+    },
+    {
+      "id": "UW-HK-2602-003",
+      "insurer": "흥국화재",
+      "category": "업계누적 無 정책",
+      "classification": "누적한도",
+      "details": {
+        "업계누적_없는_담보": [
+          "3대수술",
+          "중환자실",
+          "순환계수술",
+          "질병수술",
+          "입원비"
+        ],
+        "10억통장_플래티넘건강리셋월렛Ⅱ": "업계누적 無",
+        "특이사항": "타사 가입 건수 무관 추가 가입 가능"
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-HK-2602-004",
+      "insurer": "흥국화재",
+      "category": "납입면제 특별조건 - 업계유일",
+      "classification": "납입면제/납입지원",
+      "details": {
+        "갑상선암수술_납입면제": "업계유일",
+        "순환계주요치료_납입면제": "업계유일 (특정 및 2대질병 제외)",
+        "납입지원_선택가능": "유사암 진단 OR 순환계질환 진단 시",
+        "양성뇌종양진단_납입면제": "O"
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-HK-2602-005",
+      "insurer": "흥국화재",
+      "category": "암주요치료비 U/W 완화",
+      "classification": "치료별 설계",
+      "details": {
+        "치료별_분리설계": "수술은 최소(1백만), 항암은 최대(1천만)로 설계 가능",
+        "효과": "C사 대비 약 3.4만원 저렴 (60,030원 → 25,953원)",
+        "U/W_완화_조건": "암수술 1백만 조정"
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-HK-2602-006",
+      "insurer": "흥국화재",
+      "category": "면책·감액 조건 종합표",
+      "classification": "상품별 면책/감액 일람",
+      "details": {
+        "상품구분": {
+          "뉴키즈자녀_더건강0550": {
+            "암진단비": "15세 미만 면책X/감액X, 15세 이상 90일면책/감액X",
+            "암주요치료비": "15세 미만 면책X, 15세 이상 90일면책/감액X",
+            "2대진단_통합뇌심5그룹": "면책X, 0550는 90일미만10%+1년미만50%",
+            "간병인_상해": "면책X/감액X",
+            "간병인_질병": "면책X/감액X",
+            "10억통장": "15세미만X, 암관련담보 90일면책, 1년미만50%(암수술/항암방사선/항암약물限)"
+          },
+          "더건강4565_모두암PLUS": {
+            "암진단비": "15세미만X/15세이상90일면책, 1년미만50%",
+            "간병인_상해": "면책X/감액X",
+            "간병인_질병": "면책X/감액X",
+            "10억통장Ⅱ": "15세미만X, 암관련담보90일면책, 1년미만50%(암수술/항암방사선/항암약물/2대질병수술/특정순환계수술비限)"
+          },
+          "유병자_3N5간편종합": {
+            "암진단비": "90일면책, 1년미만50%",
+            "암주요치료비": "90일면책, 1년미만50%",
+            "2대진단": "면책X, 90일미만10%+1년미만50%",
+            "간병인_상해": "면책X/감액X",
+            "간병인_질병": "면책X/1년미만50%",
+            "10억통장Ⅱ": "15세미만X, 암관련담보90일면책, 1년미만50%"
+          },
+          "플러스치매간병": {
+            "경도치매CDR1": "1년면책(상해원인치매는면책X)/감액X",
+            "중증치매CDR3": "면책X/감액X",
+            "표적치매약물": "1년면책/감액X",
+            "장기요양등급진단비": "90일면책 또는 15세미만X+15세이상1년면책",
+            "간병인_질병": "면책X/1년미만50%"
+          },
+          "123치매보험": {
+            "경도치매CDR1": "1년면책(상해원인치매는면책X)/감액X",
+            "중증치매CDR3": "면책X/감액X",
+            "표적치매약물": "1년면책/감액X"
+          }
+        }
+      },
+      "effective_period": "2026년 2월 판매상품 기준"
+    },
+    {
+      "id": "UW-HK-2602-007",
+      "insurer": "흥국화재",
+      "category": "더건강한 0550 가입연령/납입면제 비교",
+      "classification": "어른이보험 경쟁비교",
+      "details": {
+        "흥국화재": {
+          "가입연령": "5세~50세",
+          "납입면제": "양성뇌종양진단, 갑상선암수술, 순환계질환(특정및2대질병제외)주요치료비"
+        },
+        "K사": {
+          "가입연령": "5세~40세",
+          "납입면제": "양성뇌종양,중대한빈혈,외상성뇌출혈,외상성장기손상,만성당뇨합병증,중대한당뇨합병증"
+        },
+        "D사": {
+          "가입연령": "10세~35세",
+          "납입면제": "5대 난치성 질환 진단"
+        },
+        "M사": {
+          "가입연령": "만15세~40세",
+          "납입면제": "양성뇌종양,중대한빈혈,통합포인트누적10점"
+        },
+        "H사": {
+          "가입연령": "0세~40세",
+          "납입면제": "양성뇌종양,중대한빈혈"
+        }
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-KB-2602-001",
+      "insurer": "KB손해보험",
+      "category": "3.10.5 고당지 맞춤간편건강 - 할인제도",
+      "classification": "업계유일 고당지 할인",
+      "details": {
+        "할인명": "고·당·지 셋다 없으면 최대 13% 할인",
+        "설명": "고혈압, 당뇨, 고지혈증 뭐든 없으면 할인",
+        "할인율": "최대 13%",
+        "특이사항": "업계유일"
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-KB-2602-002",
+      "insurer": "KB손해보험",
+      "category": "간병인사용일당 지급조건",
+      "classification": "8시간 미만 보장",
+      "underwriting_type": "보장조건 우위",
+      "details": {
+        "KB손해보험": {
+          "8시간미만": "50% 지급",
+          "8시간이상": "100% 지급"
+        },
+        "B사_D사": {
+          "8시간미만": "미지급 (0%)",
+          "8시간이상": "100% 지급"
+        },
+        "핵심메시지": "50% 보장을 받은 간병인사용일당과 미지급된 간병인사용일당의 차이! 꼭 확인 필수"
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-KB-2602-003",
+      "insurer": "KB손해보험",
+      "category": "간병인지원일당 갱신주기",
+      "classification": "갱신주기 우위",
+      "details": {
+        "KB_갱신주기": "5 / 10 / 15 / 20년 선택 가능",
+        "C사_갱신주기": "최대 15년",
+        "핵심메시지": "KB는 20년 갱신까지 선택 가능 → 갱신주기 길수록 보험료 인상 리스크 낮음"
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-KB-2602-004",
+      "insurer": "KB손해보험",
+      "category": "치통치(치매통합치료) - 근골격계 인수확대",
+      "classification": "인수범위 확대",
+      "details": {
+        "탑재가능_상품유형": [
+          "유병자",
+          "종합형",
+          "LTC"
+        ],
+        "인수확대_대상": "근골격계",
+        "특이사항": "치매치료 관련 보장을 하나의 담보로 통합 - 별도 담보 구성 불필요"
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-KB-2602-005",
+      "insurer": "KB손해보험",
+      "category": "레켐비 단독가입 - 골든라이프케어 간편건강보험",
+      "classification": "간편심사(3.5.5형)",
+      "details": {
+        "상품": "골든라이프케어 간편건강보험",
+        "고지유형": "3·5·5형 (간편Ⅱ)",
+        "레켐비_단독가입": "가능 - 레켐비만 가입하고 싶은 고객 대상",
+        "최저보험료": "1만원대"
+      },
+      "effective_period": "2026년 2월~"
+    },
+    {
+      "id": "UW-KB-202602-001",
+      "보험사명": "KB손해보험",
+      "상품명": "고당지 맞춤건강보험(간편가입)",
+      "질병_상해_분류": "유병자 - 고혈압/당뇨/고지혈증",
+      "질병코드": null,
+      "인수_가능여부": "조건부인수",
+      "할증률": null,
+      "할인정보": "고혈압·당뇨·고지혈증 중 하나만 없어도 최대 13% 할인",
+      "인수_조건_상세": "유병자보험 상품으로 고혈압/당뇨/고지혈증 보유자 가입 가능. 3개 만성질환 중 1개 이상 미보유 시 할인된 보험료 적용. 기존 3·10·5 기준 대비 강화된 할인 체계.",
+      "특이사항_변경사항": "업계 유일 유병자보험에서 고당지 없으면 할인 제공. 기존 3·10·5 기준보다 더 강력해진 할인. 이미 61% 고객이 할인 혜택을 받고 있음.",
+      "적용기간": "2026년 2월~",
+      "소스": "KB손보 GA소식지 2026년 2월호"
+    },
+    {
+      "id": "UW-KB-202602-002",
+      "보험사명": "KB손해보험",
+      "상품명": "KB 3대주요치료비",
+      "질병_상해_분류": "암/뇌/심장 질환",
+      "질병코드": null,
+      "인수_가능여부": "정보 미포함",
+      "할증률": null,
+      "할인정보": null,
+      "인수_조건_상세": "선지급 50%(500만 한도) 가능, 이자 차감 없음. 한도 제한 없는 3대주요치료비 수술 매회 지급.",
+      "특이사항_변경사항": "선지급 기능 추가 - 이자 차감 없는 선지급 주요치료비. 수술 매회 지급으로 한도 제한 없음.",
+      "적용기간": "2026년 2월~",
+      "소스": "KB손보 GA소식지 2026년 2월호"
+    },
+    {
+      "id": "UW-001",
+      "insurer": "신한라이프",
+      "product": "통합건강보험ONE",
+      "category": "질병",
+      "disease_classification": "암/순환기질환",
+      "disease_code": null,
+      "underwriting_status": "조건부인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "5년 이내 고지사항에서 암과 순환기 분리심사 (알릴의무 3번 限). 기왕력이 있어도 겪지 않은 질병 영역은 가입 가능",
+      "special_notes": "2/9부터 특정순환계주요치료비 1년 50% 감액 신설 (간편심사 限)",
+      "effective_period": "2026-02-02 ~ 2026-03-31",
+      "is_new": false
+    },
+    {
+      "id": "UW-002",
+      "insurer": "신한라이프",
+      "product": "ONE시리즈 건강보험",
+      "category": "질병",
+      "disease_classification": "전체",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "슈퍼ONE, 통합건강ONE, 라이트ONE 전상품 특약 라인업 동일화. 기존 67개에서 120개로 확대",
+      "special_notes": "전상품 특약 라인업 통일",
+      "effective_period": "2026-02-09~",
+      "is_new": false
+    },
+    {
+      "id": "UW-003",
+      "insurer": "한화생명",
+      "product": "시그니처H통합건강",
+      "category": "질병",
+      "disease_classification": "무릎관절/연골질환",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "80+특약 납입면제형 출시 (80세 이후 전환을 통해 100세까지 보장). 치료비 70% 선지급 (700만원 한도)",
+      "special_notes": "업계 유일 카티라이프 치료 보장 (1,500만/최초1회). 재해수술 및 골절진단(갱) 기존 한도 50만→100만(회당). 암주요치료보장특약, 암주요치료보장특약Ⅱ 기존 한도 3,000만→5,000만",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-004",
+      "insurer": "한화생명",
+      "product": "제로백H종신",
+      "category": "종신",
+      "disease_classification": null,
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "5년 시점 환급율 개선 (기존 34%→68%). 7년 시점 100%",
+      "special_notes": "7년 이후 스마트전환, 적립전환 가능. 10년 이후 연금전환 가능",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-005",
+      "insurer": "한화생명",
+      "product": "H간병 (치매보장플랜)",
+      "category": "질병",
+      "disease_classification": "치매",
+      "disease_code": "F00,F01,F02,F03",
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "표적치매약물허가치료비 20년 갱신형 신설 (80세까지 동일한도)",
+      "special_notes": "1회한 1,000만 + 1회당 30만 (최대 36회)",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-006",
+      "insurer": "DB생명",
+      "product": "700암치료+종신보험",
+      "category": "종신/암",
+      "disease_classification": "암",
+      "disease_code": null,
+      "underwriting_status": "조건부인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "1종(암납입면제형): 암진단시 자동납입면제. 가입나이-일반(남56,여63), 간편(남50,여52). 2종(일반형): 암진단시 암보험료납입면제특약 활용 납입면제 가능. 가입나이-일반(남65,여70), 간편(남60,여70)",
+      "special_notes": "체증된 사망보험금 보장 + 암진단시 납입면제 & 암주요치료비 보장(의무부가특약). 7년 시점 환급율 100% 확정 및 금리연동형 종신보험 전환 가능(피보험자 변경O). 신상품 출시 기념 3개월간 종합병원 암주요치료비 타사합산 제외. 영수P 10만원↑ 헬스케어서비스(일본 중입자치료 중개)",
+      "effective_period": "2026-02~",
+      "is_new": true
+    },
+    {
+      "id": "UW-007",
+      "insurer": "메트라이프",
+      "product": "백만인을위한달러종신PLUS",
+      "category": "종신",
+      "disease_classification": null,
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "사망 최대 150% 체증. 원화 고정납입 옵션: 환율변동에도 고정된 원화로 납입 가능",
+      "special_notes": "10년 시점 환급율: 5년납(일반124.9%, 간편122%) / 7년납(일반124.8%, 간편121.8%). 달러저축전환시 피보험자 변경 가능(공시이율 4.3%_2601기준)",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-008",
+      "insurer": "하나생명",
+      "product": "건강보험",
+      "category": "질병",
+      "disease_classification": "전체",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "1-5종 수술특약 한도 변경 (1~3종 10/20/50만→20/40/100만)",
+      "special_notes": "고액항암(표적, 중입자 등) 3월부터 업계누적 4억",
+      "effective_period": "2026-03~",
+      "is_new": false
+    },
+    {
+      "id": "UW-009",
+      "insurer": "교보생명",
+      "product": "K-밸류업종신",
+      "category": "종신",
+      "disease_classification": null,
+      "disease_code": null,
+      "underwriting_status": "조건부인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "라이트: 1년 경과~ 연 8% 정률체증, 최대 431%. 가입나이 표준 70세/간편 68세. 프라임: 1년 경과~ 납입기간 연 10% 정률체증, 이후 10년간 5% 정률체증, 최대 1,203% 체증",
+      "special_notes": "해약환급률 7년 시점 100% 도달 (이후 100% 고정)",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-010",
+      "insurer": "교보생명",
+      "product": "마이플랜건강보험",
+      "category": "질병",
+      "disease_classification": "고혈압/당뇨/대상포진/통풍",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "고당대통 보장: 고혈압 500만(고지혈증 100만) / 당뇨 500만 / 대상포진 150만 / 통풍 100만",
+      "special_notes": null,
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-011",
+      "insurer": "삼성생명",
+      "product": "The라이트건강/The퍼스트건강",
+      "category": "질병",
+      "disease_classification": "뇌혈관/심장질환",
+      "disease_code": null,
+      "underwriting_status": "조건부인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "[인카x삼성생명] 혈전용해/혈전제거 인수 우대플랜. 혈전용해 & 혈전제거 각 5천만원",
+      "special_notes": "인수 우대 기간 한정 플랜",
+      "effective_period": "2026-01-06 ~ 2026-03-31",
+      "is_new": false
+    },
+    {
+      "id": "UW-012",
+      "insurer": "삼성생명",
+      "product": "The퍼스트건강",
+      "category": "질병",
+      "disease_classification": "암/순환계",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "신규담보 다수 출시: 통합치료특약 3종(암통치/비급여암통치/주요순환계질환통합치료), 복합치료특약 2종, 표적항암약물/특정표적방사성치료(리간드치료), 3대질병 간병인/간호간병",
+      "special_notes": "리간드 치료 보장 신설",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-013",
+      "insurer": "삼성생명",
+      "product": "New플러스원건강",
+      "category": "질병",
+      "disease_classification": "전체",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "유병자(3.1.5)~우량체(5.10.5) 통합형. 3040세대 10년 완납시 111%대 환급율 플랜 가능",
+      "special_notes": "2026-01-13 출시",
+      "effective_period": "2026-01-13~",
+      "is_new": true
+    },
+    {
+      "id": "UW-014",
+      "insurer": "KB라이프",
+      "product": "KB딱좋은건강보험",
+      "category": "질병",
+      "disease_classification": "순환계",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "신규담보: 순환계주요치료비 (순환계주요치료plus 2천만 / 상급종합병원순환계주요치료plus 2천만). 치료별 각 연 1회, 수술 매회 보장 (기존 연간 1회한→수술 1회당)",
+      "special_notes": null,
+      "effective_period": "2026-02-09~",
+      "is_new": false
+    },
+    {
+      "id": "UW-015",
+      "insurer": "KB라이프",
+      "product": "건강 전상품(일부상품 제외)",
+      "category": "질병",
+      "disease_classification": "전체",
+      "disease_code": null,
+      "underwriting_status": "조건부인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "(2월 한시) 간병인사용입원특약: ①주계약 연계조건X ②요양병원 입원 7만원(전연령)",
+      "special_notes": "2월 한시 운영",
+      "effective_period": "2026-02-01 ~ 2026-02-28",
+      "is_new": false
+    },
+    {
+      "id": "UW-016",
+      "insurer": "미래에셋생명",
+      "product": "M-케어0세부터건강보험",
+      "category": "질병",
+      "disease_classification": "암/순환계/재해",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "신규담보: ①암주요치료비 3종 출시(만기보장, 치료별 연1회), 전이암주요치료비, 항암호르몬약물치료특약 ②순환계진단비 & 통합치료비 ③통합재해진단특약(경증/중등증/중증). 질병수술특약 1년 미만 50% 신설",
+      "special_notes": null,
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-017",
+      "insurer": "미래에셋생명",
+      "product": "M-케어건강보험",
+      "category": "질병",
+      "disease_classification": "순환계/부정맥/심부전",
+      "disease_code": null,
+      "underwriting_status": "조건부인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "(표준,간편) 가입즉시 보장: 1-5종수술특약, 특정순환계질환치료. 무사고계약전환(3.0.5~3.5.5). 부정맥, 심부전 각 3천 플랜: (부정맥,심부전) 진단비 각 1천만 + 심장질환 산정특례대상 보장 최대 2천만",
+      "special_notes": "가입 즉시 보장 가능한 특약 있음",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-018",
+      "insurer": "라이나생명",
+      "product": "새로담는건강보험",
+      "category": "질병",
+      "disease_classification": "뇌혈관/심혈관/대상포진/통풍",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "통합심뇌혈관주요치료, 하이클래스통합심뇌혈관주요치료 특약 출시. 기존: 뇌졸중, 특정심장질환 보장→변경: 뇌혈관질환, 허혈성심장질환",
+      "special_notes": "뇌심대통: 뇌혈관질환, 심혈관질환 각 3천만원(3월까지 한도 상향). 대상포진, 통풍 각 200만원",
+      "effective_period": "2026-02~ (한도상향 ~2026-03)",
+      "is_new": false
+    },
+    {
+      "id": "UW-019",
+      "insurer": "농협생명",
+      "product": "스텝업700 NH종신",
+      "category": "종신",
+      "disease_classification": null,
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "환급률 7년 100% / 10년 107.7%. 당월분 제외 최대 11개월분 선납 가능(할인적용). 카드납(농협,롯데,현대,BC)",
+      "special_notes": null,
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-020",
+      "insurer": "메리츠화재",
+      "product": "안심되는치매통합케어",
+      "category": "질병",
+      "disease_classification": "치매/뇌경색/파킨슨",
+      "disease_code": "F00,F01,F02,F03,F05.1,G31.82,G30,G20,G91.2,I63",
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "①표적치매약물허가치료비(레켐비): 1회이상 500만/7회이상 1,000만/13회이상 500만→최대 2,000만. ②치매통치(치매주요질환통합치료비): 검사→치료→합병증→재활 포괄보장. ③CDR척도검사비: 매년 10만",
+      "special_notes": "치매 외 뇌경색, 파킨슨, 정상압수두증도 보장 (뇌경색은 치매통치Ⅱ 고급형 가입시). 일반심사/3.1.5간편심사 모두 가능",
+      "effective_period": "2026-02~",
+      "is_new": true
+    },
+    {
+      "id": "UW-021",
+      "insurer": "메리츠화재",
+      "product": "올케어꽉채운골키퍼건강",
+      "category": "질병",
+      "disease_classification": "무릎관절/연골질환",
+      "disease_code": "M17,S83.3",
+      "underwriting_status": "조건부인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "관절질환 경증, 중증 보장→인공관절 수술시 최대 910만. 카티스템 줄기세포 최대 1,000만. 무릎관절염으로 치료 중에도 가입 가능 (가입 전 질병도 보장)",
+      "special_notes": "치료 중인 질병도 보장하는 점이 핵심 차별점",
+      "effective_period": "2026-02~",
+      "is_new": true
+    },
+    {
+      "id": "UW-022",
+      "insurer": "DB손보",
+      "product": "전상품(일부상품 제외)",
+      "category": "질병/상해",
+      "disease_classification": "전체",
+      "disease_code": null,
+      "underwriting_status": "조건부인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "간병인사용 상해입원일당 20만원→15만원 (2/14부터). 간병인 20만 간병인 연계 PASS. 한도상향: 암생활비, 순환계생활비 각 최대 3천만(2가지 치료시 2천만, 3가지 치료시 3천만)",
+      "special_notes": "표적치매약물 보장금액: 1회 500만/7회 1,000만/13회 150만/19회 550만→최대 2,200만",
+      "effective_period": "2026-02-14~",
+      "is_new": false
+    },
+    {
+      "id": "UW-023",
+      "insurer": "흥국화재",
+      "product": "3.10.5/3.6.5/건강한0550",
+      "category": "질병",
+      "disease_classification": "전체",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "인카특화플랜 (질병 1-5종 수술동반입원비 가입금액 2배). 당/타사 누적 X",
+      "special_notes": "운영기간: 1/26~3/31 (조기종료 가능)",
+      "effective_period": "2026-01-26 ~ 2026-03-31",
+      "is_new": false
+    },
+    {
+      "id": "UW-024",
+      "insurer": "흥국화재",
+      "product": "전상품(일부상품 제외)",
+      "category": "질병/상해",
+      "disease_classification": "전체",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "표적치매치료제 업계누적 신설. 일배책 가입시 상해사망 1억 연계. 운전자 영수P 3만 초과시 적립P 50% 초과 불가",
+      "special_notes": "(~2월까지) 간병인사용 입원비 20만 / 최소보험료 1만 / 항암방사선약물치료비, 고액항암류 업계누적 X",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-025",
+      "insurer": "현대해상",
+      "product": "전상품(일부상품 제외)",
+      "category": "질병",
+      "disease_classification": "암/전체",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "하이클래스 암주요치료비 수술 회당 지급 (항암방사선, 약물치료 각 연 1회). 하이클래스 암특정치료비 항목별 연 1회. 질병 1-5종 수술비 (대장용종 2종, 50만). 주요치료비 70% 선지급(500만 한도)",
+      "special_notes": "간병인사용일당 1년 내내 20만 (2Q-PASS). 지급기준: 금액기준(8만원 이상)",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-026",
+      "insurer": "KB손보",
+      "product": "고당지 맞춤간편건강보험",
+      "category": "질병",
+      "disease_classification": "고혈압/당뇨/고지혈증",
+      "disease_code": null,
+      "underwriting_status": "조건부인수",
+      "surcharge_rate": "-13% (최대할인)",
+      "underwriting_conditions": "고혈압, 고지혈증, 당뇨 중 하나만 없어도 할인. 3개 다 없으면 3.10.5보다 최대 13% 할인 (3.5.5/3.10.5)",
+      "special_notes": "건강상태에 따른 할인형 상품",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-027",
+      "insurer": "KB손보",
+      "product": "전상품(일부상품 제외)",
+      "category": "질병",
+      "disease_classification": "암/순환계/폐질환",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "신규담보: 암주요치료생활비 / 순환계질환 주요치료 생활비 (4가지 치료 최대 2천까지 보장) / 주요폐질환진단비",
+      "special_notes": null,
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-028",
+      "insurer": "KB손보",
+      "product": "골든라이프케어간편건강",
+      "category": "질병",
+      "disease_classification": "치매",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "치매통합치료비 / 레켐비 1만원 플랜 운영 (최초1회 300만, 7회이상 1,000만, 14회이상 700만→최대 2,000만)",
+      "special_notes": null,
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-029",
+      "insurer": "한화손보",
+      "product": "시그니처여성건강보험4.0",
+      "category": "질병",
+      "disease_classification": "여성질환/임신출산/난임",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "임신출산, 난임치료, 산후관리까지 올인원 보장. 유갑생 치료비 매년 최대 2천 한도(자궁포함 25종 수술 매회 보장). 임신출산: ①임신지원금 50만 ②쌍둥이출산 최대 400만 ③제왕절개 총 100만. 난임치료: ①난임진단 100만 ②난임치료 최대 650만 ③착상검사 200만. 산후관리: ①산후조리원 최대 140만 ②난임후출산 400만 ③난소과다자극 50만",
+      "special_notes": "시그니처 할인: 건강체-무사고계약전환(1년마다) / 간편-2년마다 전환시 할인(3.0.5→3.10.5) / 가족할인",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-030",
+      "insurer": "한화손보",
+      "product": "더경증간편건강보험Ⅱ",
+      "category": "질병",
+      "disease_classification": "전체",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "간병인사용 입원생활비(15/6/7만) – 180일 면책 X. 요양병원도 365일 보장. 가족간병, 공동간병 가능. '8시간' 기준 문구 X",
+      "special_notes": "면책기간 없는 간병인 사용 입원생활비가 차별점",
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-031",
+      "insurer": "롯데손보",
+      "product": "생활상해종합보험",
+      "category": "상해",
+      "disease_classification": "상해전체",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "상해 진단부터 치료까지 All-Care. 실속형: 업계누적 X. 일반형, 고급형: 타사누적 X. 골절진단비 70만(치아파절포함 20만, 치아파절제외 30만, 통합상해진단비 20만)",
+      "special_notes": null,
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-032",
+      "insurer": "롯데손보",
+      "product": "전상품(일부상품 제외)",
+      "category": "질병/상해",
+      "disease_classification": "전체",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "간병인사용일당 20만(요양제외 15만 + 종합병원 5만). 타사에 간병인사용일당(상급종합병원) 없다면 추가로 20만원 가능",
+      "special_notes": null,
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-033",
+      "insurer": "삼성화재",
+      "product": "전상품(일부상품 제외)",
+      "category": "질병",
+      "disease_classification": "암/전체",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "비급여통합치료비: 연간 최대 1억(갑상선, 기타피부암-일반암 보장금액의 100% 보장)",
+      "special_notes": null,
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-034",
+      "insurer": "삼성화재",
+      "product": "내돈내삼/마이핏/새로고침",
+      "category": "질병",
+      "disease_classification": "암/순환계",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "신규담보: (암/순환계) 종합병원 복합치료 회복지원금 각 매년 최대 1,500만(연 2가지 이상 복합치료시)",
+      "special_notes": null,
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-035",
+      "insurer": "삼성화재",
+      "product": "대상상품",
+      "category": "질병",
+      "disease_classification": "암/치매/대상포진/통풍",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "3대 주요치료비 선지급 (소급적용: 26년 1월 1일 계약부터). 표적치매치료비 전상품 탑재. 대상포진 300만 / 통풍 200만",
+      "special_notes": "소급적용이 핵심",
+      "effective_period": "2026-01-01~ (소급적용)",
+      "is_new": false
+    },
+    {
+      "id": "UW-036",
+      "insurer": "하나손보",
+      "product": "하나더베스트운전자상해",
+      "category": "상해",
+      "disease_classification": "상해전체",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "신규담보: 상해통합치료비 검사-치료-수술-재활 등 통합보장 (3개월 간편고지, 업계누적 X). 업계 최저수준 보험료(특히 여성). 3급 직업군도 동일 보험료. 20년납 20년만기",
+      "special_notes": null,
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-037",
+      "insurer": "하나손보",
+      "product": "하나더퍼스트더건강",
+      "category": "질병",
+      "disease_classification": "뇌/심장",
+      "disease_code": null,
+      "underwriting_status": "조건부인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "뇌심 진단비 각 1천만 업계누적 X. 간편심사 N년 입원,수술: 2대질환만 심사. 당사 사용인 가입 가능",
+      "special_notes": null,
+      "effective_period": "2026-02~",
+      "is_new": false
+    },
+    {
+      "id": "UW-038",
+      "insurer": "하나손보",
+      "product": "하나더넥스트치매간병보험",
+      "category": "질병",
+      "disease_classification": "치매",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "(~2월까지) 레켐비(회당 100만, 최대 3,600만). 최저보험료 1만. 배타적사용권 – 경도인지장애(방문인지교육)",
+      "special_notes": "2월까지 한시 운영 조건 포함",
+      "effective_period": "2026-02~ (~2월까지 특별조건)",
+      "is_new": false
+    },
+    {
+      "id": "UW-039",
+      "insurer": "농협손보",
+      "product": "올원더풀백년동행간병",
+      "category": "질병",
+      "disease_classification": "치매/간병",
+      "disease_code": null,
+      "underwriting_status": "정상인수",
+      "surcharge_rate": null,
+      "underwriting_conditions": "레캠비 최대 3,080만(1회, 4회 각 100만, 7회차 1,000만, 19회 800만 / 치료 회당 30만x36회). 비갱신형. 시설, 재가 월 100만 플랜: 1-5등급 및 인지지원, 주야간보호 30만 / 1-5등급 복합재가급여(월1회한) 70만",
+      "special_notes": "비갱신형이 핵심 차별점",
+      "effective_period": "2026-02~",
+      "is_new": false
+    }
+  ]
+}
