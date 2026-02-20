@@ -406,13 +406,13 @@ app.post('/api/analyze-file', async (req, res) => {
     const base64Data = file.includes('base64,') ? file.split('base64,')[1] : file;
     const isImage = fileType && (fileType.startsWith('image/') || fileType.includes('image'));
     if (isImage) {
-      console.log('🏥 [보험분석] Claude Vision 이미지 분석:', fileName);
+      console.log('🏥 [보험분석] Claude Vision 이미지 분석:', fileName, 'fileType:', fileType);
       const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
       const cvResponse = await anthropic.messages.create({
         model: 'claude-sonnet-4-5-20250929',
         max_tokens: 4000,
         messages: [{ role: 'user', content: [
-          { type: 'image', source: { type: 'base64', media_type: fileType || 'image/jpeg', data: base64Data } },
+          { type: 'image', source: { type: 'base64', media_type: (['image/jpeg','image/png','image/gif','image/webp'].includes(fileType)) ? fileType : 'image/jpeg', data: base64Data } },
           { type: 'text', text: `당신은 대한민국 최고의 보험 전문 분석가이자 20년 경력 CFP입니다. 이 서류를 분석하고 보험 상품을 추천해주세요.
 
 ## 서류 분석
